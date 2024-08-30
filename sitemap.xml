@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+<url>
+	<loc>izuck.tiiny.host</loc>
+	<lastmod>2024-08-28</lastmod>
+	<changefreq>Weekly</changefreq>
+	<priority>1.0</priority>
+	<image:image>
+	<image:loc>izuck.tiiny.host/img/log_in_bg.png</image:loc>
+	<image:title>log_in_bg</image:title>
+	</image:image>
+	<image:image>
+	<image:loc>izuck.tiiny.host/img/log_in_bg.webp</image:loc>
+	<image:title>log_in_bg</image:title>
+	</image:image>
+</url>
+<url>
+	<loc>izuck.tiiny.host/homepage/</loc>
+	<lastmod>2024-08-28</lastmod>
+	<changefreq>Weekly</changefreq>
+	<priority>0.5</priority>
+</url>
+</urlset>
