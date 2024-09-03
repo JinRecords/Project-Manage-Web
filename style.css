@@ -49,6 +49,13 @@ nav .dropdown-menu .nav-link{color:rgba(0,0,0,0.6)!important;} /* Maintain Downd
 	position:relative;
 }
 
+
+/* Sizes */
+
+.bloc-lg{
+	padding:100px 20px;
+}
+
 /* = Full Width Blocs 
 -------------------------------------------------------------- */
 
@@ -184,9 +191,22 @@ button{
 	outline: none!important;
 }
 
+.icon-spacer{
+	margin-right:5px;
+}
+
+/* = Icons
+-------------------------------------------------------------- */
+.icon-md{
+	font-size:30px!important;
+}
 
 
-
+/* = Text & Icon Styles
+-------------------------------------------------------------- */
+.sm-shadow{
+	text-shadow:0 1px 2px rgba(0,0,0,.3);
+}
 
 
 .card-sq, .card-sq .card-header, .card-sq .card-footer{
@@ -275,6 +295,41 @@ h1,h2,h3,h4,h5,h6,p,label,.btn,a{
 	font-family:"Poppins";
 	font-size:16px;
 }
+.h4-style{
+	font-family:"Poppins";
+	font-size:22px;
+}
+.btn-button-style{
+	width:100%;
+	padding-top:10px;
+	padding-bottom:10px;
+	font-family:"Poppins";
+	text-decoration:none;
+	font-weight:500;
+	color:var(--swatch-var-7097)!important;
+	border-color:#F7F7F7!important;
+	border-radius:9px 9px 9px 9px;
+	border-style:solid;
+	border-width:3px 3px 3px 3px;
+	text-align:left;
+}
+.h3-bloc-1-style{
+	font-family:"Poppins";
+}
+.btn-clean-clicked{
+	font-family:"Poppins";
+	color:var(--swatch-var-7647)!important;
+	border-radius:9px 9px 9px 9px;
+	border-width:3px 3px 3px 3px;
+	border-color:var(--swatch-var-5665)!important;
+	border-style:solid;
+	font-weight:500;
+}
+.btn-style{
+	width:100%;
+	padding-top:10px;
+	padding-bottom:10px;
+}
 
 /* = Colour
 -------------------------------------------------------------- */
@@ -282,13 +337,23 @@ h1,h2,h3,h4,h5,h6,p,label,.btn,a{
 /* Swatch Variables */
 :root{
 	
-	--swatch-var-7097:#000000;
+	--swatch-var-7097:rgba(64,70,86,1.00);
 	
-	--swatch-var-672:#6E6AF0;
+	--swatch-var-672:rgba(110,106,240,1.00);
+	
+	--swatch-var-7647:rgba(255,255,255,1.00);
+	
+	--swatch-var-5665:rgba(247,247,247,1.00);
 	
 }
 
 
+
+/* Text colour styles */
+
+.tc-7097{
+	color:var(--swatch-var-7097)!important;
+}
 
 /* Button colour styles */
 
@@ -299,6 +364,29 @@ h1,h2,h3,h4,h5,h6,p,label,.btn,a{
 .btn-c-672:hover{
 	background:#3B37BD!important;
 	color:#FFFFFF!important;
+}
+.btn-c-7647{
+	background:var(--swatch-var-7647);
+	color:rgba(0,0,0,.5)!important;
+}
+.btn-c-7647:hover{
+	background:#CCCCCC!important;
+	color:rgba(0,0,0,.5)!important;
+}
+
+/* Icon colour styles */
+
+.icon-672{
+	color:var(--swatch-var-672)!important;
+	border-color:var(--swatch-var-672)!important;
+}
+.icon-7097{
+	color:var(--swatch-var-7097)!important;
+	border-color:var(--swatch-var-7097)!important;
+}
+.icon-7647{
+	color:var(--swatch-var-7647)!important;
+	border-color:var(--swatch-var-7647)!important;
 }
 
 
