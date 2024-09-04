@@ -330,6 +330,13 @@ h1,h2,h3,h4,h5,h6,p,label,.btn,a{
 	padding-top:10px;
 	padding-bottom:10px;
 }
+.btn-8-style{
+	width:100%;
+	border-width:3px 3px 3px 3px;
+	border-radius:9px 9px 9px 9px;
+	border-style:solid;
+	border-color:var(--swatch-var-5665)!important;
+}
 
 /* = Colour
 -------------------------------------------------------------- */
