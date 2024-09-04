@@ -1,37 +1,30 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="keywords" content="">
     <meta name="description" content="">
-    
-	<link rel="canonical" href="https://jinrecords.github.io/izuckdigital.github.io/">
-	<meta name="robots" content="index, follow">
+
+    <link rel="canonical" href="izuck.tiiny.host/">
+    <meta name="robots" content="index, follow">
     <link rel="shortcut icon" type="image/jpeg" href="favicon.jpeg">
-    
-	<link rel="stylesheet" type="text/css" href="./css/bootstrap.min.css?2917">
-	<link rel="stylesheet" type="text/css" href="style.css?4034">
-	<link rel="stylesheet" type="text/css" href="./css/animate.min.css?9837">
-	<link rel="stylesheet" type="text/css" href="./css/feather.min.css">
-	<link rel="stylesheet" type="text/css" href="./css/all.min.css">
-	<link rel="stylesheet" type="text/css" href="./css/ionicons.min.css">
-	<link href='https://fonts.googleapis.com/css?family=Poppins:100,500,700,40&display=swap&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+
+    <link rel="stylesheet" type="text/css" href="./css/bootstrap.min.css?5965">
+    <link rel="stylesheet" type="text/css" href="style.css?9329">
+    <link rel="stylesheet" type="text/css" href="./css/animate.min.css?7006">
+    <link rel="stylesheet" type="text/css" href="./css/feather.min.css">
+    <link rel="stylesheet" type="text/css" href="./css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="./css/ionicons.min.css">
+    <link href='https://fonts.googleapis.com/css?family=Poppins:100,500,700,40&display=swap&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
     <title>Login</title>
 
-<head>
-  <style>
-    html, body {
-      overflow: hidden;
-      height: 100%;
-    }
-  </style>
-</head>
-
-    
-<!-- Analytics -->
- 
-<!-- Analytics END -->
-    
+    <style>
+        html, body {
+            overflow: hidden;
+            height: 100%;
+        }
+    </style>
 </head>
 <body>
 
@@ -39,52 +32,77 @@
 <div id="page-loading-blocs-notifaction" class="page-preloader"></div>
 <!-- Preloader END -->
 
-
 <!-- Main container -->
 <div class="page-container">
-    
-<!-- bloc-0 -->
-<div class="bloc l-bloc none nonein full-width-bloc" id="bloc-0">
-	<div class="container bloc-no-padding-lg">
-		<div class="row g-0">
-			<div class="order-md-0 col-md-12 col-lg-6 order-lg-1 offset-lg-1">
-				<picture><source type="image/webp" srcset="img/lazyload-ph.png" data-srcset="img/log_in_bg.webp"><img src="img/lazyload-ph.png" data-src="img/log_in_bg.png" class="img-fluid mx-auto d-lg-block d-md-none d-sm-block d-none lazyload" alt="log_in_bg" width="1120" height="1648"></picture>
-			</div>
-			<div class="offset-md-1 col-md-10 col-sm-10 offset-sm-1 col-10 offset-1 text-lg-center align-self-center col-lg-4 offset-lg-1 mb-lg-5 pb-lg-5">
-				<h2 class="mg-md h2-style text-lg-center tc-7097">
-					<strong>LOGIN</strong>
-				</h2>
-				<h3 class="mg-md h3-style text-lg-center">
-					Type your username and password provided by the admin below
-				</h3>
-				<div class="form-group mb-3">
-					<input class="form-control" placeholder="Username" required="" data-validation-required-message="Please enter a valid username" id="login-username">
-				</div>
-				<div class="form-group mb-3">
-					<input class="form-control" type="password" placeholder="Password" required="" data-validation-required-message="Please enter correct password" id="login-password">
-				</div>
-				<div class="text-center">
-					<a href="./https/jinrecordsgithubio/izuckdigitalgithubio/Homepage/homepage/" class="btn btn-c-672 animated pulse-hvr btn-lg" id="login-button">Login now</a>
-				</div>
-				<h1 class="mb-4">
-					&nbsp;<br><br><br>
-				</h1>
-			</div>
-		</div>
-	</div>
-</div>
-<!-- bloc-0 END -->
+
+    <!-- bloc-0 -->
+    <div class="bloc l-bloc none nonein full-width-bloc" id="bloc-0">
+        <div class="container bloc-no-padding-lg">
+            <div class="row g-0">
+                <div class="order-md-0 col-md-12 col-lg-6 order-lg-1 offset-lg-1">
+                    <picture>
+                        <source type="image/webp" srcset="img/lazyload-ph.png" data-srcset="img/log_in_bg.webp">
+                        <img src="img/lazyload-ph.png" data-src="img/log_in_bg.png" class="img-fluid mx-auto d-lg-block d-md-none d-sm-block d-none lazyload" alt="log_in_bg" width="1120" height="1648">
+                    </picture>
+                </div>
+                <div class="offset-md-1 col-md-10 col-sm-10 offset-sm-1 col-10 offset-1 text-lg-center align-self-center col-lg-4 offset-lg-1 mb-lg-5 pb-lg-5">
+                    <h2 class="mg-md h2-style text-lg-center tc-7097">
+                        <strong>LOGIN</strong>
+                    </h2>
+                    <h3 class="mg-md h3-style text-lg-center">
+                        Type your username and password provided by the admin below
+                    </h3>
+                    <form id="loginForm">
+                        <div class="form-group mb-3">
+                            <input class="form-control" placeholder="Username" required data-validation-required-message="Please enter a valid username" id="username" name="username">
+                        </div>
+                        <div class="form-group mb-3">
+                            <input class="form-control" type="password" placeholder="Password" required data-validation-required-message="Please enter correct password" id="password" name="password">
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-c-672 animated pulse-hvr btn-lg" id="login-button">Login now</button>
+                        </div>
+                    </form>
+                    <h1 class="mb-4">
+                        &nbsp;<br><br><br>
+                    </h1>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- bloc-0 END -->
 
 </div>
 <!-- Main container END -->
-    
-
 
 <!-- Additional JS -->
-<script src="./js/bootstrap.bundle.min.js?3058"></script>
-<script src="./js/blocs.min.js?6353"></script>
-<script src="./js/lazysizes.min.js" defer></script><!-- Additional JS END -->
+<script src="./js/bootstrap.bundle.min.js?1828"></script>
+<script src="./js/blocs.min.js?6440"></script>
+<script src="./js/lazysizes.min.js" defer></script>
+<!-- Additional JS END -->
 
+<script>
+    // Simulated user data (replace this with actual server-side verification in a real application)
+    const users = {
+        'test1': 'password123',
+        'test2': 'password123',
+        'test3': 'password123'
+    };
+
+    document.getElementById('loginForm').addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent form submission
+
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        // Verify login credentials
+        if (users[username] && users[username] === password) {
+            window.location.href = './homepage/'; // Redirect on success
+        } else {
+            alert('Invalid username or password'); // Alert on failure
+        }
+    });
+</script>
 
 </body>
 </html>
