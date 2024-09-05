@@ -185,6 +185,46 @@
             border-top: 1px solid #959BA3;
             margin: 10px 0;
         }
+
+        /* Card Styling */
+        .card {
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            border-radius: 10px 10px 0 0;
+            padding: 10px 20px;
+        }
+        .card-body {
+            padding: 20px;
+        }
+        .card-body button {
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        /* Main page button styles */
+        .card-body .btn-secondary {
+            background-color: #6E6AF0;
+            color: white;
+            border-radius: 20px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            padding: 5px 10px;
+            border: none;
+        }
+        .card-body .btn-secondary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+        }
     </style>
 
 <!-- Analytics -->
@@ -222,6 +262,28 @@
 			</div>
 			<div class="col">
 				<div class="form-group mb-3">
+					<!-- Card -->
+          <div class="card">
+            <div class="card-header">
+                <h3 class="mg-clear">Title</h3>
+            </div>
+            <div class="card-body">
+                <p>Description</p>
+                <!-- Priority and Assignee buttons in the same row -->
+                <div class="d-flex mb-2">
+                    <button class="btn btn-secondary me-2" disabled>Priority</button>
+                    <button class="btn btn-secondary" disabled>Assignee</button>
+                </div>
+                <!-- Sprint button in the next row -->
+                <div class="mb-2">
+                    <button class="btn btn-secondary" disabled>Sprint</button>
+                </div>
+                <!-- Tags container -->
+                <div class="tags-container" id="tags-container"></div>
+            </div>
+        </div>
+
+					<!-- Card END -->
 					<button class="btn btn-lg btn-8-style btn-c-7647" onclick="togglePopup()"><span class="special-tag-for-editing-text-with-html"></span><span class="fa fa-plus"></span></button>
 				</div>
 			</div>
@@ -408,7 +470,6 @@
         document.getElementById('sprint-input').value = s;
     }
 
-
     function setStatus(s) {
         status = s;
         const statusButtons = document.querySelectorAll('.pill-button.status-not-started');
@@ -424,4 +485,4 @@
         document.querySelector(`.pill-button.stage-${s.toLowerCase()}`).classList.add('selected');
         document.getElementById('stage-input').value = s;
     }
-</script><!-- Additional
+</script>
