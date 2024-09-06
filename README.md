@@ -1,75 +1,123 @@
 
-# iZuck Digital
+# Firebase Realtime Database API Documentation
 
-## Overview
+## Initialization
 
-This repository contains the codebase for our Project Management Tool, a web application designed to help teams manage projects, track progress, and collaborate effectively. Our tool is inspired by popular platforms like monday.com and Trello, and aims to streamline project management with customizable features tailored to our users' needs.
+Before using the Realtime Database, initialize Firebase in your application:
 
-## Team
+```javascript
+import { initializeApp } from "firebase/app";
+import { getDatabase } from "firebase/database";
 
-Our team consists of six  members, each contributing to different aspects of the project. We work collaboratively using Git for version control, with strict adherence to our Git policies to ensure smooth development and deployment processes.
+const firebaseConfig = {
+  // Your Firebase configuration object
+};
 
-## Git Workflow and Policies
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+```
 
-To maintain code quality and ensure a smooth development process, we follow these Git policies:
+## Add Data
 
-1. **Branching Strategy**:
-   - **Feature Branches**: Create a feature branch (`feature/your-feature-name`) for new features.
-   - **Bugfix Branches**: Create a bugfix branch (`bugfix/issue-description`) for fixes.
-   - **Hotfix Branches**: Create a hotfix branch (`hotfix/critical-fix`) for urgent changes that need to be addressed immediately.
+To add new data to the database:
 
-2. **Commit Messages**:
-   - Write clear and concise commit messages that describe the changes made in each commit.
-   - Commit frequently with incremental changes to keep the history clean and manageable.
+```javascript
+import { ref, push, set } from "firebase/database";
 
-3. **Merge Requests (MRs)**:
-   - All changes must go through a Merge Request (MR) before being merged into the main branch.
-   - MRs should include a detailed description of the changes, screenshots (if applicable), and references to related tasks in monday.com.
-   - Peer reviews are mandatory. A team member must review and approve the MR before it can be merged.
+function addData(path, data) {
+  const newRef = push(ref(database, path));
+  return set(newRef, data);
+}
 
-## Development Workflow
+// Usage
+addData("users", { name: "John Doe", email: "john@example.com" })
+  .then(() => console.log("Data added successfully"))
+  .catch((error) => console.error("Error adding data:", error));
+```
 
-1. **Clone the Repository**:  
-   Clone the repository to your local machine using:
-   ```bash
-   git clone https://git.infotech.monash.edu/fit2101/fit2101-s2-2024/MA_Wednesday12pm_Team6.git
-   ```
+## Fetch Data
 
-2. **Create a Branch**:  
-   Create a new branch based on the task you're working on:
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
+To retrieve data from the database:
 
-3. **Make Changes and Commit**:  
-   Work on your feature or fix and commit your changes frequently:
-   ```bash
-   git add .
-   git commit -m "A clear and concise commit message"
-   ```
+```javascript
+import { ref, get } from "firebase/database";
 
-4. **Push Your Branch**:  
-   Push your branch to the remote repository:
-   ```bash
-   git push origin feature/your-feature-name
-   ```
+function fetchData(path) {
+  return get(ref(database, path)).then((snapshot) => {
+    if (snapshot.exists()) {
+      return snapshot.val();
+    } else {
+      console.log("No data available");
+      return null;
+    }
+  });
+}
 
-5. **Open a Merge Request (MR)**:  
-   Once your work is ready, open a Merge Request on GitLab. Make sure to include:
-   - A detailed description of your changes.
-   - Screenshots or other relevant media.
-   - Links to related tasks in monday.com.
+// Usage
+fetchData("users")
+  .then((data) => console.log("Fetched data:", data))
+  .catch((error) => console.error("Error fetching data:", error));
+```
 
-6. **Peer Review and Merge**:  
-   A team member will review your MR. After approval, your changes will be merged into the main branch.
+## Edit Data
 
-## Contributions
+To update existing data in the database:
 
-We welcome contributions from the team. Please follow the established Git policies and workflow to ensure consistency and quality in the codebase.
+```javascript
+import { ref, update } from "firebase/database";
 
-## License
+function editData(path, updates) {
+  return update(ref(database, path), updates);
+}
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+// Usage
+editData("users/-NsomeUserId", { name: "Jane Doe" })
+  .then(() => console.log("Data updated successfully"))
+  .catch((error) => console.error("Error updating data:", error));
+```
 
-Last Updated: Jing Yang (30/08/2024, 19:50 PM)
+## Delete Data
 
+To remove data from the database:
+
+```javascript
+import { ref, remove } from "firebase/database";
+
+function deleteData(path) {
+  return remove(ref(database, path));
+}
+
+// Usage
+deleteData("users/-NsomeUserId")
+  .then(() => console.log("Data deleted successfully"))
+  .catch((error) => console.error("Error deleting data:", error));
+```
+
+## Real-time Listeners
+
+To listen for real-time changes in the database:
+
+```javascript
+import { ref, onValue } from "firebase/database";
+
+function listenForChanges(path, callback) {
+  const dataRef = ref(database, path);
+  return onValue(dataRef, (snapshot) => {
+    const data = snapshot.val();
+    callback(data);
+  });
+}
+
+// Usage
+const unsubscribe = listenForChanges("users", (data) => {
+  console.log("Data changed:", data);
+});
+
+// To stop listening
+// unsubscribe();
+```
+
+This API documentation provides a basic overview of common operations for the Firebase Realtime Database.
+```
+
+Note: I've removed the Firebase configuration object from the README as it contains sensitive information that should not be shared publicly. It's best to keep such configuration details in a separate, non-public file or use environment variables to manage them securely.

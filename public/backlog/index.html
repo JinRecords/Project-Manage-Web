@@ -491,30 +491,49 @@
 
         if (popup.classList.contains('open')) {
             window.tags = []; // Initialize tags as an empty array when opening the popup
-            renderTags(); // Render empty tags
+            renderPopupTags(); // Render empty tags in the popup
         }
     }
 
-    function showTagSelectionPopup() {
-        const tagSelectionPopup = document.getElementById('tag-selection-popup');
-        const tagSelection = document.getElementById('tag-selection');
-        tagSelection.innerHTML = '';
-        availableTags.forEach((tag, index) => {
-            const tagElement = document.createElement('div');
-            tagElement.classList.add('tag-selection-tag');
-            tagElement.style.backgroundColor = tagColors[index % tagColors.length];
-            tagElement.textContent = tag;
-            tagElement.addEventListener('click', function() {
-                if (!window.tags.some(t => t.name === tag)) {
-                    window.tags.push({ name: tag, color: tagColors[index % tagColors.length] });
-                }
-                renderTags();
-                hideTagSelectionPopup();
-            });
-            tagSelection.appendChild(tagElement);
+    function renderPopupTags() {
+    const tagsContainer = document.getElementById('popup-tags-container');
+    tagsContainer.innerHTML = '';
+    window.tags.forEach(tag => {
+        const tagElement = document.createElement('div');
+        tagElement.classList.add('tag');
+        tagElement.style.backgroundColor = tag.color;
+        tagElement.textContent = tag.name;
+        tagElement.addEventListener('click', function() {
+            const index = window.tags.findIndex(t => t.name === tag.name);
+            if (index !== -1) {
+                window.tags.splice(index, 1);
+            }
+            renderPopupTags();
         });
-        tagSelectionPopup.classList.add('open');
-    }
+        tagsContainer.appendChild(tagElement);
+    });
+}
+
+function showTagSelectionPopup() {
+    const tagSelectionPopup = document.getElementById('tag-selection-popup');
+    const tagSelection = document.getElementById('tag-selection');
+    tagSelection.innerHTML = '';
+    availableTags.forEach((tag, index) => {
+        const tagElement = document.createElement('div');
+        tagElement.classList.add('tag-selection-tag');
+        tagElement.style.backgroundColor = tagColors[index % tagColors.length];
+        tagElement.textContent = tag;
+        tagElement.addEventListener('click', function() {
+            if (!window.tags.some(t => t.name === tag)) {
+                window.tags.push({ name: tag, color: tagColors[index % tagColors.length] });
+            }
+            renderPopupTags();
+            hideTagSelectionPopup();
+        });
+        tagSelection.appendChild(tagElement);
+    });
+    tagSelectionPopup.classList.add('open');
+}
 
     function hideTagSelectionPopup() {
         const tagSelectionPopup = document.getElementById('tag-selection-popup');
@@ -635,7 +654,6 @@ window.sendFormDataToFirebase = function() {
     formData.tags = window.tags;
   }
 
-  // Validate form data
   for (let key in formData) {
     if (formData[key] === undefined || formData[key] === '') {
       console.error(`Form field ${key} is empty or undefined`);
