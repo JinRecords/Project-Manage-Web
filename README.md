@@ -120,4 +120,4 @@ const unsubscribe = listenForChanges("users", (data) => {
 This API documentation provides a basic overview of common operations for the Firebase Realtime Database.
 ```
 
-Note: I've removed the Firebase configuration object from the README as it contains sensitive information that should not be shared publicly. It's best to keep such configuration details in a separate, non-public file or use environment variables to manage them securely.
+Note: Please check discord for API information/credential.
