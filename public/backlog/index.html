@@ -373,7 +373,7 @@
 
 <!-- Popup Form -->
 <div id="popupForm" class="popup-form">
-    <form>
+    <form id="backlogForm">
         <div class="form-group">
             <label for="name">Name</label>
             <input type="text" class="form-control" id="name" placeholder="Enter name">
@@ -403,13 +403,6 @@
             <button type="button" class="pill-button priority-important" onclick="setPriority('Important')">Important</button>
             <button type="button" class="pill-button priority-urgent" onclick="setPriority('Urgent')">Urgent</button>
             <input type="hidden" id="priority-input" value="">
-        </div>
-        <div class="form-group">
-            <label for="sprint">Sprint:</label>
-            <button type="button" class="pill-button" onclick="setSprint('Sprint#1')">Sprint#1</button>
-            <button type="button" class="pill-button" onclick="setSprint('Sprint#2')">Sprint#2</button>
-            <button type="button" class="pill-button" onclick="setSprint('Sprint#3')">Sprint#3</button>
-            <input type="hidden" id="sprint-input" value="">
         </div>
         <div class="form-group">
             <label for="status">Status:</label>
@@ -571,6 +564,7 @@
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownMenu-${key}">
                         <li><a class="dropdown-item text-danger delete-item" href="#" data-item-id="${key}">Delete</a></li>
+                        <li><a class="dropdown-item text-primary edit-item" href="#" data-item-id="${key}">Edit</a></li>
                     </ul>
                 </div>
             </div>
@@ -580,11 +574,11 @@
                     <button class="btn btn-secondary me-2 card-tag" disabled style="background-color: ${getPriorityColor(item.priority)}">${item.priority}</button>
                     <button class="btn btn-secondary card-tag" disabled>${item.assignee}</button>
                 </div>
-                <div class="mb-2">
-                    <button class="btn btn-secondary card-tag" disabled>${item.sprint}</button>
-                </div>
                 <div class="tags-container">
                     ${renderCardTags(item.tags)}
+                </div>
+                <div class="mt-2">
+                    <small>Created: ${item.timeCreated}</small>
                 </div>
             </div>
         `;
@@ -627,6 +621,7 @@
 
     function togglePopup() {
         const popup = document.getElementById('popupForm');
+        const form = document.getElementById('backlogForm');
         const overlay = document.getElementById('overlay');
         popup.classList.toggle('open');
         overlay.classList.toggle('open');
@@ -634,10 +629,16 @@
         if (popup.classList.contains('open')) {
             window.tags = []; // Initialize tags as an empty array when opening the popup
             renderPopupTags(); // Render empty tags in the popup
-            
+
             // Set the current time when opening the popup
             const now = new Date();
             document.getElementById('timeCreated').value = now.toLocaleString();
+        } else {
+            // Reset the form when closing
+            form.reset();
+            const saveButton = form.querySelector('.btn-primary');
+            saveButton.textContent = 'Save Changes';
+            saveButton.onclick = handleSaveChanges;
         }
     }
 
@@ -712,13 +713,6 @@ function showTagSelectionPopup() {
         document.getElementById('priority-input').value = p;
     }
 
-    function setSprint(s) {
-        sprint = s;
-        const sprintButtons = document.querySelectorAll('.pill-button[onclick^="setSprint"]');
-        sprintButtons.forEach(button => button.classList.remove('selected'));
-        document.querySelector(`.pill-button[onclick="setSprint('${s}')"]`).classList.add('selected');
-        document.getElementById('sprint-input').value = s;
-    }
 
     function setStatus(s) {
         status = s;
@@ -834,7 +828,7 @@ function getPriorityValue(priority) {
 </script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-import { getDatabase, ref, push, get, remove } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
+import { getDatabase, ref, push, get, remove, update } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
 // Your existing Firebase configuration and initialization code here
 
 const firebaseConfig = {
@@ -874,7 +868,6 @@ window.sendFormDataToFirebase = function() {
     description: document.getElementById('description').value,
     assignee: document.getElementById('assignee').value,
     priority: document.getElementById('priority-input').value,
-    sprint: document.getElementById('sprint-input').value,
     status: document.getElementById('status-input').value,
     stage: document.getElementById('stage-input').value,
     storypoint: document.getElementById('storypoint').value,
@@ -948,5 +941,81 @@ document.addEventListener('click', function(event) {
         window.showDeleteConfirmation(itemId);
     }
 });
+document.addEventListener('click', function(event) {
+    if (event.target.classList.contains('delete-item')) {
+        event.preventDefault();
+        const itemId = event.target.getAttribute('data-item-id');
+        window.showDeleteConfirmation(itemId);
+    } else if (event.target.classList.contains('edit-item')) {
+        event.preventDefault();
+        const itemId = event.target.getAttribute('data-item-id');
+        editBacklogItem(itemId);
+    }
+});
+
+function editBacklogItem(itemId) {
+    // Fetch the item data
+    get(ref(database, `productBacklog/${itemId}`)).then((snapshot) => {
+        if (snapshot.exists()) {
+            const item = snapshot.val();
+            const form = document.getElementById('backlogForm');
+
+            // Populate the form with the item data
+            form.elements['name'].value = item.name;
+            form.elements['description'].value = item.description;
+            form.elements['assignee'].value = item.assignee;
+            setPriority(item.priority);
+            setStatus(item.status);
+            setStage(item.stage);
+            form.elements['storypoint'].value = item.storypoint;
+            form.elements['timeCreated'].value = item.timeCreated;
+
+            // Set the tags
+            window.tags = item.tags || [];
+            renderPopupTags();
+
+            // Open the popup
+            togglePopup();
+
+            // Change the save button to update
+            const saveButton = form.querySelector('.btn-primary');
+            saveButton.textContent = 'Update';
+            saveButton.onclick = function() {
+                updateBacklogItem(itemId);
+            };
+        } else {
+            console.log("No such document!");
+        }
+    }).catch((error) => {
+        console.error("Error getting document:", error);
+    });
+}
+
+function updateBacklogItem(itemId) {
+    const form = document.getElementById('backlogForm');
+    const formData = {
+        name: form.elements['name'].value,
+        description: form.elements['description'].value,
+        assignee: form.elements['assignee'].value,
+        priority: document.getElementById('priority-input').value,
+        status: document.getElementById('status-input').value,
+        stage: document.getElementById('stage-input').value,
+        storypoint: form.elements['storypoint'].value,
+        timeCreated: form.elements['timeCreated'].value,
+        tags: window.tags
+    };
+
+    // Update the item in the database
+    update(ref(database, `productBacklog/${itemId}`), formData)
+        .then(() => {
+            console.log('Data updated successfully');
+            togglePopup();
+            fetchProductBacklog(); // Refresh the product backlog
+        })
+        .catch((error) => {
+            console.error('Error updating data: ', error);
+            alert('Error updating data. Please try again.');
+        });
+}
 
 </script>
