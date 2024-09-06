@@ -236,6 +236,78 @@
           font-weight: 500;
           opacity: 1 !important;
         }
+        .custom-popup {
+          display: none;
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0, 0, 0, 0.5);
+          z-index: 1000;
+        }
+
+        .custom-popup-content {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background-color: white;
+          padding: 20px;
+          border-radius: 5px;
+          text-align: center;
+        }
+
+        .custom-popup-buttons {
+          margin-top: 20px;
+        }
+
+        .custom-popup-buttons button {
+          margin: 0 10px;
+        }
+        .three-dot-menu {
+            font-size: 20px;
+            color: #333;
+            background: none;
+            border: none;
+            padding: 0;
+          }
+
+          .three-dot-menu:after {
+            display: none;
+          }
+          #sortButton {
+            margin-right: 10px;
+        }
+
+        #sorting-popup .custom-popup-content {
+            width: 300px;
+        }
+
+        .sorting-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 200;
+        }
+
+        .sorting-option label {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .sorting-option input[type="radio"] {
+            margin-left: 10px;
+        }
+        #sortButton {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
     </style>
 
 <!-- Analytics -->
@@ -271,6 +343,11 @@
 				<a href="../" class="btn btn-lg btn-button-style mt-lg-2 btn-c-7647 mb-lg-3 float-lg-none"><span class="icon-spacer fa fa-running icon-7097 icon-md me-lg-3"></span>Sprint Board</a>
 				<a href="../" class="btn btn-lg btn-button-style mt-lg-2 btn-c-7647 mb-lg-3"><span class="icon-spacer ion ion-android-people icon-md me-lg-3"></span>Team members</a>
 			</div>
+      <div class="col-auto ml-auto">
+      <button id="sortButton" class="btn btn-secondary">
+          <i class="fas fa-sort"></i>
+      </button>
+      </div>
 			<div class="col">
 				<div class="form-group mb-3">
 					<button class="btn btn-lg btn-8-style btn-c-7647" onclick="togglePopup()"><span class="special-tag-for-editing-text-with-html"></span><span class="fa fa-plus"></span></button>
@@ -280,7 +357,17 @@
 	</div>
 </div>
 <!-- bloc-1 END -->
-
+<!-- Delete Confirmation Popup -->
+<div id="delete-confirmation-popup" class="custom-popup">
+  <div class="custom-popup-content">
+    <h4>Confirm Deletion</h4>
+    <p>Are you sure you want to delete this item?</p>
+    <div class="custom-popup-buttons">
+      <button class="btn btn-secondary" onclick="hideDeleteConfirmation()">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
 <!-- Overlay -->
 <div id="overlay" class="overlay"></div>
 
@@ -352,12 +439,17 @@
                 <option>10</option>
             </select>
         </div>
+        <div class="form-group">
+    <label for="timeCreated">Time created:</label>
+    <input type="text" class="form-control" id="timeCreated" readonly>
+</div>
         <div class="form-buttons">
           <button type="button" class="btn btn-secondary" onclick="togglePopup()">Cancel</button>
           <button type="button" class="btn btn-primary" onclick="handleSaveChanges()">Save Changes</button>
         </div>
     </form>
 </div>
+
 
 <!-- Tag Selection Popup -->
 <div id="tag-selection-popup" class="tag-selection-popup">
@@ -368,6 +460,48 @@
     </div>
 </div>
 
+<!-- Sorting Popup -->
+<div id="sorting-popup" class="custom-popup">
+    <div class="custom-popup-content">
+        <h4>Sort By</h4>
+        <div id="sorting-options">
+            <div class="sorting-option">
+                <label for="sort-default">
+                    Default
+                    <input type="radio" id="sort-default" name="sort-option" value="default" checked>
+                </label>
+            </div>
+            <div class="sorting-option">
+                <label for="sort-oldest-recent">
+                    Oldest → Recent
+                    <input type="radio" id="sort-oldest-recent" name="sort-option" value="oldest-recent">
+                </label>
+            </div>
+            <div class="sorting-option">
+                <label for="sort-recent-oldest">
+                    Recent → Oldest
+                    <input type="radio" id="sort-recent-oldest" name="sort-option" value="recent-oldest">
+                </label>
+            </div>
+            <div class="sorting-option">
+                <label for="sort-low-important">
+                    Low → Important
+                    <input type="radio" id="sort-low-important" name="sort-option" value="low-important">
+                </label>
+            </div>
+            <div class="sorting-option">
+                <label for="sort-important-low">
+                    Important → Low
+                    <input type="radio" id="sort-important-low" name="sort-option" value="important-low">
+                </label>
+            </div>
+        </div>
+        <div class="custom-popup-buttons">
+            <button class="btn btn-secondary" onclick="hideSortingPopup()">Cancel</button>
+            <button class="btn btn-primary" onclick="applySorting()">Apply</button>
+        </div>
+    </div>
+</div>
 <!-- ScrollToTop Button -->
 <button aria-label="Scroll to top button" class="bloc-button btn btn-d scrollToTop" onclick="scrollToTarget('1',this)"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 32 32"><path class="scroll-to-top-btn-icon" d="M30,22.656l-14-13-14,13"/></svg></button>
 <!-- ScrollToTop Button END-->
@@ -413,7 +547,7 @@
 
       for (const key in data) {
         const item = data[key];
-        const card = createBacklogCard(item);
+        const card = createBacklogCard(item, key);
         container.appendChild(card);
       }
 
@@ -425,28 +559,36 @@
       container.appendChild(addButton);
     }
 
-    function createBacklogCard(item) {
-      const card = document.createElement('div');
-      card.className = 'card mb-3';
-      card.innerHTML = `
-        <div class="card-header">
-          <h3 class="mg-clear">${item.name}</h3>
-        </div>
-        <div class="card-body">
-          <p>${item.description}</p>
-          <div class="d-flex mb-2">
-            <button class="btn btn-secondary me-2 card-tag" disabled style="background-color: ${getPriorityColor(item.priority)}">${item.priority}</button>
-            <button class="btn btn-secondary card-tag" disabled>${item.assignee}</button>
-          </div>
-          <div class="mb-2">
-            <button class="btn btn-secondary card-tag" disabled>${item.sprint}</button>
-          </div>
-          <div class="tags-container">
-            ${renderCardTags(item.tags)}
-          </div>
-        </div>
-      `;
-      return card;
+    function createBacklogCard(item, key) {
+        const card = document.createElement('div');
+        card.className = 'card mb-3';
+        card.innerHTML = `
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="mg-clear">${item.name}</h3>
+                <div class="dropdown">
+                    <button class="btn btn-link dropdown-toggle three-dot-menu" type="button" id="dropdownMenu-${key}" data-bs-toggle="dropdown" aria-expanded="false">
+                        ⋮
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenu-${key}">
+                        <li><a class="dropdown-item text-danger delete-item" href="#" data-item-id="${key}">Delete</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-body">
+                <p>${item.description}</p>
+                <div class="d-flex mb-2">
+                    <button class="btn btn-secondary me-2 card-tag" disabled style="background-color: ${getPriorityColor(item.priority)}">${item.priority}</button>
+                    <button class="btn btn-secondary card-tag" disabled>${item.assignee}</button>
+                </div>
+                <div class="mb-2">
+                    <button class="btn btn-secondary card-tag" disabled>${item.sprint}</button>
+                </div>
+                <div class="tags-container">
+                    ${renderCardTags(item.tags)}
+                </div>
+            </div>
+        `;
+        return card;
     }
 
     function renderCardTags(tags) {
@@ -492,6 +634,10 @@
         if (popup.classList.contains('open')) {
             window.tags = []; // Initialize tags as an empty array when opening the popup
             renderPopupTags(); // Render empty tags in the popup
+            
+            // Set the current time when opening the popup
+            const now = new Date();
+            document.getElementById('timeCreated').value = now.toLocaleString();
         }
     }
 
@@ -603,10 +749,93 @@ function showTagSelectionPopup() {
             console.error('sendFormDataToFirebase is not defined');
         }
     }
+
+    function confirmDelete(itemId) {
+    if (confirm("Are you sure you want to delete this item?")) {
+        deleteItem(itemId);
+    }
+    }
+
+    function deleteItem(itemId) {
+        const itemRef = ref(database, `productBacklog/${itemId}`);
+        remove(itemRef)
+            .then(() => {
+                console.log('Item deleted successfully');
+                fetchProductBacklog(); // Refresh the product backlog
+            })
+            .catch((error) => {
+                console.error('Error deleting item: ', error);
+                alert('Error deleting item. Please try again.');
+            });
+    }
+    window.showDeleteConfirmation = function(key) {
+        window.itemToDelete = key;
+        document.getElementById('delete-confirmation-popup').style.display = 'block';
+    }
+
+    window.hideDeleteConfirmation = function() {
+        document.getElementById('delete-confirmation-popup').style.display = 'none';
+    }
+
+    window.confirmDelete = function() {
+        if (window.itemToDelete) {
+            window.deleteData(`productBacklog/${window.itemToDelete}`);
+        }
+    }
+
+    let currentSortOption = 'default';
+
+function showSortingPopup() {
+    document.getElementById('sorting-popup').style.display = 'block';
+}
+
+function hideSortingPopup() {
+    document.getElementById('sorting-popup').style.display = 'none';
+}
+
+function applySorting() {
+    const selectedOption = document.querySelector('input[name="sort-option"]:checked').value;
+    currentSortOption = selectedOption;
+    hideSortingPopup();
+    fetchProductBacklog();
+}
+
+function sortBacklogItems(items) {
+    const itemsArray = Object.entries(items).map(([key, value]) => ({ key, ...value }));
+
+    switch (currentSortOption) {
+        case 'oldest-recent':
+            itemsArray.sort((a, b) => a.timestamp - b.timestamp);
+            break;
+        case 'recent-oldest':
+            itemsArray.sort((a, b) => b.timestamp - a.timestamp);
+            break;
+        case 'low-important':
+            itemsArray.sort((a, b) => getPriorityValue(a.priority) - getPriorityValue(b.priority));
+            break;
+        case 'important-low':
+            itemsArray.sort((a, b) => getPriorityValue(b.priority) - getPriorityValue(a.priority));
+            break;
+        default:
+            // Default sorting (recent to oldest)
+            itemsArray.sort((a, b) => b.timestamp - a.timestamp);
+    }
+
+    return itemsArray.reduce((acc, item) => {
+        acc[item.key] = item;
+        return acc;
+    }, {});
+}
+
+function getPriorityValue(priority) {
+    const priorityValues = { 'Low': 1, 'Medium': 2, 'Important': 3, 'Urgent': 4 };
+    return priorityValues[priority] || 0;
+}
 </script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-import { getDatabase, ref, push, get } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
+import { getDatabase, ref, push, get, remove } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
+// Your existing Firebase configuration and initialization code here
 
 const firebaseConfig = {
   apiKey: "AIzaSyDicFj4DUKZo2iYXZN8tUE2FcMLqmQ_cgU",
@@ -623,11 +852,12 @@ const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 const productBacklogRef = ref(database, 'productBacklog');
 
-function fetchProductBacklog() {
-  get(productBacklogRef).then((snapshot) => {
+window.fetchProductBacklog = function() {
+  get(ref(database, 'productBacklog')).then((snapshot) => {
     if (snapshot.exists()) {
       const data = snapshot.val();
-      window.renderProductBacklog(data);
+      const sortedData = sortBacklogItems(data);
+      window.renderProductBacklog(sortedData);
     } else {
       console.log("No data available");
     }
@@ -635,6 +865,7 @@ function fetchProductBacklog() {
     console.error(error);
   });
 }
+
 
 // Define sendFormDataToFirebase function
 window.sendFormDataToFirebase = function() {
@@ -646,9 +877,10 @@ window.sendFormDataToFirebase = function() {
     sprint: document.getElementById('sprint-input').value,
     status: document.getElementById('status-input').value,
     stage: document.getElementById('stage-input').value,
-    storypoint: document.getElementById('storypoint').value
+    storypoint: document.getElementById('storypoint').value,
+    timeCreated: document.getElementById('timeCreated').value,
+    timestamp: Date.now() // Keep this for sorting purposes
   };
-
   // Only add tags if they exist
   if (window.tags && window.tags.length > 0) {
     formData.tags = window.tags;
@@ -682,4 +914,39 @@ document.addEventListener('DOMContentLoaded', function() {
   //   window.sendFormDataToFirebase();
   // });
 });
+
+document.addEventListener('click', function(event) {
+    if (event.target.classList.contains('delete-item')) {
+        event.preventDefault();
+        const itemId = event.target.getAttribute('data-item-id');
+        showDeleteConfirmation(itemId);
+    }
+});
+
+window.deleteData = function(path) {
+    return remove(ref(database, path))
+        .then(() => {
+            console.log("Data deleted successfully");
+            window.hideDeleteConfirmation();
+            window.fetchProductBacklog(); // Refresh the product backlog
+        })
+        .catch((error) => {
+            console.error("Error deleting data:", error);
+            alert("Error deleting data. Please try again.");
+        });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  window.fetchProductBacklog();
+  document.getElementById('sortButton').addEventListener('click', showSortingPopup);
+});
+
+document.addEventListener('click', function(event) {
+    if (event.target.classList.contains('delete-item')) {
+        event.preventDefault();
+        const itemId = event.target.getAttribute('data-item-id');
+        window.showDeleteConfirmation(itemId);
+    }
+});
+
 </script>
