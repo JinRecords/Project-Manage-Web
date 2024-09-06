@@ -16,6 +16,10 @@
     <link rel="stylesheet" type="text/css" href="../css/all.min.css">
     <link rel="stylesheet" type="text/css" href="../css/ionicons.min.css">
     <link href='https://fonts.googleapis.com/css?family=Poppins:100,500,700,40&display=swap&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+      import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
+    </script>
     <title>Backlog</title>
 
     <!-- Styles for the popup and overlay -->
@@ -72,11 +76,13 @@
             margin-top: 5px;
         }
         .tag {
-            padding: 5px 10px;
-            border-radius: 20px;
-            color: black;
-            font-weight: 400;
-            cursor: pointer;
+          padding: 5px 10px;
+          border-radius: 20px;
+          color: black;
+          font-weight: 400;
+          display: inline-block;
+          margin-right: 5px;
+          margin-bottom: 5px;
         }
         .tag:hover {
             opacity: 0.8; /* Hover effect */
@@ -207,23 +213,28 @@
         }
         /* Main page button styles */
         .card-body .btn-secondary {
-            background-color: #6E6AF0;
-            color: white;
-            border-radius: 20px;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 500;
-            padding: 5px 10px;
-            border: none;
+          background-color: #6E6AF0;
+          border-radius: 20px;
+          font-family: 'Poppins', sans-serif;
+          font-weight: 500;
+          padding: 5px 10px;
+          border: none;
         }
+
         .card-body .btn-secondary:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
+          opacity: 1;
+          cursor: default;
         }
         .tags-container {
             display: flex;
             flex-wrap: wrap;
             gap: 5px;
             margin-top: 10px;
+        }
+        .card-tag {
+          color: black !important;
+          font-weight: 500;
+          opacity: 1 !important;
         }
     </style>
 
@@ -262,28 +273,6 @@
 			</div>
 			<div class="col">
 				<div class="form-group mb-3">
-					<!-- Card -->
-          <div class="card">
-            <div class="card-header">
-                <h3 class="mg-clear">Title</h3>
-            </div>
-            <div class="card-body">
-                <p>Description</p>
-                <!-- Priority and Assignee buttons in the same row -->
-                <div class="d-flex mb-2">
-                    <button class="btn btn-secondary me-2" disabled>Priority</button>
-                    <button class="btn btn-secondary" disabled>Assignee</button>
-                </div>
-                <!-- Sprint button in the next row -->
-                <div class="mb-2">
-                    <button class="btn btn-secondary" disabled>Sprint</button>
-                </div>
-                <!-- Tags container -->
-                <div class="tags-container" id="tags-container"></div>
-            </div>
-        </div>
-
-					<!-- Card END -->
 					<button class="btn btn-lg btn-8-style btn-c-7647" onclick="togglePopup()"><span class="special-tag-for-editing-text-with-html"></span><span class="fa fa-plus"></span></button>
 				</div>
 			</div>
@@ -309,7 +298,7 @@
         </div>
         <div class="form-group">
             <label for="tags">Tags:</label>
-            <div class="tags-container" id="tags-container"></div>
+            <div class="tags-container" id="popup-tags-container"></div>
             <button type="button" class="add-tag-button" id="add-tag-button" onclick="showTagSelectionPopup()">+</button>
         </div>
         <div class="form-group">
@@ -364,8 +353,8 @@
             </select>
         </div>
         <div class="form-buttons">
-            <button type="button" class="btn btn-secondary" onclick="togglePopup()">Cancel</button>
-            <button type="submit" class="btn btn-primary">Save Changes</button>
+          <button type="button" class="btn btn-secondary" onclick="togglePopup()">Cancel</button>
+          <button type="button" class="btn btn-primary" onclick="handleSaveChanges()">Save Changes</button>
         </div>
     </form>
 </div>
@@ -402,11 +391,108 @@
     let availableTags = ['UI', 'UX', 'Frontend', 'Backend', 'Framework', 'Testing', 'Database', 'API'];
     let tagColors = ['#FFC0CB', '#FFD7BE', '#F7DC6F', '#C6F4D6', '#9ED2C0', '#8DB8CB', '#9F9CE9', '#BE8DE4'];
 
+    function fetchProductBacklog() {
+    const dbRef = ref(database, 'productBacklog');
+    get(dbRef).then((snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        renderProductBacklog(data);
+      } else {
+        console.log("No data available");
+      }
+    }).catch((error) => {
+      console.error(error);
+    });
+    }
+
+    window.fetchProductBacklog = fetchProductBacklog;
+
+    function renderProductBacklog(data) {
+      const container = document.querySelector('.col .form-group.mb-3');
+      container.innerHTML = ''; // Clear existing content
+
+      for (const key in data) {
+        const item = data[key];
+        const card = createBacklogCard(item);
+        container.appendChild(card);
+      }
+
+      // Add the "+" button after all cards
+      const addButton = document.createElement('button');
+      addButton.className = 'btn btn-lg btn-8-style btn-c-7647';
+      addButton.onclick = togglePopup;
+      addButton.innerHTML = '<span class="fa fa-plus"></span>';
+      container.appendChild(addButton);
+    }
+
+    function createBacklogCard(item) {
+      const card = document.createElement('div');
+      card.className = 'card mb-3';
+      card.innerHTML = `
+        <div class="card-header">
+          <h3 class="mg-clear">${item.name}</h3>
+        </div>
+        <div class="card-body">
+          <p>${item.description}</p>
+          <div class="d-flex mb-2">
+            <button class="btn btn-secondary me-2 card-tag" disabled style="background-color: ${getPriorityColor(item.priority)}">${item.priority}</button>
+            <button class="btn btn-secondary card-tag" disabled>${item.assignee}</button>
+          </div>
+          <div class="mb-2">
+            <button class="btn btn-secondary card-tag" disabled>${item.sprint}</button>
+          </div>
+          <div class="tags-container">
+            ${renderCardTags(item.tags)}
+          </div>
+        </div>
+      `;
+      return card;
+    }
+
+    function renderCardTags(tags) {
+  if (!tags) return '';
+  return tags.map(tag => `<div class="tag" style="background-color: ${tag.color}; color: black;">${tag.name}</div>`).join('');
+}
+
+    function getPriorityColor(priority) {
+    const colors = {
+      'Low': '#C6F4D6',
+      'Medium': '#F7DC6F',
+      'Important': '#FFD7BE',
+      'Urgent': '#FFC0CB'
+    };
+    return colors[priority] || '#6E6AF0';
+    }
+
+    function renderTags() {
+        const tagsContainer = document.getElementById('popup-tags-container');
+        tagsContainer.innerHTML = '';
+        window.tags.forEach(tag => {
+            const tagElement = document.createElement('div');
+            tagElement.classList.add('tag');
+            tagElement.style.backgroundColor = tag.color;
+            tagElement.textContent = tag.name;
+            tagElement.addEventListener('click', function() {
+                const index = window.tags.findIndex(t => t.name === tag.name);
+                if (index !== -1) {
+                    window.tags.splice(index, 1);
+                }
+                renderTags();
+            });
+            tagsContainer.appendChild(tagElement);
+        });
+    }
+
     function togglePopup() {
         const popup = document.getElementById('popupForm');
         const overlay = document.getElementById('overlay');
         popup.classList.toggle('open');
         overlay.classList.toggle('open');
+
+        if (popup.classList.contains('open')) {
+            window.tags = []; // Initialize tags as an empty array when opening the popup
+            renderTags(); // Render empty tags
+        }
     }
 
     function showTagSelectionPopup() {
@@ -419,8 +505,8 @@
             tagElement.style.backgroundColor = tagColors[index % tagColors.length];
             tagElement.textContent = tag;
             tagElement.addEventListener('click', function() {
-                if (!tags.includes(tag)) {
-                    tags.push({ name: tag, color: tagColors[index % tagColors.length] });
+                if (!window.tags.some(t => t.name === tag)) {
+                    window.tags.push({ name: tag, color: tagColors[index % tagColors.length] });
                 }
                 renderTags();
                 hideTagSelectionPopup();
@@ -436,12 +522,12 @@
     }
 
     function renderTags() {
-        const tagsContainer = document.getElementById('tags-container');
+        const tagsContainer = document.getElementById('popup-tags-container');
         tagsContainer.innerHTML = '';
         tags.forEach(tag => {
             const tagElement = document.createElement('div');
             tagElement.classList.add('tag');
-            tagElement.style.backgroundColor = tag.color; // Use stored color
+            tagElement.style.backgroundColor = tag.color;
             tagElement.textContent = tag.name;
             tagElement.addEventListener('click', function() {
                 const index = tags.findIndex(t => t.name === tag.name);
@@ -453,7 +539,6 @@
             tagsContainer.appendChild(tagElement);
         });
     }
-
     function setPriority(p) {
         priority = p;
         const priorityButtons = document.querySelectorAll('.pill-button.priority-low, .pill-button.priority-medium, .pill-button.priority-important, .pill-button.priority-urgent');
@@ -485,4 +570,98 @@
         document.querySelector(`.pill-button.stage-${s.toLowerCase()}`).classList.add('selected');
         document.getElementById('stage-input').value = s;
     }
+    document.addEventListener('DOMContentLoaded', function() {
+  document.querySelector('#popupForm form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    window.sendFormDataToFirebase();
+  });
+});
+
+    function handleSaveChanges() {
+        if (typeof window.sendFormDataToFirebase === 'function') {
+            window.sendFormDataToFirebase();
+        } else {
+            console.error('sendFormDataToFirebase is not defined');
+        }
+    }
+</script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+import { getDatabase, ref, push, get } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDicFj4DUKZo2iYXZN8tUE2FcMLqmQ_cgU",
+  authDomain: "izuck-digital.firebaseapp.com",
+  databaseURL: "https://izuck-digital-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "izuck-digital",
+  storageBucket: "izuck-digital.appspot.com",
+  messagingSenderId: "875586622876",
+  appId: "1:875586622876:web:dab65a8d81690d7a18e459",
+  measurementId: "G-1YRPZNH521"
+};
+
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+const productBacklogRef = ref(database, 'productBacklog');
+
+function fetchProductBacklog() {
+  get(productBacklogRef).then((snapshot) => {
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+      window.renderProductBacklog(data);
+    } else {
+      console.log("No data available");
+    }
+  }).catch((error) => {
+    console.error(error);
+  });
+}
+
+// Define sendFormDataToFirebase function
+window.sendFormDataToFirebase = function() {
+  const formData = {
+    name: document.getElementById('name').value,
+    description: document.getElementById('description').value,
+    assignee: document.getElementById('assignee').value,
+    priority: document.getElementById('priority-input').value,
+    sprint: document.getElementById('sprint-input').value,
+    status: document.getElementById('status-input').value,
+    stage: document.getElementById('stage-input').value,
+    storypoint: document.getElementById('storypoint').value
+  };
+
+  // Only add tags if they exist
+  if (window.tags && window.tags.length > 0) {
+    formData.tags = window.tags;
+  }
+
+  // Validate form data
+  for (let key in formData) {
+    if (formData[key] === undefined || formData[key] === '') {
+      console.error(`Form field ${key} is empty or undefined`);
+      alert(`Please fill in the ${key} field`);
+      return; // Exit the function if any field is empty or undefined
+    }
+  }
+
+  push(productBacklogRef, formData)
+    .then(() => {
+      console.log('Data saved successfully');
+      window.togglePopup();
+      fetchProductBacklog(); // Refresh the product backlog
+    })
+    .catch((error) => {
+      console.error('Error saving data: ', error);
+      alert('Error saving data. Please try again.');
+    });
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+  fetchProductBacklog();
+  // Remove the following lines
+  // document.querySelector('#popupForm form').addEventListener('submit', function(e) {
+  //   e.preventDefault();
+  //   window.sendFormDataToFirebase();
+  // });
+});
 </script>
