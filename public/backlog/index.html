@@ -320,7 +320,7 @@
             width: 36px;
             height: 38px;
             display: inline-flex;
-            align-items: center; /* Vertically centers the content */
+            align-items: center; 
             justify-content: center;
         }
 
@@ -346,10 +346,10 @@
 
         .button-container {
         display: flex;
-        flex-wrap: wrap; /* Allows buttons to wrap to the next line */
-        justify-content: center; /* Center buttons horizontally */
-        gap: 10px; /* Space between buttons */
-        margin-bottom: 15px; /* Space below button container */
+        flex-wrap: wrap; 
+        justify-content: center; 
+        gap: 10px; 
+        margin-bottom: 15px; 
     }
 
     </style>
@@ -549,20 +549,20 @@
         <h4>Filter By</h4>
         <div id="filter-option" class="button-container">
             
-            <button class="pill-button" style="background-color: #FFC0CB;" onclick="toggleTagSelection(this, 'UI')">UI</button>
-            <button class="pill-button" style="background-color: #FFD7BE;" onclick="toggleTagSelection(this, 'UX')">UX</button>
-            <button class="pill-button" style="background-color: #F7DC6F;" onclick="toggleTagSelection(this, 'Frontend')">Frontend</button>
-            <button class="pill-button" style="background-color: #C6F4D6;" onclick="toggleTagSelection(this, 'Backend')">Backend</button>
-            <button class="pill-button" style="background-color: #9ED2C0;" onclick="toggleTagSelection(this, 'Framework')">Framework</button>
-            <button class="pill-button" style="background-color: #8DB8CB;" onclick="toggleTagSelection(this, 'Testing')">Testing</button>
-            <button class="pill-button" style="background-color: #9F9CE9;" onclick="toggleTagSelection(this, 'Database')">Database</button>
-            <button class="pill-button" style="background-color: #BE8DE4;" onclick="toggleTagSelection(this, 'API')">API</button>
+            <button class="pill-button" style="background-color: #FFC0CB;" onclick="toggleFilterTagSelection(this, 'UI')">UI</button>
+            <button class="pill-button" style="background-color: #FFD7BE;" onclick="toggleFilterTagSelection(this, 'UX')">UX</button>
+            <button class="pill-button" style="background-color: #F7DC6F;" onclick="toggleFilterTagSelection(this, 'Frontend')">Frontend</button>
+            <button class="pill-button" style="background-color: #C6F4D6;" onclick="toggleFilterTagSelection(this, 'Backend')">Backend</button>
+            <button class="pill-button" style="background-color: #9ED2C0;" onclick="toggleFilterTagSelection(this, 'Framework')">Framework</button>
+            <button class="pill-button" style="background-color: #8DB8CB;" onclick="toggleFilterTagSelection(this, 'Testing')">Testing</button>
+            <button class="pill-button" style="background-color: #9F9CE9;" onclick="toggleFilterTagSelection(this, 'Database')">Database</button>
+            <button class="pill-button" style="background-color: #BE8DE4;" onclick="toggleFilterTagSelection(this, 'API')">API</button>
                
             </label>
         </div>
         
         <div class="custom-popup-buttons">
-            <button class="btn btn-secondary" onclick="hideFilteringPopup()">Cancel</button>
+            <button class="btn btn-secondary" onclick="hideFilterPopup()">Cancel</button>
             <button class="btn btn-primary" onclick="applyFilter()">Apply</button>
         </div>
     </div>
@@ -570,27 +570,6 @@
 <!-- ScrollToTop Button -->
 <button aria-label="Scroll to top button" class="bloc-button btn btn-d scrollToTop" onclick="scrollToTarget('1',this)"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 32 32"><path class="scroll-to-top-btn-icon" d="M30,22.656l-14-13-14,13"/></svg></button>
 <!-- ScrollToTop Button END-->
-
-<!-- Filter Popup -->
-<div id="filter-popup" class="custom-popup">
-    <div class="custom-popup-content">
-        <h4>Filter By Tags</h4>
-        <div id="filter-options">
-            <label><input type="checkbox" name="filter-option" value="UI" onchange="updateCurrentFilters('UI', this.checked)"> UI</label>
-            <label><input type="checkbox" name="filter-option" value="UX" onchange="updateCurrentFilters('UX', this.checked)"> UX</label>
-            <label><input type="checkbox" name="filter-option" value="Frontend" onchange="updateCurrentFilters('Frontend', this.checked)"> Frontend</label>
-            <label><input type="checkbox" name="filter-option" value="Backend" onchange="updateCurrentFilters('Backend', this.checked)"> Backend</label>
-            <label><input type="checkbox" name="filter-option" value="Framework" onchange="updateCurrentFilters('Framework', this.checked)"> Framework</label>
-            <label><input type="checkbox" name="filter-option" value="Testing" onchange="updateCurrentFilters('Testing', this.checked)"> Testing</label>
-            <label><input type="checkbox" name="filter-option" value="Database" onchange="updateCurrentFilters('Database', this.checked)"> Database</label>
-            <label><input type="checkbox" name="filter-option" value="API" onchange="updateCurrentFilters('API', this.checked)"> API</label>
-        </div>
-        <div class="custom-popup-buttons">
-            <button class="btn btn-secondary" onclick="hideFilterPopup()">Cancel</button>
-            <button class="btn btn-primary" onclick="applyFilter()">Apply</button>
-        </div>
-    </div>
-</div>
 
 </div>
 <!-- Main container END -->
@@ -816,6 +795,20 @@ function showTagSelectionPopup() {
             button.style.opacity = '0.7'; // Apply opacity when selected
         }
     }
+
+    function toggleFilterTagSelection(button, tag) {
+    button.classList.toggle('selected');
+    
+    if (button.classList.contains('selected')) {
+        if (!currentFilterOption.includes(tag)) {
+            currentFilterOption.push(tag);
+        }
+    } else {
+        currentFilterOption = currentFilterOption.filter(t => t !== tag);
+    }
+
+}
+
     function setPriority(p) {
         priority = p;
         const priorityButtons = document.querySelectorAll('.pill-button.priority-low, .pill-button.priority-medium, .pill-button.priority-important, .pill-button.priority-urgent');
@@ -943,21 +936,7 @@ function hideFilterPopup() {
     document.getElementById('filter-popup').style.display = 'none';
 }
 
-function updateCurrentFilters(filterTag, isSelected) {
-    if (isSelected) {
-        if (!currentFilterOption.includes(filterTag)) {
-            currentFilterOption.push(filterTag);
-        }
-    } else {
-        currentFilterOption = currentFilterOption.filter(tag => tag !== filterTag);
-    }
-}
-
 function applyFilter() {
-    const selectedOptions = document.querySelectorAll('input[name="filter-option"]:checked');
-    const selectedValues = Array.from(selectedOptions).map(option => option.value);
-    currentFilterOption = selectedValues;
-    
     hideFilterPopup();
     fetchProductBacklog(); 
 }
@@ -966,7 +945,6 @@ function applyFilter() {
 function filterBacklogItems(items) {
     const itemsArray = Object.entries(items).map(([key, value]) => ({ key, ...value }));
 
-    // If no filter is selected, return all items
     if (currentFilterOption.length === 0) {
         return itemsArray.reduce((acc, item) => {
             acc[item.key] = item;
@@ -978,7 +956,6 @@ function filterBacklogItems(items) {
         const itemTags = item.tags.map(tag => tag.name) || [];
         const filterTags = currentFilterOption;
 
-        // Check if itemTags match exactly with filterTags
         return itemTags.length === filterTags.length &&
             filterTags.every(tag => itemTags.includes(tag)) &&
             itemTags.every(tag => filterTags.includes(tag));
@@ -1024,7 +1001,7 @@ window.fetchProductBacklog = function() {
     if (snapshot.exists()) {
       const data = snapshot.val();
       const sortedData = sortBacklogItems(data);
-      const filteredData = filterBacklogItems(sortedData);
+      const filteredData = filterBacklogItems(data);
 
       // Render the filtered data if filters are applied, otherwise render the sorted data
       if (currentFilterOption.length > 0) {
