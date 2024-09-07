@@ -945,28 +945,21 @@ function hideFilterPopup() {
 
 function updateCurrentFilters(filterTag, isSelected) {
     if (isSelected) {
-        // Add the selected filter tag to the array
         if (!currentFilterOption.includes(filterTag)) {
             currentFilterOption.push(filterTag);
         }
     } else {
-        // Remove the deselected filter tag from the array
         currentFilterOption = currentFilterOption.filter(tag => tag !== filterTag);
     }
-    console.log(currentFilterOption);  // Debugging output
 }
 
 function applyFilter() {
-    // Check if any filter option is selected
-    const selectedOption = document.querySelector('input[name="filter-option"]:checked');
-    if (selectedOption) {
-        currentFilterOption = [selectedOption.value]; // Use array for multiple tags
-    } else {
-        currentFilterOption = []; // Clear filter when none selected or canceled
-    }
-
+    const selectedOptions = document.querySelectorAll('input[name="filter-option"]:checked');
+    const selectedValues = Array.from(selectedOptions).map(option => option.value);
+    currentFilterOption = selectedValues;
+    
     hideFilterPopup();
-    fetchProductBacklog(); // Re-fetch and render items
+    fetchProductBacklog(); 
 }
 
 
@@ -981,25 +974,25 @@ function filterBacklogItems(items) {
         }, {});
     }
 
-    // Filter items that match any of the selected tags
     const filteredItemsArray = itemsArray.filter(item => {
         const itemTags = item.tags.map(tag => tag.name) || [];
-        // Check if any selected tags are present in the item's tags
-        return currentFilterOption.some(filterTag => itemTags.includes(filterTag));
+        const filterTags = currentFilterOption;
+
+        // Check if itemTags match exactly with filterTags
+        return itemTags.length === filterTags.length &&
+            filterTags.every(tag => itemTags.includes(tag)) &&
+            itemTags.every(tag => filterTags.includes(tag));
     });
 
-    // Return an empty object if no items match the filter
     if (filteredItemsArray.length === 0) {
         return {};
     }
 
-    // Convert the filtered array back to an object format and return it
     return filteredItemsArray.reduce((acc, item) => {
         acc[item.key] = item;
         return acc;
     }, {});
 }
-
 
 function getPriorityValue(priority) {
     const priorityValues = { 'Low': 1, 'Medium': 2, 'Important': 3, 'Urgent': 4 };
