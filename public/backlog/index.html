@@ -594,6 +594,7 @@
     window.fetchProductBacklog = fetchProductBacklog;
 
     function renderProductBacklog(data) {
+        console.log("Render:", data); // Debugging: Check the items to be rendered
       const container = document.querySelector('.col .form-group.mb-3');
       container.innerHTML = ''; // Clear existing content
 
@@ -880,7 +881,7 @@ function sortBacklogItems(items) {
     }, {});
 }
 
-//Error Part for filter
+//Filter feature
 let currentFilterOption = [];
 
 function showFilterPopup() {
@@ -893,35 +894,61 @@ function hideFilterPopup() {
 
 function updateCurrentFilters(filterTag, isSelected) {
     if (isSelected) {
-        console.log(currentFilterOption);
-        console.log(typeof(currentFilterOption));
-        currentFilterOption.push(filterTag);
+        // Add the selected filter tag to the array
+        if (!currentFilterOption.includes(filterTag)) {
+            currentFilterOption.push(filterTag);
+        }
     } else {
+        // Remove the deselected filter tag from the array
         currentFilterOption = currentFilterOption.filter(tag => tag !== filterTag);
     }
+    console.log(currentFilterOption);  // Debugging output
 }
 
 function applyFilter() {
-    const selectedOption = document.querySelector('input[name="filter-option"]:checked').value;
-    currentFilterOption = selectedOption;
+    // Check if any filter option is selected
+    const selectedOption = document.querySelector('input[name="filter-option"]:checked');
+    if (selectedOption) {
+        currentFilterOption = [selectedOption.value]; // Use array for multiple tags
+    } else {
+        currentFilterOption = []; // Clear filter when none selected or canceled
+    }
+
     hideFilterPopup();
-    fetchProductBacklog();
+    fetchProductBacklog(); // Re-fetch and render items
 }
+
 
 function filterBacklogItems(items) {
     const itemsArray = Object.entries(items).map(([key, value]) => ({ key, ...value }));
 
+    // If no filter is selected, return all items
+    if (currentFilterOption.length === 0) {
+        return itemsArray.reduce((acc, item) => {
+            acc[item.key] = item;
+            return acc;
+        }, {});
+    }
+
+    // Filter items that match any of the selected tags
     const filteredItemsArray = itemsArray.filter(item => {
         const itemTags = item.tags.map(tag => tag.name) || [];
+        // Check if any selected tags are present in the item's tags
+        return currentFilterOption.some(filterTag => itemTags.includes(filterTag));
     });
 
-    console.log(filteredItemsArray);
+    // Return an empty object if no items match the filter
+    if (filteredItemsArray.length === 0) {
+        return {};
+    }
 
+    // Convert the filtered array back to an object format and return it
     return filteredItemsArray.reduce((acc, item) => {
         acc[item.key] = item;
         return acc;
     }, {});
 }
+
 
 function getPriorityValue(priority) {
     const priorityValues = { 'Low': 1, 'Medium': 2, 'Important': 3, 'Urgent': 4 };
@@ -953,8 +980,14 @@ window.fetchProductBacklog = function() {
     if (snapshot.exists()) {
       const data = snapshot.val();
       const sortedData = sortBacklogItems(data);
-      const filterData = filterBacklogItems(data);
-      window.renderProductBacklog(sortedData);
+      const filteredData = filterBacklogItems(sortedData);
+
+      // Render the filtered data if filters are applied, otherwise render the sorted data
+      if (currentFilterOption.length > 0) {
+        window.renderProductBacklog(filteredData);
+      } else {
+        window.renderProductBacklog(sortedData);
+      }
     } else {
       console.log("No data available");
     }
@@ -962,7 +995,6 @@ window.fetchProductBacklog = function() {
     console.error(error);
   });
 }
-
 
 // Define sendFormDataToFirebase function
 window.sendFormDataToFirebase = function() {
