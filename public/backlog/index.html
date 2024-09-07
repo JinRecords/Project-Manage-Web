@@ -308,6 +308,42 @@
             top: 20px;
             right: 20px;
         }
+
+        #filterButton {
+            margin-right: 8px;
+        }
+
+        #filterButton {
+            position: absolute;
+            top: 20px;
+            right: 60px;
+            width: 36px;
+            height: 38px;
+            display: inline-flex;
+            align-items: center; /* Vertically centers the content */
+            justify-content: center;
+        }
+
+        #filter-popup .custom-popup-content {
+            width: 300px;
+        }
+
+        .filter-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 200;
+        }
+
+        .filter-option label {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            cursor: pointer;
+        }
+
     </style>
 
 <!-- Analytics -->
@@ -346,6 +382,9 @@
       <div class="col-auto ml-auto">
       <button id="sortButton" class="btn btn-secondary">
           <i class="fas fa-sort"></i>
+      </button>
+      <button id="filterButton" class="btn btn-secondary">
+        <i class="fas fa-filter"></i>
       </button>
       </div>
 			<div class="col">
