@@ -344,6 +344,14 @@
             cursor: pointer;
         }
 
+        .button-container {
+        display: flex;
+        flex-wrap: wrap; /* Allows buttons to wrap to the next line */
+        justify-content: center; /* Center buttons horizontally */
+        gap: 10px; /* Space between buttons */
+        margin-bottom: 15px; /* Space below button container */
+    }
+
     </style>
 
 <!-- Analytics -->
@@ -531,6 +539,31 @@
         <div class="custom-popup-buttons">
             <button class="btn btn-secondary" onclick="hideSortingPopup()">Cancel</button>
             <button class="btn btn-primary" onclick="applySorting()">Apply</button>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Popup -->
+<div id="filter-popup" class="custom-popup">
+    <div class="custom-popup-content">
+        <h4>Filter By</h4>
+        <div id="filter-option" class="button-container">
+            
+            <button class="pill-button" style="background-color: #FFC0CB;" onclick="toggleTagSelection(this, 'UI')">UI</button>
+            <button class="pill-button" style="background-color: #FFD7BE;" onclick="toggleTagSelection(this, 'UX')">UX</button>
+            <button class="pill-button" style="background-color: #F7DC6F;" onclick="toggleTagSelection(this, 'Frontend')">Frontend</button>
+            <button class="pill-button" style="background-color: #C6F4D6;" onclick="toggleTagSelection(this, 'Backend')">Backend</button>
+            <button class="pill-button" style="background-color: #9ED2C0;" onclick="toggleTagSelection(this, 'Framework')">Framework</button>
+            <button class="pill-button" style="background-color: #8DB8CB;" onclick="toggleTagSelection(this, 'Testing')">Testing</button>
+            <button class="pill-button" style="background-color: #9F9CE9;" onclick="toggleTagSelection(this, 'Database')">Database</button>
+            <button class="pill-button" style="background-color: #BE8DE4;" onclick="toggleTagSelection(this, 'API')">API</button>
+               
+            </label>
+        </div>
+        
+        <div class="custom-popup-buttons">
+            <button class="btn btn-secondary" onclick="hideFilteringPopup()">Cancel</button>
+            <button class="btn btn-primary" onclick="applyFilter()">Apply</button>
         </div>
     </div>
 </div>
@@ -744,6 +777,24 @@ function showTagSelectionPopup() {
             tagsContainer.appendChild(tagElement);
         });
     }
+
+    // Store selected tags in an array
+    let selectedTags = [];
+
+    // Toggle selection of tags
+    function toggleTagSelection(button, tag) {
+        if (selectedTags.includes(tag)) {
+            // If the tag is already selected, deselect it
+            selectedTags = selectedTags.filter(t => t !== tag);
+            button.classList.remove('selected');
+            button.style.opacity = '1'; // Reset opacity
+        } else {
+            // If the tag is not selected, select it
+            selectedTags.push(tag);
+            button.classList.add('selected');
+            button.style.opacity = '0.7'; // Apply opacity when selected
+        }
+    }
     function setPriority(p) {
         priority = p;
         const priorityButtons = document.querySelectorAll('.pill-button.priority-low, .pill-button.priority-medium, .pill-button.priority-important, .pill-button.priority-urgent');
@@ -860,6 +911,21 @@ function sortBacklogItems(items) {
     }, {});
 }
 
+function showFilteringPopup() {
+    document.getElementById('filter-popup').style.display = 'block';
+}
+
+function hideFilteringPopup() {
+    document.getElementById('filter-popup').style.display = 'none';
+}
+
+function applyFilter() {
+    const selectedOption = document.querySelector('input[name="filter-option"]:checked').value;
+    currentFilterOption = selectedOption;
+    hideFilteringPopup();
+    fetchProductBacklog();
+}
+
 function getPriorityValue(priority) {
     const priorityValues = { 'Low': 1, 'Medium': 2, 'Important': 3, 'Urgent': 4 };
     return priorityValues[priority] || 0;
@@ -971,6 +1037,7 @@ window.deleteData = function(path) {
 document.addEventListener('DOMContentLoaded', function() {
   window.fetchProductBacklog();
   document.getElementById('sortButton').addEventListener('click', showSortingPopup);
+  document.getElementById('filterButton').addEventListener('click', showFilteringPopup);
 });
 
 document.addEventListener('click', function(event) {
@@ -980,6 +1047,15 @@ document.addEventListener('click', function(event) {
         window.showDeleteConfirmation(itemId);
     }
 });
+
+document.addEventListener('click', function(event) {
+    if (event.target.classList.contains('filter-item')) {
+        event.preventDefault();
+        const itemId = event.target.getAttribute('data-item-id');
+        window.showDeleteConfirmation(itemId);
+    }
+});
+
 document.addEventListener('click', function(event) {
     if (event.target.classList.contains('delete-item')) {
         event.preventDefault();
