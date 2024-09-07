@@ -538,6 +538,26 @@
 <button aria-label="Scroll to top button" class="bloc-button btn btn-d scrollToTop" onclick="scrollToTarget('1',this)"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 32 32"><path class="scroll-to-top-btn-icon" d="M30,22.656l-14-13-14,13"/></svg></button>
 <!-- ScrollToTop Button END-->
 
+<!-- Filter Popup -->
+<div id="filter-popup" class="custom-popup">
+    <div class="custom-popup-content">
+        <h4>Filter By Tags</h4>
+        <div id="filter-options">
+            <label><input type="checkbox" name="filter-option" value="UI" onchange="updateCurrentFilters('UI', this.checked)"> UI</label>
+            <label><input type="checkbox" name="filter-option" value="UX" onchange="updateCurrentFilters('UX', this.checked)"> UX</label>
+            <label><input type="checkbox" name="filter-option" value="Frontend" onchange="updateCurrentFilters('Frontend', this.checked)"> Frontend</label>
+            <label><input type="checkbox" name="filter-option" value="Backend" onchange="updateCurrentFilters('Backend', this.checked)"> Backend</label>
+            <label><input type="checkbox" name="filter-option" value="Framework" onchange="updateCurrentFilters('Framework', this.checked)"> Framework</label>
+            <label><input type="checkbox" name="filter-option" value="Testing" onchange="updateCurrentFilters('Testing', this.checked)"> Testing</label>
+            <label><input type="checkbox" name="filter-option" value="Database" onchange="updateCurrentFilters('Database', this.checked)"> Database</label>
+            <label><input type="checkbox" name="filter-option" value="API" onchange="updateCurrentFilters('API', this.checked)"> API</label>
+        </div>
+        <div class="custom-popup-buttons">
+            <button class="btn btn-secondary" onclick="hideFilterPopup()">Cancel</button>
+            <button class="btn btn-primary" onclick="applyFilter()">Apply</button>
+        </div>
+    </div>
+</div>
 
 </div>
 <!-- Main container END -->
@@ -860,6 +880,49 @@ function sortBacklogItems(items) {
     }, {});
 }
 
+//Error Part for filter
+let currentFilterOption = [];
+
+function showFilterPopup() {
+    document.getElementById('filter-popup').style.display = 'block';
+}
+
+function hideFilterPopup() {
+    document.getElementById('filter-popup').style.display = 'none';
+}
+
+function updateCurrentFilters(filterTag, isSelected) {
+    if (isSelected) {
+        console.log(currentFilterOption);
+        console.log(typeof(currentFilterOption));
+        currentFilterOption.push(filterTag);
+    } else {
+        currentFilterOption = currentFilterOption.filter(tag => tag !== filterTag);
+    }
+}
+
+function applyFilter() {
+    const selectedOption = document.querySelector('input[name="filter-option"]:checked').value;
+    currentFilterOption = selectedOption;
+    hideFilterPopup();
+    fetchProductBacklog();
+}
+
+function filterBacklogItems(items) {
+    const itemsArray = Object.entries(items).map(([key, value]) => ({ key, ...value }));
+
+    const filteredItemsArray = itemsArray.filter(item => {
+        const itemTags = item.tags.map(tag => tag.name) || [];
+    });
+
+    console.log(filteredItemsArray);
+
+    return filteredItemsArray.reduce((acc, item) => {
+        acc[item.key] = item;
+        return acc;
+    }, {});
+}
+
 function getPriorityValue(priority) {
     const priorityValues = { 'Low': 1, 'Medium': 2, 'Important': 3, 'Urgent': 4 };
     return priorityValues[priority] || 0;
@@ -890,6 +953,7 @@ window.fetchProductBacklog = function() {
     if (snapshot.exists()) {
       const data = snapshot.val();
       const sortedData = sortBacklogItems(data);
+      const filterData = filterBacklogItems(data);
       window.renderProductBacklog(sortedData);
     } else {
       console.log("No data available");
@@ -971,6 +1035,11 @@ window.deleteData = function(path) {
 document.addEventListener('DOMContentLoaded', function() {
   window.fetchProductBacklog();
   document.getElementById('sortButton').addEventListener('click', showSortingPopup);
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    window.fetchProductBacklog();
+    document.getElementById('filterButton').addEventListener('click', showFilterPopup);
 });
 
 document.addEventListener('click', function(event) {
@@ -1058,3 +1127,4 @@ function updateBacklogItem(itemId) {
 }
 
 </script>
+
