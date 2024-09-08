@@ -920,41 +920,66 @@ function sortBacklogItems(items) {
   return Object.fromEntries(itemsArray.map(item => [item.key, item]));
 }
 
+
 function showFilterPopup() {
-  document.getElementById('filter-popup').style.display = 'block';
+    document.getElementById('filter-popup').style.display = 'block';
 }
 
 function hideFilterPopup() {
-  document.getElementById('filter-popup').style.display = 'none';
+    document.getElementById('filter-popup').style.display = 'none';
 }
 
 function applyFilter() {
-  hideFilterPopup();
-  fetchProductBacklog();
+    hideFilterPopup();
+    fetchProductBacklog();
 }
+
 
 function filterBacklogItems(items) {
     const itemsArray = Object.entries(items).map(([key, value]) => ({ key, ...value }));
 
     if (currentFilterOption.length === 0) {
-        return items;
+        return itemsArray.reduce((acc, item) => {
+            acc[item.key] = item;
+            return acc;
+        }, {});
     }
 
     const filteredItemsArray = itemsArray.filter(item => {
-        const itemTags = item.tags ? item.tags.map(tag => tag.name) : [];
-        return currentFilterOption.every(tag => itemTags.includes(tag));
+        const itemTags = item.tags.map(tag => tag.name) || [];
+        const filterTags = currentFilterOption;
+
+        return itemTags.length === filterTags.length &&
+            filterTags.every(tag => itemTags.includes(tag)) &&
+            itemTags.every(tag => filterTags.includes(tag));
     });
 
-    return Object.fromEntries(filteredItemsArray.map(item => [item.key, item]));
+    if (filteredItemsArray.length === 0) {
+        return {};
+    }
+
+    return filteredItemsArray.reduce((acc, item) => {
+        acc[item.key] = item;
+        return acc;
+    }, {});
 }
+
 
 
 function toggleFilterTagSelection(button, tag) {
-  button.classList.toggle('selected');
-  currentFilterOption = button.classList.contains('selected')
-    ? [...new Set([...currentFilterOption, tag])]
-    : currentFilterOption.filter(t => t !== tag);
+button.classList.toggle('selected');
+
+if (button.classList.contains('selected')) {
+    if (!currentFilterOption.includes(tag)) {
+        currentFilterOption.push(tag);
+    }
+} else {
+    currentFilterOption = currentFilterOption.filter(t => t !== tag);
 }
+
+}
+
+
 
 function openFormInViewMode(item) {
     console.log('Opening form in view mode with item:', item);
