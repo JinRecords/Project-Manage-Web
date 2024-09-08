@@ -727,23 +727,6 @@ function togglePopup() {
     }
 }
 
-
-function resetFormState() {
-    const form = document.getElementById('backlogForm');
-    form.reset();
-    Array.from(form.elements).forEach(el => el.disabled = false);
-    window.tags = []; // Reset tags
-    renderPopupTags();
-
-    // Reset priority, status, and stage
-    document.querySelectorAll('.pill-button').forEach(button => button.classList.remove('selected'));
-    document.getElementById('priority-input').value = '';
-    document.getElementById('status-input').value = 'Not started';
-    document.getElementById('stage-input').value = '';
-}
-
-
-
 function renderPopupTags(isViewMode = false) {
     const tagsContainer = document.getElementById('popup-tags-container');
     tagsContainer.innerHTML = '';
@@ -864,18 +847,6 @@ function handleSaveChanges() {
     } else {
         console.error('sendFormDataToFirebase is not defined');
     }
-}
-
-function deleteItem(itemId) {
-  remove(ref(database, `productBacklog/${itemId}`))
-    .then(() => {
-      console.log('Item deleted successfully');
-      fetchProductBacklog();
-    })
-    .catch(error => {
-      console.error('Error deleting item: ', error);
-      alert('Error deleting item. Please try again.');
-    });
 }
 
 window.showDeleteConfirmation = key => {
@@ -1246,8 +1217,6 @@ document.addEventListener('click', (event) => {
     }
 });
 
-
-
 window.deleteData = function(path) {
   remove(ref(database, path))
     .then(() => {
@@ -1257,18 +1226,6 @@ window.deleteData = function(path) {
     })
     .catch(console.error);
 }
-
-function editBacklogItem(itemId) {
-    get(ref(database, `productBacklog/${itemId}`)).then((snapshot) => {
-        if (snapshot.exists()) {
-            const item = snapshot.val();
-            item.key = itemId;
-            setFormMode('edit', item);
-        }
-    }).catch(console.error);
-}
-
-
 
 window.updateBacklogItem = function(itemId) {
     const form = document.getElementById('backlogForm');
