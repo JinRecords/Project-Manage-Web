@@ -951,11 +951,14 @@ function filterBacklogItems(items) {
 
 function toggleFilterTagSelection(button, tag) {
   button.classList.toggle('selected');
-  currentFilterOption = button.classList.contains('selected')
-    ? [...new Set([...currentFilterOption, tag])]
-    : currentFilterOption.filter(t => t !== tag);
+  if (button.classList.contains('selected')) {
+    // Add the tag if it's selected
+    currentFilterOption = [tag];
+  } else {
+    // Remove the tag if it's deselected
+    currentFilterOption = currentFilterOption.filter(t => t !== tag);
+  }
 }
-
 function openFormInViewMode(item) {
     console.log('Opening form in view mode with item:', item);
 
