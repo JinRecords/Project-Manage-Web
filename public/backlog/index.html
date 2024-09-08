@@ -24,554 +24,613 @@
 
     <!-- Styles for the popup and overlay -->
     <style>
-        .popup-form {
-            position: fixed;
-            top: 0;
-            right: -600px; /* Adjusted width */
-            width: 600px; /* Twice as wide */
-            height: 100%;
-            background: white;
-            box-shadow: -2px 0 5px rgba(0,0,0,0.5);
-            transition: right 0.3s ease;
-            padding: 20px;
-            z-index: 1001; /* Increased z-index to ensure it's on top of overlay */
-            font-family: 'Poppins', sans-serif;
-            font-weight: 500;
-        }
-        .popup-form.open {
-            right: 0;
-        }
-        .form-group {
-            margin-bottom: 20px; /* Increased spacing */
-        }
-        .form-buttons {
-            display: flex;
-            justify-content: flex-end;
-            padding-top: 20px;
-        }
-        .form-buttons button {
-            margin-left: 10px;
-        }
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0); /* Initial opacity 0 */
-            z-index: 1000; /* Ensure it's below the popup */
-            transition: background-color 0.5s ease; /* Transition effect */
-            display: none;
-        }
-        .overlay.open {
-            display: block;
-            background-color: rgba(0, 0, 0, 0.7); /* Final opacity 0.7 */
-        }
+    .popup-form {
+        position: fixed;
+        top: 0;
+        right: -600px;
+        width: 600px;
+        height: 100%;
+        background: white;
+        box-shadow: -2px 0 5px rgba(0,0,0,0.5);
+        transition: right 0.3s ease;
+        padding: 20px;
+        z-index: 1001;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 500;
+    }
 
-        /* Tags */
-        .tags-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            margin-top: 5px;
-        }
-        .tag {
-          padding: 5px 10px;
-          border-radius: 20px;
-          color: black;
-          font-weight: 400;
-          display: inline-block;
-          margin-right: 5px;
-          margin-bottom: 5px;
-        }
-        .tag:hover {
-            opacity: 0.8; /* Hover effect */
-        }
-        .add-tag-button {
-            background-color: #999999; /* Green color for add button */
-            color: white;
-            border: none;
-            padding: 3px 10px;
-            border-radius: 20px;
-            cursor: pointer;
-        }
-        .add-tag-button:hover {
-            background-color: #555555; /* Hover effect for add button */
-        }
+    .popup-form.open { right: 0; }
 
-        /* Sprint, Priority, Status, and Stages */
-        .pill-button {
-            padding: 5px 10px;
-            border-radius: 20px;
-            border: 2px solid transparent;
-            cursor: pointer;
-            margin: 5px;
-        }
-        .pill-button.selected {
-            border: 2px solid black;
-        }
-        .priority-low {
-            background-color: #C6F4D6; /* Lighter color */
-        }
-        .priority-medium {
-            background-color: #F7DC6F; /* Lighter color */
-        }
-        .priority-important {
-            background-color: #FFD7BE; /* Lighter color */
-        }
-        .priority-urgent {
-            background-color: #FFC0CB; /* Lighter color */
-        }
-        .status-not-started {
-            background-color: #FFC107; /* Lighter color */
-        }
-        .stage-planning {
-            background-color: #FFB6C1; /* Lighter color */
-        }
-        .stage-development {
-            background-color: #FFD7BE; /* Lighter color */
-        }
-        .stage-testing {
-            background-color: #FFFFCC; /* Lighter color */
-        }
-        .stage-integration {
-            background-color: #C6F4D6; /* Lighter color */
-        }
+    .form-group { margin-bottom: 20px; }
 
-        /* Tag Selection Popup */
-        .tag-selection-popup {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-            z-index: 1002; /* Ensure it's on top of other popups */
-            display: none;
-            width: 300px; /* Adjusted width */
-        }
-        .tag-selection-popup.open {
-            display: block;
-        }
-        .tag-selection {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            margin-top: 5px;
-        }
-        .tag-selection-tag {
-            padding: 5px 10px;
-            border-radius: 20px;
-            color: black;
-            cursor: pointer;
-        }
-        .tag-selection-tag:hover {
-            opacity: 0.8; /* Hover effect */
-        }
-        .close-button-container {
-            text-align: right;
-            padding-top: 20px; /* Added top padding */
-        }
-
-        /* Form fields adjustments */
-        .form-group select {
-            width: 150px;
-            display: inline-block;
-            margin-left: 10px;
-        }
-        .btn-primary {
-            background-color: #6E6AF0;
-        }
-
-        /* Grey line break */
-        .grey-line-break {
-            border: none;
-            border-top: 1px solid #959BA3;
-            margin: 10px 0;
-        }
-
-        /* Card Styling */
-        .card {
-            margin-bottom: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-        }
-        .card-header {
-            background-color: #f8f9fa;
-            border-bottom: 1px solid #e9ecef;
-            border-radius: 10px 10px 0 0;
-            padding: 10px 20px;
-        }
-        .card-body {
-            padding: 20px;
-        }
-        .card-body button {
-            margin-right: 10px;
-            margin-bottom: 10px;
-        }
-        /* Main page button styles */
-        .card-body .btn-secondary {
-          background-color: #6E6AF0;
-          border-radius: 20px;
-          font-family: 'Poppins', sans-serif;
-          font-weight: 500;
-          padding: 5px 10px;
-          border: none;
-        }
-
-        .card-body .btn-secondary:disabled {
-          opacity: 1;
-          cursor: default;
-        }
-        .tags-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            margin-top: 10px;
-        }
-        .card-tag {
-          color: black !important;
-          font-weight: 500;
-          opacity: 1 !important;
-        }
-        .custom-popup {
-          display: none;
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background-color: rgba(0, 0, 0, 0.5);
-          z-index: 1000;
-        }
-
-        .custom-popup-content {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          background-color: white;
-          padding: 20px;
-          border-radius: 5px;
-          text-align: center;
-        }
-
-        .custom-popup-buttons {
-          margin-top: 20px;
-        }
-
-        .custom-popup-buttons button {
-          margin: 0 10px;
-        }
-        .three-dot-menu {
-            font-size: 20px;
-            color: #333;
-            background: none;
-            border: none;
-            padding: 0;
-          }
-
-          .three-dot-menu:after {
-            display: none;
-          }
-          #sortButton {
-            margin-right: 10px;
-        }
-
-        #sorting-popup .custom-popup-content {
-            width: 300px;
-        }
-
-        .sorting-option {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 200;
-        }
-
-        .sorting-option label {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            cursor: pointer;
-        }
-
-        .sorting-option input[type="radio"] {
-            margin-left: 10px;
-        }
-        #sortButton {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-        }
-
-        #filterButton {
-            margin-right: 8px;
-        }
-
-        #filterButton {
-            position: absolute;
-            top: 20px;
-            right: 60px;
-            width: 36px;
-            height: 38px;
-            display: inline-flex;
-            align-items: center; 
-            justify-content: center;
-        }
-
-        #filter-popup .custom-popup-content {
-            width: 300px;
-        }
-
-        .filter-option {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 200;
-        }
-
-        .filter-option label {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            cursor: pointer;
-        }
-
-        .button-container {
+    .form-buttons {
         display: flex;
-        flex-wrap: wrap; 
-        justify-content: center; 
-        gap: 10px; 
-        margin-bottom: 15px; 
+        justify-content: flex-end;
+        padding-top: 20px;
+    }
+
+    .form-buttons button { margin-left: 10px; }
+
+    .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0);
+        z-index: 1000;
+        transition: background-color 0.5s ease;
+        display: none;
+    }
+
+    .overlay.open {
+        display: block;
+        background-color: rgba(0, 0, 0, 0.7);
+    }
+
+    .tags-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-top: 5px;
+    }
+
+    .tag {
+        padding: 5px 10px;
+        border-radius: 20px;
+        color: black;
+        font-weight: 400;
+        display: inline-block;
+        margin-right: 5px;
+        margin-bottom: 5px;
+    }
+
+    .tag:hover { opacity: 0.8; }
+
+    .add-tag-button {
+        background-color: #999999;
+        color: white;
+        border: none;
+        padding: 3px 10px;
+        border-radius: 20px;
+        cursor: pointer;
+    }
+
+    .add-tag-button:hover { background-color: #555555; }
+
+    .pill-button {
+        padding: 5px 10px;
+        border-radius: 20px;
+        border: 2px solid transparent;
+        cursor: pointer;
+        margin: 5px;
+    }
+
+    .pill-button.selected { border: 2px solid black; }
+
+    .priority-low { background-color: #C6F4D6; }
+    .priority-medium { background-color: #F7DC6F; }
+    .priority-important { background-color: #FFD7BE; }
+    .priority-urgent { background-color: #FFC0CB; }
+    .status-not-started { background-color: #FFC107; }
+    .stage-planning { background-color: #FFB6C1; }
+    .stage-development { background-color: #FFD7BE; }
+    .stage-testing { background-color: #FFFFCC; }
+    .stage-integration { background-color: #C6F4D6; }
+    .status-not-started {
+    background-color: #FFB7B7;
+}
+
+.status-in-progress {
+    background-color: #E3E649;
+}
+
+.status-done {
+    background-color: #7EBF60;
+}
+    .tag-selection-popup {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        z-index: 1002;
+        display: none;
+        width: 300px;
+    }
+
+    .tag-selection-popup.open { display: block; }
+
+    .tag-selection {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-top: 5px;
+    }
+
+    .tag-selection-tag {
+        padding: 5px 10px;
+        border-radius: 20px;
+        color: black;
+        cursor: pointer;
+    }
+
+    .tag-selection-tag:hover { opacity: 0.8; }
+
+    .close-button-container {
+        text-align: right;
+        padding-top: 20px;
+    }
+
+    .form-group select {
+        width: 150px;
+        display: inline-block;
+        margin-left: 10px;
+    }
+
+    .btn-primary { background-color: #6E6AF0; }
+
+    .grey-line-break {
+        border: none;
+        border-top: 1px solid #959BA3;
+        margin: 10px 0;
+    }
+
+    .card {
+        margin-bottom: 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 20px;
+    }
+
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        border-radius: 10px 10px 0 0;
+        padding: 10px 20px;
+    }
+
+    .card-body {
+        padding: 20px;
+    }
+
+    .card-body button {
+        margin-right: 10px;
+        margin-bottom: 10px;
+    }
+
+    .card-body .btn-secondary {
+        background-color: #6E6AF0;
+        border-radius: 20px;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 500;
+        padding: 5px 10px;
+        border: none;
+    }
+
+    .card-body .btn-secondary:disabled {
+        opacity: 1;
+        cursor: default;
+    }
+
+    .card-tag {
+        color: black !important;
+        font-weight: 500;
+        opacity: 1 !important;
+    }
+
+    .custom-popup {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+    }
+
+    .custom-popup-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 20px;
+        border-radius: 5px;
+        text-align: center;
+    }
+
+    .custom-popup-buttons {
+        margin-top: 20px;
+    }
+
+    .custom-popup-buttons button {
+        margin: 0 10px;
+    }
+
+    .three-dot-menu {
+        font-size: 20px;
+        color: #333;
+        background: none;
+        border: none;
+        padding: 0;
+        text-decoration: none;
+    }
+
+    .three-dot-menu:after {
+        display: none;
+    }
+
+    #sortButton, #filterButton {
+        position: absolute;
+        top: 20px;
+    }
+
+    #sortButton {
+        right: 20px;
+    }
+
+    #filterButton {
+        right: 60px;
+        width: 36px;
+        height: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #sorting-popup .custom-popup-content,
+    #filter-popup .custom-popup-content {
+        width: 300px;
+    }
+
+    .sorting-option, .filter-option {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 200;
+    }
+
+    .sorting-option label, .filter-option label {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        cursor: pointer;
+    }
+
+    .sorting-option input[type="radio"] {
+        margin-left: 10px;
+    }
+
+    .button-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+
+    .links-sidebar {
+        position: fixed;
+        top: 0;
+        left: 80px; /* Align with the logo sidebar */
+        width: 280px; /* Adjust width if needed */
+        height: 100vh;
+        overflow-y: auto;
+        background-color: #f8f9fa;
+        padding: 10px;
+        box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        z-index: 1000;
+    }
+
+    .links-sidebar .button-container {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch; /* Stretch buttons to full width */
+    }
+
+    .links-sidebar .button-container a {
+        display: flex;
+        align-items: center; /* Center icon and text vertically */
+        justify-content: flex-start; /* Align content to the left */
+        width: 100%;
+        text-align: left;
+        margin-bottom: 10px;
+        padding: 10px 15px;
+        border-radius: 8px;
+        background-color: #ffffff; /* Default background color */
+        color: #333;
+        text-decoration: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: background-color 0.3s ease;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .links-sidebar .button-container a:hover {
+        background-color: #e0e0e0; /* Hover color for other buttons */
+    }
+
+    .main-content {
+        margin-left: 300px; /* Combined width of both sidebars */
+        padding: 20px;
+    }
+
+    .product-backlog-btn {
+        background-color: #6E6AF0 !important; /* Ensure background color is applied */
+        color: #fff !important; /* Ensure text color is applied */
+    }
+
+    .product-backlog-btn:hover {
+        background-color: #5a5bd6; /* Hover color */
+    }
+
+    .logo-sidebar {
+        display: flex;
+        flex-direction: column;
+        margin-top: 10px;
+        align-items: center;
+        width: 80px;
+        height: 100vh;
+        background-color: #f8f9fa;
+        box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        z-index: 1000;
+        position: fixed;
+        top: 0;
+        left: 0;
+        overflow: hidden;
+    }
+
+    .logo-sidebar img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    .icon-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .icon-md {
+        font-size: 24px; /* Adjust size as needed */
+        color: #333; /* Adjust color as needed */
     }
 
     </style>
-
-<!-- Analytics -->
-
-<!-- Analytics END -->
 
 </head>
 <body data-clean-url="true">
 
 <!-- Preloader -->
 <div id="page-loading-blocs-notifaction" class="page-preloader"></div>
-<!-- Preloader END -->
-
 
 <!-- Main container -->
 <div class="page-container">
 
-<!-- bloc-1 -->
-<div class="bloc l-bloc" id="bloc-1">
-	<div class="container bloc-lg">
-		<div class="row align-items-center">
-			<div class="col-sm-8 text-start col-lg-1 align-self-start">
-				<picture><source type="image/webp" srcset="../img/lazyload-ph.png" data-srcset="../img/favicon.webp"><img src="../img/lazyload-ph.png" data-src="../img/favicon.jpeg" class="img-fluid mx-auto d-block lazyload" alt="favicon.jpeg" width="73" height="73"></picture>
-				<div class="text-center mt-lg-4">
-					<span class="icon-md feather-icon icon-content-left icon-672"></span>
-				</div>
-			</div>
-			<div class="offset-lg-0 col-lg-3">
-				<h4 class="mb-4 h4-style tc-7097">
-					Placeholder #1
-				</h4>
-				<a href="../" class="btn btn-lg mb-lg-3 btn-c-672 btn-clean-clicked btn-style ps-lg-0"><span class="icon-spacer fa fa-laptop icon-7647 me-lg-3"></span>Product Backlog</a>
-				<a href="../" class="btn btn-lg btn-button-style mt-lg-2 btn-c-7647 mb-lg-3 float-lg-none"><span class="icon-spacer fa fa-running icon-7097 icon-md me-lg-3"></span>Sprint Board</a>
-				<a href="../" class="btn btn-lg btn-button-style mt-lg-2 btn-c-7647 mb-lg-3"><span class="icon-spacer ion ion-android-people icon-md me-lg-3"></span>Team members</a>
-			</div>
-      <div class="col-auto ml-auto">
-      <button id="sortButton" class="btn btn-secondary">
-          <i class="fas fa-sort"></i>
-      </button>
-      <button id="filterButton" class="btn btn-secondary">
-        <i class="fas fa-filter"></i>
-      </button>
+  <!-- Logo Sidebar -->
+  <div class="logo-sidebar">
+      <div class="icon-container">
+          <picture>
+              <source type="image/webp" srcset="../img/lazyload-ph.png" data-srcset="../img/favicon.webp">
+              <img src="../img/lazyload-ph.png" data-src="../img/favicon.jpeg" class="lazyload" alt="favicon.jpeg">
+          </picture>
+          <div class="text-center mt-lg-4">
+              <span class="icon-md feather-icon icon-content-left icon-672"></span>
+          </div>
       </div>
-			<div class="col">
-				<div class="form-group mb-3">
-					<button class="btn btn-lg btn-8-style btn-c-7647" onclick="togglePopup()"><span class="special-tag-for-editing-text-with-html"></span><span class="fa fa-plus"></span></button>
-				</div>
-			</div>
-		</div>
-	</div>
-</div>
-<!-- bloc-1 END -->
-<!-- Delete Confirmation Popup -->
-<div id="delete-confirmation-popup" class="custom-popup">
-  <div class="custom-popup-content">
-    <h4>Confirm Deletion</h4>
-    <p>Are you sure you want to delete this item?</p>
-    <div class="custom-popup-buttons">
-      <button class="btn btn-secondary" onclick="hideDeleteConfirmation()">Cancel</button>
-      <button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
-    </div>
   </div>
-</div>
-<!-- Overlay -->
-<div id="overlay" class="overlay"></div>
 
-<!-- Popup Form -->
-<div id="popupForm" class="popup-form">
-    <form id="backlogForm">
-        <div class="form-group">
-            <label for="name">Name</label>
-            <input type="text" class="form-control" id="name" placeholder="Enter name">
+  <!-- Links Sidebar -->
+  <div class="links-sidebar">
+      <div class="button-container">
+          <a href="../" class="btn btn-lg mb-lg-3 btn-c-672 btn-style ps-lg-0 btn-clean-clicked product-backlog-btn">
+              <span class="icon-spacer fa fa-laptop icon-7647 me-lg-3"></span>Product Backlog
+          </a>
+          <a href="../" class="btn btn-lg btn-button-style mt-lg-2 btn-c-7647 mb-lg-3 float-lg-none">
+              <span class="icon-spacer fa fa-running icon-7097 icon-md me-lg-3"></span>Sprint Board
+          </a>
+          <a href="../" class="btn btn-lg btn-button-style mt-lg-2 btn-c-7647 mb-lg-3">
+              <span class="icon-spacer ion ion-android-people icon-md me-lg-3"></span>Team members
+          </a>
+      </div>
+  </div>
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- bloc-1 -->
+        <div class="bloc l-bloc" id="bloc-1">
+            <div class="container bloc-lg">
+                <div class="row align-items-center">
+                    <div class="col-auto ml-auto">
+                        <button id="sortButton" class="btn btn-secondary"><i class="fas fa-sort"></i></button>
+                        <button id="filterButton" class="btn btn-secondary"><i class="fas fa-filter"></i></button>
+                    </div>
+                    <div class="col">
+                        <div class="form-group mb-3">
+                          <button class="btn btn-lg btn-8-style btn-c-7647" onclick="handleAddButtonClick(event)">
+                              <span class="fa fa-plus"></span>
+                          </button>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="form-group">
-            <label for="description">Description</label>
-            <textarea class="form-control" id="description" rows="3" placeholder="Enter description"></textarea>
-            <hr class="grey-line-break"> <!-- Added grey line break -->
-        </div>
-        <div class="form-group">
-            <label for="tags">Tags:</label>
-            <div class="tags-container" id="popup-tags-container"></div>
-            <button type="button" class="add-tag-button" id="add-tag-button" onclick="showTagSelectionPopup()">+</button>
-        </div>
-        <div class="form-group">
-            <label for="assignee">Assignee</label>
-            <select class="form-control" id="assignee" style="width: 150px; display: inline-block; margin-left: 10px;">
-                <option>test1</option>
-                <option>test2</option>
-                <option>test3</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="priority">Priority:</label>
-            <button type="button" class="pill-button priority-low" onclick="setPriority('Low')">Low</button>
-            <button type="button" class="pill-button priority-medium" onclick="setPriority('Medium')">Medium</button>
-            <button type="button" class="pill-button priority-important" onclick="setPriority('Important')">Important</button>
-            <button type="button" class="pill-button priority-urgent" onclick="setPriority('Urgent')">Urgent</button>
-            <input type="hidden" id="priority-input" value="">
-        </div>
-        <div class="form-group">
-            <label for="status">Status:</label>
-            <button type="button" class="pill-button status-not-started selected">Not started</button>
-            <input type="hidden" id="status-input" value="Not started">
-        </div>
-        <div class="form-group">
-            <label for="stage">Stage:</label>
-            <button type="button" class="pill-button stage-planning" onclick="setStage('Planning')">Planning</button>
-            <button type="button" class="pill-button stage-development" onclick="setStage('Development')">Development</button>
-            <button type="button" class="pill-button stage-testing" onclick="setStage('Testing')">Testing</button>
-            <button type="button" class="pill-button stage-integration" onclick="setStage('Integration')">Integration</button>
-            <input type="hidden" id="stage-input" value="">
-        </div>
-        <div class="form-group">
-            <label for="storypoint">Storypoint:</label>
-            <select class="form-control" id="storypoint" style="width: 150px; display: inline-block; margin-left: 10px;">
-                <option>1</option>
-                <option>2</option>
-                <option>3</option>
-                <option>4</option>
-                <option>5</option>
-                <option>6</option>
-                <option>7</option>
-                <option>8</option>
-                <option>9</option>
-                <option>10</option>
-            </select>
-        </div>
-        <div class="form-group">
-    <label for="timeCreated">Time created:</label>
-    <input type="text" class="form-control" id="timeCreated" readonly>
-</div>
-        <div class="form-buttons">
-          <button type="button" class="btn btn-secondary" onclick="togglePopup()">Cancel</button>
-          <button type="button" class="btn btn-primary" onclick="handleSaveChanges()">Save Changes</button>
-        </div>
-    </form>
-</div>
+    <!-- bloc-1 END -->
 
-
-<!-- Tag Selection Popup -->
-<div id="tag-selection-popup" class="tag-selection-popup">
-    <h4>Select Tags</h4>
-    <div class="tag-selection" id="tag-selection"></div>
-    <div class="close-button-container">
-        <button class="btn btn-secondary" onclick="hideTagSelectionPopup()">Close</button>
-    </div>
-</div>
-
-<!-- Sorting Popup -->
-<div id="sorting-popup" class="custom-popup">
-    <div class="custom-popup-content">
-        <h4>Sort By</h4>
-        <div id="sorting-options">
-            <div class="sorting-option">
-                <label for="sort-default">
-                    Default
-                    <input type="radio" id="sort-default" name="sort-option" value="default" checked>
-                </label>
+    <!-- Delete Confirmation Popup -->
+    <div id="delete-confirmation-popup" class="custom-popup">
+        <div class="custom-popup-content">
+            <h4>Confirm Deletion</h4>
+            <p>Are you sure you want to delete this item?</p>
+            <div class="custom-popup-buttons">
+                <button class="btn btn-secondary" onclick="hideDeleteConfirmation()">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
             </div>
-            <div class="sorting-option">
-                <label for="sort-oldest-recent">
-                    Oldest → Recent
-                    <input type="radio" id="sort-oldest-recent" name="sort-option" value="oldest-recent">
-                </label>
-            </div>
-            <div class="sorting-option">
-                <label for="sort-recent-oldest">
-                    Recent → Oldest
-                    <input type="radio" id="sort-recent-oldest" name="sort-option" value="recent-oldest">
-                </label>
-            </div>
-            <div class="sorting-option">
-                <label for="sort-low-important">
-                    Low → Important
-                    <input type="radio" id="sort-low-important" name="sort-option" value="low-important">
-                </label>
-            </div>
-            <div class="sorting-option">
-                <label for="sort-important-low">
-                    Important → Low
-                    <input type="radio" id="sort-important-low" name="sort-option" value="important-low">
-                </label>
-            </div>
-        </div>
-        <div class="custom-popup-buttons">
-            <button class="btn btn-secondary" onclick="hideSortingPopup()">Cancel</button>
-            <button class="btn btn-primary" onclick="applySorting()">Apply</button>
         </div>
     </div>
-</div>
 
-<!-- Filter Popup -->
-<div id="filter-popup" class="custom-popup">
-    <div class="custom-popup-content">
-        <h4>Filter By</h4>
-        <div id="filter-option" class="button-container">
-            
-            <button class="pill-button" style="background-color: #FFC0CB;" onclick="toggleFilterTagSelection(this, 'UI')">UI</button>
-            <button class="pill-button" style="background-color: #FFD7BE;" onclick="toggleFilterTagSelection(this, 'UX')">UX</button>
-            <button class="pill-button" style="background-color: #F7DC6F;" onclick="toggleFilterTagSelection(this, 'Frontend')">Frontend</button>
-            <button class="pill-button" style="background-color: #C6F4D6;" onclick="toggleFilterTagSelection(this, 'Backend')">Backend</button>
-            <button class="pill-button" style="background-color: #9ED2C0;" onclick="toggleFilterTagSelection(this, 'Framework')">Framework</button>
-            <button class="pill-button" style="background-color: #8DB8CB;" onclick="toggleFilterTagSelection(this, 'Testing')">Testing</button>
-            <button class="pill-button" style="background-color: #9F9CE9;" onclick="toggleFilterTagSelection(this, 'Database')">Database</button>
-            <button class="pill-button" style="background-color: #BE8DE4;" onclick="toggleFilterTagSelection(this, 'API')">API</button>
-               
-            </label>
-        </div>
-        
-        <div class="custom-popup-buttons">
-            <button class="btn btn-secondary" onclick="hideFilterPopup()">Cancel</button>
-            <button class="btn btn-primary" onclick="applyFilter()">Apply</button>
+    <!-- Overlay -->
+    <div id="overlay" class="overlay"></div>
+
+    <!-- Popup Form -->
+    <div id="popupForm" class="popup-form">
+        <form id="backlogForm">
+            <div class="form-group">
+                <label for="name">Title</label>
+                <input type="text" class="form-control" id="name" placeholder="Enter Title">
+            </div>
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea class="form-control" id="description" rows="3" placeholder="Enter description"></textarea>
+                <hr class="grey-line-break">
+            </div>
+            <div class="form-group">
+                <label for="tags">Tags:</label>
+                <div class="tags-container" id="popup-tags-container"></div>
+                <button type="button" class="add-tag-button" id="add-tag-button" onclick="showTagSelectionPopup()">+</button>
+            </div>
+            <div class="form-group">
+                <label for="assignee">Assignee</label>
+                <select class="form-control" id="assignee" style="width: 150px; display: inline-block; margin-left: 10px;">
+                    <option>test1</option>
+                    <option>test2</option>
+                    <option>test3</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="priority">Priority:</label>
+                <button type="button" class="pill-button priority-low" onclick="setPriority('Low')">Low</button>
+                <button type="button" class="pill-button priority-medium" onclick="setPriority('Medium')">Medium</button>
+                <button type="button" class="pill-button priority-important" onclick="setPriority('Important')">Important</button>
+                <button type="button" class="pill-button priority-urgent" onclick="setPriority('Urgent')">Urgent</button>
+                <input type="hidden" id="priority-input" value="">
+            </div>
+            <div class="form-group">
+                <label for="status">Status:</label>
+                <button type="button" class="pill-button status-not-started" onclick="setStatus('Not started')">Not started</button>
+                <button type="button" class="pill-button status-in-progress" onclick="setStatus('In progress')">In progress</button>
+                <button type="button" class="pill-button status-done" onclick="setStatus('Done')">Done</button>
+                <input type="hidden" id="status-input" value="Not started">
+            </div>
+            <div class="form-group">
+                <label for="stage">Stage:</label>
+                <button type="button" class="pill-button stage-planning" onclick="setStage('Planning')">Planning</button>
+                <button type="button" class="pill-button stage-development" onclick="setStage('Development')">Development</button>
+                <button type="button" class="pill-button stage-testing" onclick="setStage('Testing')">Testing</button>
+                <button type="button" class="pill-button stage-integration" onclick="setStage('Integration')">Integration</button>
+                <input type="hidden" id="stage-input" value="">
+            </div>
+            <div class="form-group">
+                <label for="storypoint">Storypoint:</label>
+                <select class="form-control" id="storypoint" style="width: 150px; display: inline-block; margin-left: 10px;">
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                    <option>6</option>
+                    <option>7</option>
+                    <option>8</option>
+                    <option>9</option>
+                    <option>10</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="timeCreated">Time created:</label>
+                <input type="text" class="form-control" id="timeCreated" readonly>
+            </div>
+            <div class="form-buttons">
+                <button type="button" class="btn btn-secondary" onclick="togglePopup()">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="handleSaveChanges()">Save Changes</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tag Selection Popup -->
+    <div id="tag-selection-popup" class="tag-selection-popup">
+        <h4>Select Tags</h4>
+        <div class="tag-selection" id="tag-selection"></div>
+        <div class="close-button-container">
+            <button class="btn btn-secondary" onclick="hideTagSelectionPopup()">Close</button>
         </div>
     </div>
-</div>
-<!-- ScrollToTop Button -->
-<button aria-label="Scroll to top button" class="bloc-button btn btn-d scrollToTop" onclick="scrollToTarget('1',this)"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 32 32"><path class="scroll-to-top-btn-icon" d="M30,22.656l-14-13-14,13"/></svg></button>
-<!-- ScrollToTop Button END-->
 
+    <!-- Sorting Popup -->
+    <div id="sorting-popup" class="custom-popup">
+        <div class="custom-popup-content">
+            <h4>Sort By</h4>
+            <div id="sorting-options">
+                <div class="sorting-option">
+                    <label for="sort-default">Default
+                        <input type="radio" id="sort-default" name="sort-option" value="default" checked>
+                    </label>
+                </div>
+                <div class="sorting-option">
+                    <label for="sort-oldest-recent">Oldest → Recent
+                        <input type="radio" id="sort-oldest-recent" name="sort-option" value="oldest-recent">
+                    </label>
+                </div>
+                <div class="sorting-option">
+                    <label for="sort-recent-oldest">Recent → Oldest
+                        <input type="radio" id="sort-recent-oldest" name="sort-option" value="recent-oldest">
+                    </label>
+                </div>
+                <div class="sorting-option">
+                    <label for="sort-low-important">Low → Important
+                        <input type="radio" id="sort-low-important" name="sort-option" value="low-important">
+                    </label>
+                </div>
+                <div class="sorting-option">
+                    <label for="sort-important-low">Important → Low
+                        <input type="radio" id="sort-important-low" name="sort-option" value="important-low">
+                    </label>
+                </div>
+            </div>
+            <div class="custom-popup-buttons">
+                <button class="btn btn-secondary" onclick="hideSortingPopup()">Cancel</button>
+                <button class="btn btn-primary" onclick="applySorting()">Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Popup -->
+    <div id="filter-popup" class="custom-popup">
+        <div class="custom-popup-content">
+            <h4>Filter By</h4>
+            <div id="filter-option" class="button-container">
+                <button class="pill-button" style="background-color: #FFC0CB;" onclick="toggleFilterTagSelection(this, 'UI')">UI</button>
+                <button class="pill-button" style="background-color: #FFD7BE;" onclick="toggleFilterTagSelection(this, 'UX')">UX</button>
+                <button class="pill-button" style="background-color: #F7DC6F;" onclick="toggleFilterTagSelection(this, 'Frontend')">Frontend</button>
+                <button class="pill-button" style="background-color: #C6F4D6;" onclick="toggleFilterTagSelection(this, 'Backend')">Backend</button>
+                <button class="pill-button" style="background-color: #9ED2C0;" onclick="toggleFilterTagSelection(this, 'Framework')">Framework</button>
+                <button class="pill-button" style="background-color: #8DB8CB;" onclick="toggleFilterTagSelection(this, 'Testing')">Testing</button>
+                <button class="pill-button" style="background-color: #9F9CE9;" onclick="toggleFilterTagSelection(this, 'Database')">Database</button>
+                <button class="pill-button" style="background-color: #BE8DE4;" onclick="toggleFilterTagSelection(this, 'API')">API</button>
+            </div>
+            <div class="custom-popup-buttons">
+                <button class="btn btn-secondary" onclick="hideFilterPopup()">Cancel</button>
+                <button class="btn btn-primary" onclick="applyFilter()">Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ScrollToTop Button -->
+    <button aria-label="Scroll to top button" class="bloc-button btn btn-d scrollToTop" onclick="scrollToTarget('1',this)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 32 32">
+            <path class="scroll-to-top-btn-icon" d="M30,22.656l-14-13-14,13"/>
+        </svg>
+    </button>
+    <!-- ScrollToTop Button END-->
 </div>
+
 <!-- Main container END -->
 
 
@@ -581,405 +640,459 @@
 <script src="../js/lazysizes.min.js" defer></script>
 
 <script>
-    let tags = [];
-    let priority = '';
-    let sprint = '';
-    let status = 'Not started';
-    let stage = '';
-    let availableTags = ['UI', 'UX', 'Frontend', 'Backend', 'Framework', 'Testing', 'Database', 'API'];
-    let tagColors = ['#FFC0CB', '#FFD7BE', '#F7DC6F', '#C6F4D6', '#9ED2C0', '#8DB8CB', '#9F9CE9', '#BE8DE4'];
-
-    function fetchProductBacklog() {
-    const dbRef = ref(database, 'productBacklog');
-    get(dbRef).then((snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-        renderProductBacklog(data);
-      } else {
-        console.log("No data available");
-      }
-    }).catch((error) => {
-      console.error(error);
-    });
+let tags = [], priority = '', sprint = '', status = 'Not started', stage = '';
+const availableTags = ['UI', 'UX', 'Frontend', 'Backend', 'Framework', 'Testing', 'Database', 'API'];
+const tagColors = ['#FFC0CB', '#FFD7BE', '#F7DC6F', '#C6F4D6', '#9ED2C0', '#8DB8CB', '#9F9CE9', '#BE8DE4'];
+let currentSortOption = 'default', currentFilterOption = [];
+window.tags = [];
+function fetchProductBacklog() {
+  get(ref(database, 'productBacklog')).then((snapshot) => {
+    if (snapshot.exists()) {
+      currentData = snapshot.val();
+      console.log('Fetched Data:', currentData); // Debugging line
+      renderProductBacklog(currentData);
+    } else {
+      console.log("No data available");
     }
-
-    window.fetchProductBacklog = fetchProductBacklog;
-
-    function renderProductBacklog(data) {
-        console.log("Render:", data); // Debugging: Check the items to be rendered
-      const container = document.querySelector('.col .form-group.mb-3');
-      container.innerHTML = ''; // Clear existing content
-
-      for (const key in data) {
-        const item = data[key];
-        const card = createBacklogCard(item, key);
-        container.appendChild(card);
-      }
-
-      // Add the "+" button after all cards
-      const addButton = document.createElement('button');
-      addButton.className = 'btn btn-lg btn-8-style btn-c-7647';
-      addButton.onclick = togglePopup;
-      addButton.innerHTML = '<span class="fa fa-plus"></span>';
-      container.appendChild(addButton);
-    }
-
-    function createBacklogCard(item, key) {
-        const card = document.createElement('div');
-        card.className = 'card mb-3';
-        card.innerHTML = `
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h3 class="mg-clear">${item.name}</h3>
-                <div class="dropdown">
-                    <button class="btn btn-link dropdown-toggle three-dot-menu" type="button" id="dropdownMenu-${key}" data-bs-toggle="dropdown" aria-expanded="false">
-                        ⋮
-                    </button>
-                    <ul class="dropdown-menu" aria-labelledby="dropdownMenu-${key}">
-                        <li><a class="dropdown-item text-danger delete-item" href="#" data-item-id="${key}">Delete</a></li>
-                        <li><a class="dropdown-item text-primary edit-item" href="#" data-item-id="${key}">Edit</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="card-body">
-                <p>${item.description}</p>
-                <div class="d-flex mb-2">
-                    <button class="btn btn-secondary me-2 card-tag" disabled style="background-color: ${getPriorityColor(item.priority)}">${item.priority}</button>
-                    <button class="btn btn-secondary card-tag" disabled>${item.assignee}</button>
-                </div>
-                <div class="tags-container">
-                    ${renderCardTags(item.tags)}
-                </div>
-                <div class="mt-2">
-                    <small>Created: ${item.timeCreated}</small>
-                </div>
-            </div>
-        `;
-        return card;
-    }
-
-    function renderCardTags(tags) {
-  if (!tags) return '';
-  return tags.map(tag => `<div class="tag" style="background-color: ${tag.color}; color: black;">${tag.name}</div>`).join('');
+  }).catch(console.error);
 }
 
-    function getPriorityColor(priority) {
-    const colors = {
-      'Low': '#C6F4D6',
-      'Medium': '#F7DC6F',
-      'Important': '#FFD7BE',
-      'Urgent': '#FFC0CB'
-    };
-    return colors[priority] || '#6E6AF0';
-    }
+function renderProductBacklog(data) {
+  const container = document.querySelector('.col .form-group.mb-3');
+  container.innerHTML = ''; // This line clears the container
+  Object.entries(data).forEach(([key, item]) => {
+    const card = createBacklogCard(item, key);
+    container.appendChild(card);
+  });
+  // Ensure the button is re-added after rendering cards
+  const addButton = document.createElement('button');
+  addButton.className = 'btn btn-lg btn-8-style btn-c-7647';
+  addButton.onclick = handleAddButtonClick;
+  addButton.innerHTML = '<span class="fa fa-plus"></span>';
+  container.appendChild(addButton);
+}
 
-    function renderTags() {
-        const tagsContainer = document.getElementById('popup-tags-container');
-        tagsContainer.innerHTML = '';
+function createBacklogCard(item, key) {
+  const card = document.createElement('div');
+  card.className = 'card mb-3';
+  card.setAttribute('data-item-id', key);  // Add this line to set the item ID on the card
+  card.innerHTML = `
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h3 class="mg-clear">${item.name}</h3>
+      <div class="dropdown">
+        <button class="btn btn-link dropdown-toggle three-dot-menu" type="button" id="dropdownMenu-${key}" data-bs-toggle="dropdown" aria-expanded="false">⋮</button>
+        <ul class="dropdown-menu" aria-labelledby="dropdownMenu-${key}">
+          <li><a class="dropdown-item text-danger delete-item" href="#" data-item-id="${key}">Delete</a></li>
+          <li><a class="dropdown-item text-primary edit-item" href="#" data-item-id="${key}">Edit</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="card-body">
+      <p>${item.description}</p>
+      <div class="d-flex mb-2">
+        <button class="btn btn-secondary me-2 card-tag" disabled style="background-color: ${getPriorityColor(item.priority)}">${item.priority}</button>
+        <button class="btn btn-secondary card-tag" disabled>${item.assignee}</button>
+      </div>
+      <div class="tags-container">${renderCardTags(item.tags)}</div>
+      <div class="mt-2"><small>Created: ${item.timeCreated}</small></div>
+    </div>
+  `;
+  return card;
+}
+
+
+function renderCardTags(tags) {
+  return tags ? tags.map(tag => `<div class="tag" style="background-color: ${tag.color}; color: black;">${tag.name}</div>`).join('') : '';
+}
+
+function getPriorityColor(priority) {
+  const colors = { 'Low': '#C6F4D6', 'Medium': '#F7DC6F', 'Important': '#FFD7BE', 'Urgent': '#FFC0CB' };
+  return colors[priority] || '#6E6AF0';
+}
+
+function togglePopup() {
+    const popup = document.getElementById('popupForm');
+    const overlay = document.getElementById('overlay');
+
+    popup.classList.toggle('open');
+    overlay.classList.toggle('open');
+
+    if (!popup.classList.contains('open')) {
+        // Reset form state without changing buttons
+        const form = document.getElementById('backlogForm');
+        form.reset();
+        Array.from(form.elements).forEach(el => el.disabled = false);
+        window.tags = [];
+        renderPopupTags();
+    }
+}
+
+
+function resetFormState() {
+    const form = document.getElementById('backlogForm');
+    form.reset();
+    Array.from(form.elements).forEach(el => el.disabled = false);
+    window.tags = []; // Reset tags
+    renderPopupTags();
+
+    // Reset priority, status, and stage
+    document.querySelectorAll('.pill-button').forEach(button => button.classList.remove('selected'));
+    document.getElementById('priority-input').value = '';
+    document.getElementById('status-input').value = 'Not started';
+    document.getElementById('stage-input').value = '';
+}
+
+
+
+function renderPopupTags(isViewMode = false) {
+    const tagsContainer = document.getElementById('popup-tags-container');
+    tagsContainer.innerHTML = '';
+    if (Array.isArray(window.tags)) {
         window.tags.forEach(tag => {
             const tagElement = document.createElement('div');
             tagElement.classList.add('tag');
             tagElement.style.backgroundColor = tag.color;
             tagElement.textContent = tag.name;
-            tagElement.addEventListener('click', function() {
-                const index = window.tags.findIndex(t => t.name === tag.name);
-                if (index !== -1) {
-                    window.tags.splice(index, 1);
-                }
-                renderTags();
-            });
+            if (!isViewMode) {
+                tagElement.addEventListener('click', () => {
+                    window.tags = window.tags.filter(t => t.name !== tag.name);
+                    renderPopupTags();
+                });
+            }
             tagsContainer.appendChild(tagElement);
         });
     }
-
-    function togglePopup() {
-        const popup = document.getElementById('popupForm');
-        const form = document.getElementById('backlogForm');
-        const overlay = document.getElementById('overlay');
-        popup.classList.toggle('open');
-        overlay.classList.toggle('open');
-
-        if (popup.classList.contains('open')) {
-            window.tags = []; // Initialize tags as an empty array when opening the popup
-            renderPopupTags(); // Render empty tags in the popup
-
-            // Set the current time when opening the popup
-            const now = new Date();
-            document.getElementById('timeCreated').value = now.toLocaleString();
-        } else {
-            // Reset the form when closing
-            form.reset();
-            const saveButton = form.querySelector('.btn-primary');
-            saveButton.textContent = 'Save Changes';
-            saveButton.onclick = handleSaveChanges;
-        }
-    }
-
-    function renderPopupTags() {
-    const tagsContainer = document.getElementById('popup-tags-container');
-    tagsContainer.innerHTML = '';
-    window.tags.forEach(tag => {
-        const tagElement = document.createElement('div');
-        tagElement.classList.add('tag');
-        tagElement.style.backgroundColor = tag.color;
-        tagElement.textContent = tag.name;
-        tagElement.addEventListener('click', function() {
-            const index = window.tags.findIndex(t => t.name === tag.name);
-            if (index !== -1) {
-                window.tags.splice(index, 1);
-            }
-            renderPopupTags();
-        });
-        tagsContainer.appendChild(tagElement);
-    });
 }
 
 function showTagSelectionPopup() {
-    const tagSelectionPopup = document.getElementById('tag-selection-popup');
-    const tagSelection = document.getElementById('tag-selection');
-    tagSelection.innerHTML = '';
-    availableTags.forEach((tag, index) => {
-        const tagElement = document.createElement('div');
-        tagElement.classList.add('tag-selection-tag');
-        tagElement.style.backgroundColor = tagColors[index % tagColors.length];
-        tagElement.textContent = tag;
-        tagElement.addEventListener('click', function() {
-            if (!window.tags.some(t => t.name === tag)) {
-                window.tags.push({ name: tag, color: tagColors[index % tagColors.length] });
-            }
-            renderPopupTags();
-            hideTagSelectionPopup();
-        });
-        tagSelection.appendChild(tagElement);
+  const tagSelectionPopup = document.getElementById('tag-selection-popup');
+  const tagSelection = document.getElementById('tag-selection');
+  tagSelection.innerHTML = '';
+  availableTags.forEach((tag, index) => {
+    const tagElement = document.createElement('div');
+    tagElement.classList.add('tag-selection-tag');
+    tagElement.style.backgroundColor = tagColors[index % tagColors.length];
+    tagElement.textContent = tag;
+    tagElement.addEventListener('click', () => {
+      if (!window.tags.some(t => t.name === tag)) {
+        window.tags.push({ name: tag, color: tagColors[index % tagColors.length] });
+      }
+      renderPopupTags();
+      hideTagSelectionPopup();
     });
-    tagSelectionPopup.classList.add('open');
+    tagSelection.appendChild(tagElement);
+  });
+  tagSelectionPopup.classList.add('open');
 }
 
-    function hideTagSelectionPopup() {
-        const tagSelectionPopup = document.getElementById('tag-selection-popup');
-        tagSelectionPopup.classList.remove('open');
-    }
+function hideTagSelectionPopup() {
+  document.getElementById('tag-selection-popup').classList.remove('open');
+}
 
-    function renderTags() {
-        const tagsContainer = document.getElementById('popup-tags-container');
-        tagsContainer.innerHTML = '';
-        tags.forEach(tag => {
-            const tagElement = document.createElement('div');
-            tagElement.classList.add('tag');
-            tagElement.style.backgroundColor = tag.color;
-            tagElement.textContent = tag.name;
-            tagElement.addEventListener('click', function() {
-                const index = tags.findIndex(t => t.name === tag.name);
-                if (index !== -1) {
-                    tags.splice(index, 1);
-                }
-                renderTags();
-            });
-            tagsContainer.appendChild(tagElement);
-        });
-    }
+function setPriority(p) {
+  if (!p) {
+    console.warn("Priority is undefined or missing");  // Add a warning if the priority is missing
+    return;
+  }
 
-    // Store selected tags in an array
-    let selectedTags = [];
+  priority = p;
+  document.querySelectorAll('.pill-button.priority-low, .pill-button.priority-medium, .pill-button.priority-important, .pill-button.priority-urgent')
+    .forEach(button => button.classList.remove('selected'));
+  document.querySelector(`.pill-button.priority-${p.toLowerCase()}`).classList.add('selected');
+  document.getElementById('priority-input').value = p;
+}
 
-    // Toggle selection of tags
-    function toggleTagSelection(button, tag) {
-        if (selectedTags.includes(tag)) {
-            // If the tag is already selected, deselect it
-            selectedTags = selectedTags.filter(t => t !== tag);
-            button.classList.remove('selected');
-            button.style.opacity = '1'; // Reset opacity
-        } else {
-            // If the tag is not selected, select it
-            selectedTags.push(tag);
-            button.classList.add('selected');
-            button.style.opacity = '0.7'; // Apply opacity when selected
-        }
-    }
 
-    function toggleFilterTagSelection(button, tag) {
-    button.classList.toggle('selected');
-    
-    if (button.classList.contains('selected')) {
-        if (!currentFilterOption.includes(tag)) {
-            currentFilterOption.push(tag);
-        }
+function setStatus(status) {
+    // Clear any previously selected status buttons
+    document.querySelectorAll('.pill-button.status-not-started, .pill-button.status-in-progress, .pill-button.status-done').forEach(button => {
+        button.classList.remove('selected');
+    });
+
+    // Select the appropriate status button
+    const statusClassMap = {
+        'Not started': '.pill-button.status-not-started',
+        'In progress': '.pill-button.status-in-progress',
+        'Done': '.pill-button.status-done'
+    };
+
+    const statusButton = document.querySelector(statusClassMap[status]);
+    if (statusButton) {
+        statusButton.classList.add('selected');
     } else {
-        currentFilterOption = currentFilterOption.filter(t => t !== tag);
+        console.warn("Unknown status:", status);
     }
 
+    // Set hidden input value (if needed)
+    document.getElementById('status-input').value = status;
 }
 
-    function setPriority(p) {
-        priority = p;
-        const priorityButtons = document.querySelectorAll('.pill-button.priority-low, .pill-button.priority-medium, .pill-button.priority-important, .pill-button.priority-urgent');
-        priorityButtons.forEach(button => button.classList.remove('selected'));
-        document.querySelector(`.pill-button.priority-${p.toLowerCase()}`).classList.add('selected');
-        document.getElementById('priority-input').value = p;
-    }
+
+function setStage(stage) {
+  if (!stage) {
+    console.warn("Stage is undefined or missing");
+    return;
+  }
+
+  // Clear previous selections
+  document.querySelectorAll('.pill-button.stage-planning, .pill-button.stage-development, .pill-button.stage-testing, .pill-button.stage-integration')
+    .forEach(button => button.classList.remove('selected'));
+
+  // Try to select the button for the given stage
+  const stageButton = document.querySelector(`.pill-button.stage-${stage.toLowerCase()}`);
+
+  // Check if the stage button exists before trying to add a class
+  if (stageButton) {
+    stageButton.classList.add('selected');
+    document.getElementById('stage-input').value = stage;
+  } else {
+    console.warn("Stage button not found for:", stage);
+  }
+}
 
 
-    function setStatus(s) {
-        status = s;
-        const statusButtons = document.querySelectorAll('.pill-button.status-not-started');
-        statusButtons.forEach(button => button.classList.remove('selected'));
-        document.querySelector(`.pill-button.status-${s.toLowerCase().replace(' ', '-')}`).classList.add('selected');
-        document.getElementById('status-input').value = s;
-    }
-
-    function setStage(s) {
-        stage = s;
-        const stageButtons = document.querySelectorAll('.pill-button.stage-planning, .pill-button.stage-development, .pill-button.stage-testing, .pill-button.stage-integration');
-        stageButtons.forEach(button => button.classList.remove('selected'));
-        document.querySelector(`.pill-button.stage-${s.toLowerCase()}`).classList.add('selected');
-        document.getElementById('stage-input').value = s;
-    }
-    document.addEventListener('DOMContentLoaded', function() {
-  document.querySelector('#popupForm form').addEventListener('submit', function(e) {
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelector('#popupForm form').addEventListener('submit', e => {
     e.preventDefault();
     window.sendFormDataToFirebase();
   });
 });
 
-    function handleSaveChanges() {
-        if (typeof window.sendFormDataToFirebase === 'function') {
-            window.sendFormDataToFirebase();
-        } else {
-            console.error('sendFormDataToFirebase is not defined');
-        }
+function handleSaveChanges() {
+    if (typeof window.sendFormDataToFirebase === 'function') {
+        window.sendFormDataToFirebase();
+    } else {
+        console.error('sendFormDataToFirebase is not defined');
     }
+}
 
-    function confirmDelete(itemId) {
-    if (confirm("Are you sure you want to delete this item?")) {
-        deleteItem(itemId);
-    }
-    }
+function deleteItem(itemId) {
+  remove(ref(database, `productBacklog/${itemId}`))
+    .then(() => {
+      console.log('Item deleted successfully');
+      fetchProductBacklog();
+    })
+    .catch(error => {
+      console.error('Error deleting item: ', error);
+      alert('Error deleting item. Please try again.');
+    });
+}
 
-    function deleteItem(itemId) {
-        const itemRef = ref(database, `productBacklog/${itemId}`);
-        remove(itemRef)
-            .then(() => {
-                console.log('Item deleted successfully');
-                fetchProductBacklog(); // Refresh the product backlog
-            })
-            .catch((error) => {
-                console.error('Error deleting item: ', error);
-                alert('Error deleting item. Please try again.');
-            });
-    }
-    window.showDeleteConfirmation = function(key) {
-        window.itemToDelete = key;
-        document.getElementById('delete-confirmation-popup').style.display = 'block';
-    }
+window.showDeleteConfirmation = key => {
+  window.itemToDelete = key;
+  document.getElementById('delete-confirmation-popup').style.display = 'block';
+}
 
-    window.hideDeleteConfirmation = function() {
-        document.getElementById('delete-confirmation-popup').style.display = 'none';
-    }
+window.hideDeleteConfirmation = () => {
+  document.getElementById('delete-confirmation-popup').style.display = 'none';
+}
 
-    window.confirmDelete = function() {
-        if (window.itemToDelete) {
-            window.deleteData(`productBacklog/${window.itemToDelete}`);
-        }
-    }
-
-    let currentSortOption = 'default';
+window.confirmDelete = () => {
+  if (window.itemToDelete) {
+    window.deleteData(`productBacklog/${window.itemToDelete}`);
+  }
+}
 
 function showSortingPopup() {
-    document.getElementById('sorting-popup').style.display = 'block';
+  document.getElementById('sorting-popup').style.display = 'block';
 }
 
 function hideSortingPopup() {
-    document.getElementById('sorting-popup').style.display = 'none';
+  document.getElementById('sorting-popup').style.display = 'none';
 }
 
 function applySorting() {
-    const selectedOption = document.querySelector('input[name="sort-option"]:checked').value;
-    currentSortOption = selectedOption;
-    hideSortingPopup();
-    fetchProductBacklog();
+  currentSortOption = document.querySelector('input[name="sort-option"]:checked').value;
+  hideSortingPopup();
+  fetchProductBacklog();
 }
 
 function sortBacklogItems(items) {
-    const itemsArray = Object.entries(items).map(([key, value]) => ({ key, ...value }));
-
-    switch (currentSortOption) {
-        case 'oldest-recent':
-            itemsArray.sort((a, b) => a.timestamp - b.timestamp);
-            break;
-        case 'recent-oldest':
-            itemsArray.sort((a, b) => b.timestamp - a.timestamp);
-            break;
-        case 'low-important':
-            itemsArray.sort((a, b) => getPriorityValue(a.priority) - getPriorityValue(b.priority));
-            break;
-        case 'important-low':
-            itemsArray.sort((a, b) => getPriorityValue(b.priority) - getPriorityValue(a.priority));
-            break;
-        default:
-            // Default sorting (recent to oldest)
-            itemsArray.sort((a, b) => b.timestamp - a.timestamp);
-    }
-
-    return itemsArray.reduce((acc, item) => {
-        acc[item.key] = item;
-        return acc;
-    }, {});
+  const itemsArray = Object.entries(items).map(([key, value]) => ({ key, ...value }));
+  const priorityValues = { 'Low': 1, 'Medium': 2, 'Important': 3, 'Urgent': 4 };
+  const sortFunctions = {
+    'oldest-recent': (a, b) => a.timestamp - b.timestamp,
+    'recent-oldest': (a, b) => b.timestamp - a.timestamp,
+    'low-important': (a, b) => (priorityValues[a.priority] || 0) - (priorityValues[b.priority] || 0),
+    'important-low': (a, b) => (priorityValues[b.priority] || 0) - (priorityValues[a.priority] || 0),
+  };
+  itemsArray.sort(sortFunctions[currentSortOption] || sortFunctions['recent-oldest']);
+  return Object.fromEntries(itemsArray.map(item => [item.key, item]));
 }
 
-//Filter feature
-let currentFilterOption = [];
-
 function showFilterPopup() {
-    document.getElementById('filter-popup').style.display = 'block';
+  document.getElementById('filter-popup').style.display = 'block';
 }
 
 function hideFilterPopup() {
-    document.getElementById('filter-popup').style.display = 'none';
+  document.getElementById('filter-popup').style.display = 'none';
 }
 
 function applyFilter() {
-    hideFilterPopup();
-    fetchProductBacklog(); 
+  hideFilterPopup();
+  fetchProductBacklog();
 }
-
 
 function filterBacklogItems(items) {
     const itemsArray = Object.entries(items).map(([key, value]) => ({ key, ...value }));
 
     if (currentFilterOption.length === 0) {
-        return itemsArray.reduce((acc, item) => {
-            acc[item.key] = item;
-            return acc;
-        }, {});
+        return items;
     }
 
     const filteredItemsArray = itemsArray.filter(item => {
-        const itemTags = item.tags.map(tag => tag.name) || [];
-        const filterTags = currentFilterOption;
-
-        return itemTags.length === filterTags.length &&
-            filterTags.every(tag => itemTags.includes(tag)) &&
-            itemTags.every(tag => filterTags.includes(tag));
+        const itemTags = item.tags ? item.tags.map(tag => tag.name) : [];
+        return currentFilterOption.every(tag => itemTags.includes(tag));
     });
 
-    if (filteredItemsArray.length === 0) {
-        return {};
+    return Object.fromEntries(filteredItemsArray.map(item => [item.key, item]));
+}
+
+
+function toggleFilterTagSelection(button, tag) {
+  button.classList.toggle('selected');
+  currentFilterOption = button.classList.contains('selected')
+    ? [...new Set([...currentFilterOption, tag])]
+    : currentFilterOption.filter(t => t !== tag);
+}
+
+function openFormInViewMode(item) {
+    console.log('Opening form in view mode with item:', item);
+
+    const form = document.getElementById('backlogForm');
+
+    // Prefill form fields
+    form.elements['name'].value = item.name || '';
+    form.elements['description'].value = item.description || '';
+    form.elements['assignee'].value = item.assignee || '';
+
+    // Set priority
+    if (item.priority) {
+        setPriority(item.priority);
+    } else {
+        console.warn("Priority is missing for item:", item);
     }
 
-    return filteredItemsArray.reduce((acc, item) => {
-        acc[item.key] = item;
-        return acc;
-    }, {});
+    // Set status
+    setStatus(item.status || 'Not started'); // Ensure the correct status is highlighted
+
+    // Set stage
+    if (item.stage) {
+        setStage(item.stage);
+    } else {
+        console.warn("Stage is missing for item:", item);
+    }
+
+    form.elements['storypoint'].value = item.storypoint || '';
+    form.elements['timeCreated'].value = item.timeCreated || '';
+    window.tags = item.tags || [];
+
+    // Render tags
+    const tagsContainer = document.getElementById('popup-tags-container');
+    tagsContainer.innerHTML = ''; // Clear any previous tags
+    if (item.tags && Array.isArray(item.tags)) {
+        item.tags.forEach(tag => {
+            const tagElement = document.createElement('div');
+            tagElement.classList.add('tag');
+            tagElement.style.backgroundColor = tag.color || '#ccc'; // Default color if not specified
+            tagElement.textContent = tag.name || 'No Name';
+            tagsContainer.appendChild(tagElement);
+        });
+    }
+
+    // Disable all form fields
+    Array.from(form.elements).forEach(el => el.disabled = true);
+
+    // Change buttons: Only "Back"
+    const buttons = document.querySelector('.form-buttons');
+    buttons.innerHTML = '<button type="button" class="btn btn-secondary" onclick="togglePopup()">Back</button>';
+
+    // Open popup
+    renderPopupTags(true);
+    togglePopup();
 }
 
-function getPriorityValue(priority) {
-    const priorityValues = { 'Low': 1, 'Medium': 2, 'Important': 3, 'Urgent': 4 };
-    return priorityValues[priority] || 0;
+
+function setFormMode(mode, item = null) {
+    console.log(`Setting form mode to: ${mode}`); // Debug log
+    const form = document.getElementById('backlogForm');
+    const buttons = document.querySelector('.form-buttons');
+
+    // Always clear the buttons first
+    buttons.innerHTML = '';
+
+    if (mode === 'edit' && item) {
+      fillFormWithItemData(item);
+buttons.innerHTML = `
+  <button type="button" class="btn btn-secondary" onclick="togglePopup()">Cancel</button>
+  <button type="button" class="btn btn-primary" onclick="updateBacklogItem('${item.key}')">Update</button>
+`;
+    } else if (mode === 'add') {
+        console.log('Entering add mode'); // Debug log
+        // Force reset for add mode
+        form.reset();
+        window.tags = [];
+        renderPopupTags();
+
+        // Enable all form fields
+        Array.from(form.elements).forEach(el => el.disabled = false);
+
+        // Set the current time for the timeCreated field
+        form.elements['timeCreated'].value = new Date().toLocaleString('en-GB', {
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit', second: '2-digit'
+        }).replace(/\//g, '-');
+
+        // Force the correct buttons for add mode
+        buttons.innerHTML = `
+            <button type="button" class="btn btn-secondary" onclick="togglePopup()">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="handleSaveChanges()">Save Changes</button>
+        `;
+        console.log('Add mode buttons set:', buttons.innerHTML); // Debug log
+    } else if (mode === 'view') {
+      fillFormWithItemData(item);
+Array.from(form.elements).forEach(el => el.disabled = true);
+buttons.innerHTML = '<button type="button" class="btn btn-secondary" onclick="togglePopup()">Back</button>';
+    }
+
+    // Force the popup to open
+    const popup = document.getElementById('popupForm');
+    const overlay = document.getElementById('overlay');
+    popup.classList.add('open');
+    overlay.classList.add('open');
 }
+
+window.handleAddButtonClick = function(event) {
+  console.log('Add button clicked'); // Debug log
+    event.preventDefault();
+    console.log('Add button clicked'); // Debug log
+    setFormMode('add');
+};
+
+function fillFormWithItemData(item) {
+    const form = document.getElementById('backlogForm');
+    form.elements['name'].value = item.name || '';
+    form.elements['description'].value = item.description || '';
+    form.elements['assignee'].value = item.assignee || '';
+    setPriority(item.priority || '');
+    setStatus(item.status || 'Not started');
+    setStage(item.stage || '');
+    form.elements['storypoint'].value = item.storypoint || '';
+    form.elements['timeCreated'].value = item.timeCreated || '';
+    window.tags = item.tags || [];
+    form.elements['timeCreated'].value = item.timeCreated || new Date().toLocaleString('en-GB', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
+}).replace(/\//g, '-');
+    renderPopupTags();
+}
+
+
+
 </script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
 import { getDatabase, ref, push, get, remove, update } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
-// Your existing Firebase configuration and initialization code here
 
 const firebaseConfig = {
   apiKey: "AIzaSyDicFj4DUKZo2iYXZN8tUE2FcMLqmQ_cgU",
@@ -997,171 +1110,142 @@ const database = getDatabase(app);
 const productBacklogRef = ref(database, 'productBacklog');
 
 window.fetchProductBacklog = function() {
-  get(ref(database, 'productBacklog')).then((snapshot) => {
+  get(productBacklogRef).then((snapshot) => {
     if (snapshot.exists()) {
       const data = snapshot.val();
-      const sortedData = sortBacklogItems(data);
-      const filteredData = filterBacklogItems(data);
-
-      // Render the filtered data if filters are applied, otherwise render the sorted data
-      if (currentFilterOption.length > 0) {
-        window.renderProductBacklog(filteredData);
-      } else {
-        window.renderProductBacklog(sortedData);
-      }
+      const result = currentFilterOption.length > 0 ? filterBacklogItems(data) : sortBacklogItems(data);
+      window.renderProductBacklog(result);
     } else {
       console.log("No data available");
     }
-  }).catch((error) => {
-    console.error(error);
-  });
+  }).catch(console.error);
 }
 
-// Define sendFormDataToFirebase function
 window.sendFormDataToFirebase = function() {
-  const formData = {
-    name: document.getElementById('name').value,
-    description: document.getElementById('description').value,
-    assignee: document.getElementById('assignee').value,
-    priority: document.getElementById('priority-input').value,
-    status: document.getElementById('status-input').value,
-    stage: document.getElementById('stage-input').value,
-    storypoint: document.getElementById('storypoint').value,
-    timeCreated: document.getElementById('timeCreated').value,
-    timestamp: Date.now() // Keep this for sorting purposes
-  };
-  // Only add tags if they exist
-  if (window.tags && window.tags.length > 0) {
-    formData.tags = window.tags;
-  }
+    const formData = {
+        name: document.getElementById('name').value,
+        description: document.getElementById('description').value,
+        assignee: document.getElementById('assignee').value,
+        priority: document.getElementById('priority-input').value,
+        status: document.getElementById('status-input').value,
+        stage: document.getElementById('stage-input').value,
+        storypoint: document.getElementById('storypoint').value,
+        timeCreated: new Date().toLocaleString('en-GB', {
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit'
+                }).replace(/\//g, '-'),
+                timestamp: Date.now(),
+        tags: window.tags || []
+    };
 
-  for (let key in formData) {
-    if (formData[key] === undefined || formData[key] === '') {
-      console.error(`Form field ${key} is empty or undefined`);
-      alert(`Please fill in the ${key} field`);
-      return; // Exit the function if any field is empty or undefined
+    if (Object.values(formData).some(value => value === '')) {
+        alert('Please fill in all fields');
+        return;
     }
-  }
 
-  push(productBacklogRef, formData)
-    .then(() => {
-      console.log('Data saved successfully');
-      window.togglePopup();
-      fetchProductBacklog(); // Refresh the product backlog
-    })
-    .catch((error) => {
-      console.error('Error saving data: ', error);
-      alert('Error saving data. Please try again.');
-    });
+    push(productBacklogRef, formData)
+        .then(() => {
+            console.log('Data saved successfully');
+            togglePopup();
+            fetchProductBacklog();
+        })
+        .catch(console.error);
 };
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', () => {
   fetchProductBacklog();
-  // Remove the following lines
-  // document.querySelector('#popupForm form').addEventListener('submit', function(e) {
-  //   e.preventDefault();
-  //   window.sendFormDataToFirebase();
-  // });
+  document.getElementById('sortButton').addEventListener('click', showSortingPopup);
+  document.getElementById('filterButton').addEventListener('click', showFilterPopup);
 });
 
-document.addEventListener('click', function(event) {
-    if (event.target.classList.contains('delete-item')) {
+document.addEventListener('click', (event) => {
+  if (event.target.classList.contains('delete-item')) {
+    event.preventDefault();
+    showDeleteConfirmation(event.target.getAttribute('data-item-id'));
+  }
+});
+
+document.addEventListener('click', (event) => {
+    if (event.target.classList.contains('edit-item')) {
         event.preventDefault();
         const itemId = event.target.getAttribute('data-item-id');
-        showDeleteConfirmation(itemId);
+        get(ref(database, `productBacklog/${itemId}`)).then((snapshot) => {
+            if (snapshot.exists()) {
+                const item = snapshot.val();
+                item.key = itemId;
+                setFormMode('edit', item);
+            }
+        }).catch(console.error);
     }
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    const addButton = document.querySelector('.btn-lg.btn-8-style');
+    if (addButton) {
+        addButton.addEventListener('click', function(event) {
+            console.log('Add button clicked via event listener');
+            handleAddButtonClick(event);
+        });
+    } else {
+        console.error('Add button not found');
+    }
+});
+
+document.querySelector('.btn-lg.btn-8-style').addEventListener('click', function(event) {
+    event.preventDefault();
+    setFormMode('add');
+});
+
+
+
+
+// Detect click on the overlay (outside the form) to close the form
+document.getElementById('overlay').addEventListener('click', function() {
+    togglePopup(); // This will close the form
+});
+
+
+document.addEventListener('click', (event) => {
+    const card = event.target.closest('.card');
+    if (card && !event.target.closest('.dropdown, .btn-link')) {
+        const itemId = card.getAttribute('data-item-id');
+        if (itemId) {
+            get(ref(database, `productBacklog/${itemId}`)).then((snapshot) => {
+                if (snapshot.exists()) {
+                    const item = snapshot.val();
+                    item.key = itemId;
+                    openFormInViewMode(item);
+                }
+            }).catch(console.error);
+        }
+    }
+});
+
+
 
 window.deleteData = function(path) {
-    return remove(ref(database, path))
-        .then(() => {
-            console.log("Data deleted successfully");
-            window.hideDeleteConfirmation();
-            window.fetchProductBacklog(); // Refresh the product backlog
-        })
-        .catch((error) => {
-            console.error("Error deleting data:", error);
-            alert("Error deleting data. Please try again.");
-        });
+  remove(ref(database, path))
+    .then(() => {
+      console.log("Data deleted successfully");
+      hideDeleteConfirmation();
+      fetchProductBacklog();
+    })
+    .catch(console.error);
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-  window.fetchProductBacklog();
-  document.getElementById('sortButton').addEventListener('click', showSortingPopup);
-});
-
-document.addEventListener('DOMContentLoaded', function() {
-    window.fetchProductBacklog();
-    document.getElementById('filterButton').addEventListener('click', showFilterPopup);
-});
-
-document.addEventListener('click', function(event) {
-    if (event.target.classList.contains('delete-item')) {
-        event.preventDefault();
-        const itemId = event.target.getAttribute('data-item-id');
-        window.showDeleteConfirmation(itemId);
-    }
-});
-
-document.addEventListener('click', function(event) {
-    if (event.target.classList.contains('filter-item')) {
-        event.preventDefault();
-        const itemId = event.target.getAttribute('data-item-id');
-        window.showDeleteConfirmation(itemId);
-    }
-});
-
-document.addEventListener('click', function(event) {
-    if (event.target.classList.contains('delete-item')) {
-        event.preventDefault();
-        const itemId = event.target.getAttribute('data-item-id');
-        window.showDeleteConfirmation(itemId);
-    } else if (event.target.classList.contains('edit-item')) {
-        event.preventDefault();
-        const itemId = event.target.getAttribute('data-item-id');
-        editBacklogItem(itemId);
-    }
-});
-
 function editBacklogItem(itemId) {
-    // Fetch the item data
     get(ref(database, `productBacklog/${itemId}`)).then((snapshot) => {
         if (snapshot.exists()) {
             const item = snapshot.val();
-            const form = document.getElementById('backlogForm');
-
-            // Populate the form with the item data
-            form.elements['name'].value = item.name;
-            form.elements['description'].value = item.description;
-            form.elements['assignee'].value = item.assignee;
-            setPriority(item.priority);
-            setStatus(item.status);
-            setStage(item.stage);
-            form.elements['storypoint'].value = item.storypoint;
-            form.elements['timeCreated'].value = item.timeCreated;
-
-            // Set the tags
-            window.tags = item.tags || [];
-            renderPopupTags();
-
-            // Open the popup
-            togglePopup();
-
-            // Change the save button to update
-            const saveButton = form.querySelector('.btn-primary');
-            saveButton.textContent = 'Update';
-            saveButton.onclick = function() {
-                updateBacklogItem(itemId);
-            };
-        } else {
-            console.log("No such document!");
+            item.key = itemId;
+            setFormMode('edit', item);
         }
-    }).catch((error) => {
-        console.error("Error getting document:", error);
-    });
+    }).catch(console.error);
 }
 
-function updateBacklogItem(itemId) {
+
+
+window.updateBacklogItem = function(itemId) {
     const form = document.getElementById('backlogForm');
     const formData = {
         name: form.elements['name'].value,
@@ -1172,21 +1256,15 @@ function updateBacklogItem(itemId) {
         stage: document.getElementById('stage-input').value,
         storypoint: form.elements['storypoint'].value,
         timeCreated: form.elements['timeCreated'].value,
-        tags: window.tags
+        tags: window.tags || []
     };
 
-    // Update the item in the database
     update(ref(database, `productBacklog/${itemId}`), formData)
         .then(() => {
             console.log('Data updated successfully');
             togglePopup();
-            fetchProductBacklog(); // Refresh the product backlog
+            fetchProductBacklog();
         })
-        .catch((error) => {
-            console.error('Error updating data: ', error);
-            alert('Error updating data. Please try again.');
-        });
-}
-
+        .catch(console.error);
+};
 </script>
-
