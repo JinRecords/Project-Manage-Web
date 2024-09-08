@@ -29,7 +29,7 @@
         top: 0;
         right: -600px;
         width: 600px;
-        height: 100%;
+        height: 100vh;
         background: white;
         box-shadow: -2px 0 5px rgba(0,0,0,0.5);
         transition: right 0.3s ease;
@@ -37,6 +37,10 @@
         z-index: 1001;
         font-family: 'Poppins', sans-serif;
         font-weight: 500;
+        position: fixed;
+        overflow-y: auto;
+
+
     }
 
     .popup-form.open { right: 0; }
@@ -404,6 +408,62 @@
         color: #333; /* Adjust color as needed */
     }
 
+
+.timeline-container {
+    position: relative;
+    margin-top: 20px;
+    padding-bottom: 20px;
+}
+
+.timeline-line {
+    position: absolute;
+    left: 10%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: #ccc;
+}
+
+.timeline-event {
+    position: relative;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+}
+
+.timeline-dot {
+    width: 10px;
+    height: 10px;
+    background-color: #666;
+    border-radius: 50%;
+    position: absolute;
+    left: 10.3%;
+    transform: translateX(-50%);
+}
+
+.timeline-content {
+    width: 45%;
+    padding: 10px;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+}
+
+.timeline-event:nth-child(odd) .timeline-content {
+    margin-left: 100px;
+}
+
+.timeline-event:nth-child(even) .timeline-content {
+    margin-left: 100px;
+}
+
+.form-buttons {
+    position: sticky;
+    bottom: 0;
+    background-color: white;
+    padding: 10px 0;
+    z-index: 1;
+}
+
     </style>
 
 </head>
@@ -544,8 +604,11 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="timeCreated">Time created:</label>
                 <input type="text" class="form-control" id="timeCreated" readonly>
+            </div>
+            <div class="timeline-container">
+            <div class="timeline-line"></div>
+            <div id="timeline-events"></div>
             </div>
             <div class="form-buttons">
                 <button type="button" class="btn btn-secondary" onclick="togglePopup()">Cancel</button>
@@ -694,7 +757,7 @@ function createBacklogCard(item, key) {
         <button class="btn btn-secondary card-tag" disabled>${item.assignee}</button>
       </div>
       <div class="tags-container">${renderCardTags(item.tags)}</div>
-      <div class="mt-2"><small>Created: ${item.timeCreated}</small></div>
+      <div class="mt-2"><small>${item.timeCreated}</small></div>
     </div>
   `;
   return card;
@@ -730,22 +793,36 @@ function togglePopup() {
 function renderPopupTags(isViewMode = false) {
     const tagsContainer = document.getElementById('popup-tags-container');
     tagsContainer.innerHTML = '';
+
+    // Loop through and render the tags
     if (Array.isArray(window.tags)) {
         window.tags.forEach(tag => {
             const tagElement = document.createElement('div');
             tagElement.classList.add('tag');
             tagElement.style.backgroundColor = tag.color;
             tagElement.textContent = tag.name;
+
+            // In view mode, tags should not be clickable
             if (!isViewMode) {
                 tagElement.addEventListener('click', () => {
                     window.tags = window.tags.filter(t => t.name !== tag.name);
                     renderPopupTags();
                 });
             }
+
             tagsContainer.appendChild(tagElement);
         });
     }
+
+    // Hide or show the "Add Tag" button based on the mode
+    const addTagButton = document.getElementById('add-tag-button');
+    if (isViewMode) {
+        addTagButton.style.display = 'none'; // Hide the button in view mode
+    } else {
+        addTagButton.style.display = 'inline-block'; // Show the button in edit/add mode
+    }
 }
+
 
 function showTagSelectionPopup() {
   const tagSelectionPopup = document.getElementById('tag-selection-popup');
@@ -861,8 +938,15 @@ window.hideDeleteConfirmation = () => {
 window.confirmDelete = () => {
   if (window.itemToDelete) {
     window.deleteData(`productBacklog/${window.itemToDelete}`);
+
+    // Remove the corresponding card from the DOM
+    const cardToRemove = document.querySelector(`[data-item-id="${window.itemToDelete}"]`);
+    if (cardToRemove) {
+      cardToRemove.remove();
+    }
   }
 }
+
 
 function showSortingPopup() {
   document.getElementById('sorting-popup').style.display = 'block';
@@ -970,7 +1054,7 @@ function openFormInViewMode(item) {
     }
 
     // Set status
-    setStatus(item.status || 'Not started'); // Ensure the correct status is highlighted
+    setStatus(item.status || 'Not started');
 
     // Set stage
     if (item.stage) {
@@ -980,21 +1064,14 @@ function openFormInViewMode(item) {
     }
 
     form.elements['storypoint'].value = item.storypoint || '';
-    form.elements['timeCreated'].value = item.timeCreated || '';
+
+    // Populate 'timeCreated' field in view mode (use 'timeCreated' or fallback to history)
+    form.elements['timeCreated'].value = item.timeCreated || (item.history && item.history.length > 0 ? `Created on ${item.history[0].timestamp}` : 'No creation date available');
+
     window.tags = item.tags || [];
 
     // Render tags
-    const tagsContainer = document.getElementById('popup-tags-container');
-    tagsContainer.innerHTML = ''; // Clear any previous tags
-    if (item.tags && Array.isArray(item.tags)) {
-        item.tags.forEach(tag => {
-            const tagElement = document.createElement('div');
-            tagElement.classList.add('tag');
-            tagElement.style.backgroundColor = tag.color || '#ccc'; // Default color if not specified
-            tagElement.textContent = tag.name || 'No Name';
-            tagsContainer.appendChild(tagElement);
-        });
-    }
+    renderPopupTags(true);
 
     // Disable all form fields
     Array.from(form.elements).forEach(el => el.disabled = true);
@@ -1004,9 +1081,10 @@ function openFormInViewMode(item) {
     buttons.innerHTML = '<button type="button" class="btn btn-secondary" onclick="togglePopup()">Back</button>';
 
     // Open popup
-    renderPopupTags(true);
     togglePopup();
+    renderTimeline(item.history || []);
 }
+
 
 
 function setFormMode(mode, item = null) {
@@ -1029,6 +1107,12 @@ buttons.innerHTML = `
         form.reset();
         window.tags = [];
         renderPopupTags();
+        const timelineContainer = document.getElementById('timeline-events');
+        timelineContainer.innerHTML = ''; // Reset the timeline
+        setPriority('Low');  // Default to 'Low'
+        setStatus('Not started');  // Default to 'Not started'
+        setStage('Planning');  // Default to 'Planning'
+
 
         // Enable all form fields
         Array.from(form.elements).forEach(el => el.disabled = false);
@@ -1074,16 +1158,61 @@ function fillFormWithItemData(item) {
     setStatus(item.status || 'Not started');
     setStage(item.stage || '');
     form.elements['storypoint'].value = item.storypoint || '';
-    form.elements['timeCreated'].value = item.timeCreated || '';
     window.tags = item.tags || [];
-    form.elements['timeCreated'].value = item.timeCreated || new Date().toLocaleString('en-GB', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
-    hour: '2-digit', minute: '2-digit', second: '2-digit'
-}).replace(/\//g, '-');
     renderPopupTags();
+
+    // Render the timeline
+    if (item.history && item.history.length > 0) {
+        form.elements['timeCreated'].value = `Created on ${item.history[0].timestamp}`;
+    } else {
+        form.elements['timeCreated'].value = item.timeCreated || '';
+    }
+    renderTimeline(item.history || []);
 }
 
 
+function renderTimeline(history) {
+    const timelineContainer = document.getElementById('timeline-events');
+    timelineContainer.innerHTML = '';
+
+    // Reverse the history array to display the most recent item at the top
+    history.slice().reverse().forEach((event, index) => {
+        const timelineEvent = document.createElement('div');
+        timelineEvent.className = 'timeline-event';
+
+        const dot = document.createElement('div');
+        dot.className = 'timeline-dot';
+
+        const content = document.createElement('div');
+        content.className = 'timeline-content';
+
+        const actionTime = document.createElement('p');
+        actionTime.textContent = `${event.action} on ${event.timestamp}`;
+        actionTime.style.fontFamily = 'Poppins, sans-serif';
+        actionTime.style.width = '45%';
+        actionTime.style.marginRight = '10px';
+        actionTime.style.float = 'left';
+
+        const changes = document.createElement('p');
+        changes.textContent = event.changes;
+        changes.style.fontFamily = 'Poppins, sans-serif';
+        changes.style.width = '45%';
+        changes.style.float = 'right';
+
+        // Truncate text if it's too long
+        if (changes.textContent.length > 50) {
+            changes.textContent = changes.textContent.substring(0, 47) + '...';
+        }
+
+        content.appendChild(actionTime);
+        content.appendChild(changes);
+
+        timelineEvent.appendChild(dot);
+        timelineEvent.appendChild(content);
+
+        timelineContainer.appendChild(timelineEvent);
+    });
+}
 
 </script>
 <script type="module">
@@ -1126,11 +1255,20 @@ window.sendFormDataToFirebase = function() {
         status: document.getElementById('status-input').value,
         stage: document.getElementById('stage-input').value,
         storypoint: document.getElementById('storypoint').value,
-        timeCreated: new Date().toLocaleString('en-GB', {
-                    day: '2-digit', month: '2-digit', year: 'numeric',
-                    hour: '2-digit', minute: '2-digit', second: '2-digit'
-                }).replace(/\//g, '-'),
-                timestamp: Date.now(),
+        history: [{
+            action: 'Created',
+            timestamp: new Date().toLocaleString('en-GB', {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit', second: '2-digit'
+            }).replace(/\//g, '-'),
+            changes: 'Item created'
+        }],
+        timeModified: new Date().toLocaleString('en-GB', {
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit', second: '2-digit'
+        }).replace(/\//g, '-'),
+        timestamp: Date.now(),
+
         tags: window.tags || []
     };
 
@@ -1238,15 +1376,60 @@ window.updateBacklogItem = function(itemId) {
         stage: document.getElementById('stage-input').value,
         storypoint: form.elements['storypoint'].value,
         timeCreated: form.elements['timeCreated'].value,
-        tags: window.tags || []
+        tags: window.tags || [],
+        timeModified: new Date().toLocaleString('en-GB', {
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit', second: '2-digit'
+        }).replace(/\//g, '-'),
     };
 
-    update(ref(database, `productBacklog/${itemId}`), formData)
-        .then(() => {
-            console.log('Data updated successfully');
-            togglePopup();
-            fetchProductBacklog();
-        })
-        .catch(console.error);
+    // Get the current item data
+    get(ref(database, `productBacklog/${itemId}`)).then((snapshot) => {
+        if (snapshot.exists()) {
+            const currentData = snapshot.val();
+            const changes = getChanges(currentData, formData);
+
+            // Update history
+
+                if (!currentData.history) currentData.history = [];
+    currentData.history.push({
+        action: 'Modified',
+        timestamp: new Date().toLocaleString('en-GB', {
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit', second: '2-digit'
+        }).replace(/\//g, '-'),
+        changes: getChanges(currentData, formData)
+    });
+
+    formData.history = currentData.history;
+
+            // Update the item in the database
+            update(ref(database, `productBacklog/${itemId}`), formData)
+                .then(() => {
+                    console.log('Data updated successfully');
+                    togglePopup(); // Close the popup
+                    fetchProductBacklog();
+                })
+                .catch(console.error);
+        }
+    }).catch(console.error);
 };
+
+function getChanges(oldData, newData) {
+    const changes = [];
+    for (const key in newData) {
+        if (key !== 'timeModified' && key !== 'timeCreated' && key !== 'history' && JSON.stringify(oldData[key]) !== JSON.stringify(newData[key])) {
+            changes.push(`${key} updated`);
+        }
+    }
+
+    // Format the changes text
+    if (changes.length > 1) {
+        return changes.join(', ');
+    } else if (changes.length === 1) {
+        return changes[0];
+    } else {
+        return 'No changes';
+    }
+}
 </script>
