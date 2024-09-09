@@ -395,7 +395,7 @@
                 // In view mode, tags should not be clickable
                 if (!isViewMode) {
                     tagElement.addEventListener('click', () => {
-                        window.tags = window.tags.filter(t => t.title !== tag.name);
+                        window.tags = window.tags.filter(t => t.name !== tag.name);
                         renderPopupTags();
                     });
                 }
@@ -424,8 +424,8 @@
             tagElement.style.backgroundColor = tagColors[index % tagColors.length];
             tagElement.textContent = tag;
             tagElement.addEventListener('click', () => {
-                if (!window.tags.some(t => t.title === tag)) {
-                    window.tags.push({title: tag, color: tagColors[index % tagColors.length]});
+                if (!window.tags.some(t => t.name === tag)) {
+                    window.tags.push({name: tag, color: tagColors[index % tagColors.length]});
                 }
                 renderPopupTags();
                 hideTagSelectionPopup();
