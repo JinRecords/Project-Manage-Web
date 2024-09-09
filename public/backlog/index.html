@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="">
@@ -114,8 +114,8 @@
 
     .priority-low { background-color: #C6F4D6; }
     .priority-medium { background-color: #F7DC6F; }
-    .priority-important { background-color: #FFD7BE; }
-    .priority-urgent { background-color: #FFC0CB; }
+    .priority-important { background-color: #FFC0CB; }
+    .priority-urgent { background-color: #FFD7BE; }
     .status-not-started { background-color: #FFC107; }
     .stage-planning { background-color: #FFB6C1; }
     .stage-development { background-color: #FFD7BE; }
@@ -260,12 +260,17 @@
         color: #333;
         background: none;
         border: none;
-        padding: 0;
+        padding: 10px;
         text-decoration: none;
+        font-weight: bolder;
     }
 
     .three-dot-menu:after {
         display: none;
+    }
+
+    .three-dot-menu:hover {
+        background: #DDDDDD;
     }
 
     #sortButton, #filterButton {
@@ -275,15 +280,28 @@
 
     #sortButton {
         right: 20px;
+        padding-right: 30px;
+        padding-left: 30px;
+        background-color: #aaaaaa;
+        outline: 2px;
+        outline-style: solid;
+        outline-color: #eeeeee;
+
     }
 
     #filterButton {
-        right: 60px;
+        right: 100px;
         width: 36px;
         height: 38px;
+        padding-right: 35px;
+        padding-left: 35px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        background-color: #aaaaaa;
+        outline: 2px;
+        outline-style: solid;
+        outline-color: #eeeeee;
     }
 
     #sorting-popup .custom-popup-content,
@@ -417,7 +435,7 @@
 
 .timeline-line {
     position: absolute;
-    left: 10%;
+    left: 7%;
     top: 0;
     bottom: 0;
     width: 2px;
@@ -437,31 +455,32 @@
     background-color: #666;
     border-radius: 50%;
     position: absolute;
-    left: 10.3%;
+    left: 7.1%;
     transform: translateX(-50%);
 }
 
 .timeline-content {
-    width: 45%;
+    width: 80%;
     padding: 10px;
     background-color: #f0f0f0;
     border-radius: 5px;
 }
 
 .timeline-event:nth-child(odd) .timeline-content {
-    margin-left: 100px;
+    margin-left: 90px;
 }
 
 .timeline-event:nth-child(even) .timeline-content {
-    margin-left: 100px;
+    margin-left: 90px;
 }
 
 .form-buttons {
     position: sticky;
-    bottom: 0;
+    bottom: -20px;
     background-color: white;
     padding: 10px 0;
     z-index: 1;
+    font-family: 'Poppins', sans-serif;
 }
 
     </style>
@@ -558,7 +577,7 @@
                 <button type="button" class="add-tag-button" id="add-tag-button" onclick="showTagSelectionPopup()">+</button>
             </div>
             <div class="form-group">
-                <label for="assignee">Assignee</label>
+                <label for="assignee">Assignee:</label>
                 <select class="form-control" id="assignee" style="width: 150px; display: inline-block; margin-left: 10px;">
                     <option>test1</option>
                     <option>test2</option>
@@ -569,8 +588,8 @@
                 <label for="priority">Priority:</label>
                 <button type="button" class="pill-button priority-low" onclick="setPriority('Low')">Low</button>
                 <button type="button" class="pill-button priority-medium" onclick="setPriority('Medium')">Medium</button>
-                <button type="button" class="pill-button priority-important" onclick="setPriority('Important')">Important</button>
                 <button type="button" class="pill-button priority-urgent" onclick="setPriority('Urgent')">Urgent</button>
+                <button type="button" class="pill-button priority-important" onclick="setPriority('Important')">Important</button>
                 <input type="hidden" id="priority-input" value="">
             </div>
             <div class="form-group">
@@ -694,8 +713,6 @@
     <!-- ScrollToTop Button END-->
 </div>
 
-<!-- Main container END -->
-
 
 <!-- Additional JS -->
 <script src="../js/bootstrap.bundle.min.js?3058"></script>
@@ -739,6 +756,7 @@ function createBacklogCard(item, key) {
   const card = document.createElement('div');
   card.className = 'card mb-3';
   card.setAttribute('data-item-id', key);  // Add this line to set the item ID on the card
+  const timeCreated = item.history && item.history.length > 0 ? item.history[0].timestamp : 'No creation date available';
   card.innerHTML = `
     <div class="card-header d-flex justify-content-between align-items-center">
       <h3 class="mg-clear">${item.name}</h3>
@@ -757,7 +775,7 @@ function createBacklogCard(item, key) {
         <button class="btn btn-secondary card-tag" disabled>${item.assignee}</button>
       </div>
       <div class="tags-container">${renderCardTags(item.tags)}</div>
-      <div class="mt-2"><small>${item.timeCreated}</small></div>
+            <div class="mt-2"><small>Created on: ${timeCreated}</small></div>
     </div>
   `;
   return card;
@@ -769,7 +787,7 @@ function renderCardTags(tags) {
 }
 
 function getPriorityColor(priority) {
-  const colors = { 'Low': '#C6F4D6', 'Medium': '#F7DC6F', 'Important': '#FFD7BE', 'Urgent': '#FFC0CB' };
+  const colors = { 'Low': '#C6F4D6', 'Medium': '#F7DC6F', 'Urgent': '#FFD7BE', 'Important': '#FFC0CB'};
   return colors[priority] || '#6E6AF0';
 }
 
@@ -964,7 +982,7 @@ function applySorting() {
 
 function sortBacklogItems(items) {
   const itemsArray = Object.entries(items).map(([key, value]) => ({ key, ...value }));
-  const priorityValues = { 'Low': 1, 'Medium': 2, 'Important': 3, 'Urgent': 4 };
+  const priorityValues = { 'Low': 1, 'Medium': 2, 'Urgent': 3, 'Important': 4 };
   const sortFunctions = {
     'oldest-recent': (a, b) => a.timestamp - b.timestamp,
     'recent-oldest': (a, b) => b.timestamp - a.timestamp,
@@ -1432,4 +1450,19 @@ function getChanges(oldData, newData) {
         return 'No changes';
     }
 }
+
+self.addEventListener('message', async (event) => {
+  try {
+    // Perform asynchronous operation
+    const response = await fetch(event.data.url);
+    const data = await response.json();
+    // Handle the data
+    event.ports[0].postMessage(data);
+  } catch (error) {
+    // Handle any errors
+    event.ports[0].postMessage({ error: error.message });
+  }
+});
 </script>
+
+</html>
