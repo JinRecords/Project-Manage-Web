@@ -5,9 +5,9 @@
 
 Before using the Realtime Database, initialize Firebase in your application:
 
-```javascript
-import { initializeApp } from "firebase/app";
-import { getDatabase } from "firebase/database";
+Website can be accessed [HERE](https://izuck-digital.web.app/)
+
+## Team
 
 const firebaseConfig = {
   // Your Firebase configuration object
