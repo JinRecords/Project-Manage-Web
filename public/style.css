@@ -56,7 +56,7 @@ nav .dropdown-menu .nav-link{color:rgba(0,0,0,0.6)!important;} /* Maintain Downd
 	padding:100px 20px;
 }
 
-/* = Full Width Blocs 
+/* = Full Width Blocs
 -------------------------------------------------------------- */
 
 .full-width-bloc{
@@ -146,7 +146,7 @@ nav .dropdown-menu .nav-link{color:rgba(0,0,0,0.6)!important;} /* Maintain Downd
 .dropdown-menu .dropdown-menu{
 	border:none}
 @media (min-width:576px){
-	
+
 .navbar-expand-sm .dropdown-menu .dropdown-menu{
 	border:1px solid rgba(0,0,0,.15);
 	position:absolute;
@@ -336,6 +336,7 @@ h1,h2,h3,h4,h5,h6,p,label,.btn,a{
 	border-radius:9px 9px 9px 9px;
 	border-style:solid;
 	border-color:var(--swatch-var-5665)!important;
+	display: inline-block;
 }
 
 /* = Colour
@@ -343,15 +344,15 @@ h1,h2,h3,h4,h5,h6,p,label,.btn,a{
 
 /* Swatch Variables */
 :root{
-	
+
 	--swatch-var-7097:rgba(64,70,86,1.00);
-	
+
 	--swatch-var-672:rgba(110,106,240,1.00);
-	
+
 	--swatch-var-7647:rgba(255,255,255,1.00);
-	
+
 	--swatch-var-5665:rgba(247,247,247,1.00);
-	
+
 }
 
 
@@ -394,6 +395,7 @@ h1,h2,h3,h4,h5,h6,p,label,.btn,a{
 .icon-7647{
 	color:var(--swatch-var-7647)!important;
 	border-color:var(--swatch-var-7647)!important;
+	padding-left: 15px;
 }
 
 
@@ -428,13 +430,13 @@ h1,h2,h3,h4,h5,h6,p,label,.btn,a{
 }
 
 
-/* = Mobile adjustments 
+/* = Mobile adjustments
 -------------------------------------------------------------- */
 @media (max-width: 1024px)
 {
     .bloc.full-width-bloc, .bloc-tile-2.full-width-bloc .container, .bloc-tile-3.full-width-bloc .container, .bloc-tile-4.full-width-bloc .container{
-        padding-left: 0; 
-        padding-right: 0;  
+        padding-left: 0;
+        padding-right: 0;
     }
 }
 @media (max-width: 991px)
@@ -449,7 +451,7 @@ h1,h2,h3,h4,h5,h6,p,label,.btn,a{
         padding-left:0;padding-right:0;
     }
     .btn-dwn{
-       display:none; 
+       display:none;
     }
     .voffset{
         margin-top:5px;
