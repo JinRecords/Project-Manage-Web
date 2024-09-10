@@ -5,7 +5,7 @@
 
 This repository contains the codebase for our Project Management Tool, a web application designed to help teams manage projects, track progress, and collaborate effectively. Our tool is inspired by popular platforms like monday.com and Trello, and aims to streamline project management with customizable features tailored to our users' needs.
 
-Website can be accessed [HERE](https://jinrecords.github.io/izuckdigital.github.io)
+Website can be accessed [HERE](https://izuck-digital.web.app/)
 
 ## Team
 
