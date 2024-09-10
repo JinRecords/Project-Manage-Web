@@ -4,6 +4,8 @@
 
 This repository contains the codebase for our Project Management Tool, a web application designed to help teams manage projects, track progress, and collaborate effectively. Our tool is inspired by popular platforms like monday.com and Trello, and aims to streamline project management with customizable features tailored to our users' needs.
 
+Website can be accessed [HERE](https://izuck-digital.web.app/).
+
 ## Team
 
 Our team consists of six  members, each contributing to different aspects of the project. We work collaboratively using Git for version control, with strict adherence to our Git policies to ensure smooth development and deployment processes.
