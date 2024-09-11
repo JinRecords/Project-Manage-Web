@@ -309,20 +309,30 @@
         }).catch(console.error);
     }
 
-    function renderProductBacklog(data) {
-        const container = document.querySelector('.col .form-group.mb-3');
-        container.innerHTML = ''; // This line clears the container
+function renderProductBacklog(data) {
+    const container = document.querySelector('.col .form-group.mb-3');
+    container.innerHTML = ''; // Clear the container
+
+    if (!data || Object.keys(data).length === 0) {
+        const noDataMessage = document.createElement('p');
+        noDataMessage.textContent = 'No items in the product backlog.';
+        noDataMessage.style.textAlign = 'center';
+        noDataMessage.style.padding = '20px';
+        container.appendChild(noDataMessage);
+    } else {
         Object.entries(data).forEach(([key, item]) => {
             const card = createBacklogCard(item, key);
             container.appendChild(card);
         });
-        // Ensure the button is re-added after rendering cards
-        const addButton = document.createElement('button');
-        addButton.className = 'btn btn-lg btn-8-style btn-c-7647';
-        addButton.onclick = handleAddButtonClick;
-        addButton.innerHTML = '<span class="fa fa-plus"></span>';
-        container.appendChild(addButton);
     }
+
+    // Always add the "Add" button
+    const addButton = document.createElement('button');
+    addButton.className = 'btn btn-lg btn-8-style btn-c-7647';
+    addButton.onclick = handleAddButtonClick;
+    addButton.innerHTML = '<span class="fa fa-plus"></span>';
+    container.appendChild(addButton);
+}
 
     function createBacklogCard(item, key) {
         const card = document.createElement('div');
@@ -552,18 +562,21 @@
         fetchProductBacklog();
     }
 
-    function sortBacklogItems(items) {
-        const itemsArray = Object.entries(items).map(([key, value]) => ({key, ...value}));
-        const priorityValues = {'Low': 1, 'Medium': 2, 'Urgent': 3, 'Important': 4};
-        const sortFunctions = {
-            'oldest-recent': (a, b) => a.timestamp - b.timestamp,
-            'recent-oldest': (a, b) => b.timestamp - a.timestamp,
-            'low-important': (a, b) => (priorityValues[a.priority] || 0) - (priorityValues[b.priority] || 0),
-            'important-low': (a, b) => (priorityValues[b.priority] || 0) - (priorityValues[a.priority] || 0),
-        };
-        itemsArray.sort(sortFunctions[currentSortOption] || sortFunctions['recent-oldest']);
-        return Object.fromEntries(itemsArray.map(item => [item.key, item]));
+function sortBacklogItems(items) {
+    if (!items || Object.keys(items).length === 0) {
+        return {};
     }
+    const itemsArray = Object.entries(items).map(([key, value]) => ({key, ...value}));
+    const priorityValues = {'Low': 1, 'Medium': 2, 'Urgent': 3, 'Important': 4};
+    const sortFunctions = {
+        'oldest-recent': (a, b) => a.timestamp - b.timestamp,
+        'recent-oldest': (a, b) => b.timestamp - a.timestamp,
+        'low-important': (a, b) => (priorityValues[a.priority] || 0) - (priorityValues[b.priority] || 0),
+        'important-low': (a, b) => (priorityValues[b.priority] || 0) - (priorityValues[a.priority] || 0),
+    };
+    itemsArray.sort(sortFunctions[currentSortOption] || sortFunctions['recent-oldest']);
+    return Object.fromEntries(itemsArray.map(item => [item.key, item]));
+}
 
 
     function showFilterPopup() {
@@ -580,34 +593,28 @@
     }
 
 
-    function filterBacklogItems(items) {
-        const itemsArray = Object.entries(items).map(([key, value]) => ({key, ...value}));
-
-        if (currentFilterOption.length === 0) {
-            return itemsArray.reduce((acc, item) => {
-                acc[item.key] = item;
-                return acc;
-            }, {});
-        }
-
-        const filteredItemsArray = itemsArray.filter(item => {
-            const itemTags = item.tags.map(tag => tag.name) || [];
-            const filterTags = currentFilterOption;
-
-            return itemTags.length === filterTags.length &&
-                filterTags.every(tag => itemTags.includes(tag)) &&
-                itemTags.every(tag => filterTags.includes(tag));
-        });
-
-        if (filteredItemsArray.length === 0) {
-            return {};
-        }
-
-        return filteredItemsArray.reduce((acc, item) => {
-            acc[item.key] = item;
-            return acc;
-        }, {});
+function filterBacklogItems(items) {
+    if (!items || Object.keys(items).length === 0) {
+        return {};
     }
+    const itemsArray = Object.entries(items).map(([key, value]) => ({key, ...value}));
+
+    if (currentFilterOption.length === 0) {
+        return items;
+    }
+
+    const filteredItemsArray = itemsArray.filter(item => {
+        const itemTags = item.tags ? item.tags.map(tag => tag.name) : [];
+        const filterTags = currentFilterOption;
+
+        return itemTags.length === filterTags.length &&
+            filterTags.every(tag => itemTags.includes(tag)) &&
+            itemTags.every(tag => filterTags.includes(tag));
+    });
+
+    return filteredItemsArray.length === 0 ? {} :
+           Object.fromEntries(filteredItemsArray.map(item => [item.key, item]));
+}
 
 
     function toggleFilterTagSelection(button, tag) {
@@ -774,17 +781,19 @@
             content.className = 'timeline-content';
 
             const actionTime = document.createElement('p');
-            actionTime.textContent = `${event.action} on ${event.timestamp}`;
+            actionTime.textContent = `${event.action} on ${event.timestamp} \n | by: test1`;
             actionTime.style.fontFamily = 'Poppins, sans-serif';
             actionTime.style.width = '45%';
             actionTime.style.marginRight = '10px';
             actionTime.style.float = 'left';
+
 
             const changes = document.createElement('p');
             changes.textContent = event.changes;
             changes.style.fontFamily = 'Poppins, sans-serif';
             changes.style.width = '45%';
             changes.style.float = 'right';
+            changes.style.marginTop = '10px';
 
             // Truncate text if it's too long
             if (changes.textContent.length > 50) {
@@ -811,7 +820,8 @@
         push,
         get,
         remove,
-        update
+        update,
+        onValue
     } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
 
     // Firebase configuration
@@ -847,6 +857,18 @@
         }
     }
 
+    function setupRealtimeListener() {
+        const productBacklogRef = ref(database, 'productBacklog');
+        onValue(productBacklogRef, (snapshot) => {
+            let data = snapshot.val();
+            if (data === null) {
+                data = {}; // Ensure we're always working with an object
+            }
+            const result = currentFilterOption.length > 0 ? filterBacklogItems(data) : sortBacklogItems(data);
+            window.renderProductBacklog(result);
+        });
+    }
+
     // Function to send form data to Firebase
     window.sendFormDataToFirebase = async function () {
         try {
@@ -859,7 +881,6 @@
             await push(productBacklogRef, formData);
             console.log('Data saved successfully');
             togglePopup();
-            fetchProductBacklog();
         } catch (error) {
             console.error("Error sending form data:", error);
         }
@@ -893,16 +914,16 @@
     }
 
     // Function to handle delete item
-    window.deleteData = async function (path) {
-        try {
-            await remove(ref(database, path));
-            console.log("Data deleted successfully");
-            hideDeleteConfirmation();
-            fetchProductBacklog();
-        } catch (error) {
-            console.error("Error deleting data:", error);
-        }
+window.deleteData = async function (path) {
+    try {
+        await remove(ref(database, path));
+        console.log("Data deleted successfully");
+        hideDeleteConfirmation();
+        // The listener will automatically update the UI
+    } catch (error) {
+        console.error("Error deleting data:", error);
     }
+}
 
     // Function to handle update item
     window.updateBacklogItem = async function (itemId) {
@@ -915,7 +936,6 @@
                 await update(ref(database, `productBacklog/${itemId}`), updatedData);
                 console.log('Data updated successfully');
                 togglePopup();
-                fetchProductBacklog();
             }
         } catch (error) {
             console.error("Error updating data:", error);
@@ -1017,6 +1037,15 @@
         }
     });
 
+    document.addEventListener('DOMContentLoaded', () => {
+    setupRealtimeListener();
+    document.getElementById('sortButton').addEventListener('click', showSortingPopup);
+    document.getElementById('filterButton').addEventListener('click', showFilterPopup);
+});
+
+    window.setupRealtimeListener = setupRealtimeListener;
+    window.fetchProductBacklog = fetchProductBacklog;
+    window.sendFormDataToFirebase = sendFormDataToFirebase;
     document.querySelector('.btn-lg.btn-8-style').addEventListener('click', function (event) {
         event.preventDefault();
         setFormMode('add');
