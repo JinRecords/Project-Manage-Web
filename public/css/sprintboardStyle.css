@@ -247,6 +247,12 @@
        background: #DDDDDD;
    }
 
+    .disabled {
+        pointer-events: none; /* Disable interactions */
+        color: #cccccc !important; /* Grey out the text */
+        cursor: not-allowed; /* Change cursor to indicate non-interactable */
+    }
+
    #sortButton, #filterButton {
        position: absolute;
        top: 20px;

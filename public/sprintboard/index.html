@@ -535,18 +535,24 @@
     }
 
     // Function to create a sprint card
-    function createSprintCard(sprint, key) {
-        const card = document.createElement('div');
-        card.className = 'card mb-3';
-        card.setAttribute('data-sprint-id', key);
-        card.innerHTML = `
+function createSprintCard(sprint, key) {
+    const card = document.createElement('div');
+    card.className = 'card mb-3';
+    card.setAttribute('data-sprint-id', key);
+
+    // Determine if buttons should be disabled
+    const isDisabled = sprint.status === 'In progress' || sprint.status === 'Completed';
+    const isDisabled2 = sprint.status === 'In progress';
+
+
+    card.innerHTML = `
         <div class="card-header d-flex justify-content-between align-items-center">
             <h3 class="mg-clear">${sprint.title}</h3>
             <div class="dropdown">
                 <button class="btn btn-link dropdown-toggle three-dot-menu" type="button" id="dropdownMenu-${key}" data-bs-toggle="dropdown" aria-expanded="false">⋮</button>
                 <ul class="dropdown-menu" aria-labelledby="dropdownMenu-${key}">
-                    <li><a class="dropdown-item text-danger delete-sprint" href="#" data-sprint-id="${key}">Delete</a></li>
-                    <li><a class="dropdown-item text-primary edit-sprint" href="#" data-sprint-id="${key}">Edit</a></li>
+                    <li><a class="dropdown-item text-danger delete-sprint ${isDisabled2 ? 'disabled' : ''}" href="#" data-sprint-id="${key}">Delete</a></li>
+                    <li><a class="dropdown-item text-primary edit-sprint ${isDisabled ? 'disabled' : ''}" href="#" data-sprint-id="${key}">Edit</a></li>
                 </ul>
             </div>
         </div>
@@ -559,13 +565,15 @@
             <p>End: ${new Date(sprint.endTime).toLocaleString()}</p>
         </div>
     `;
-        card.addEventListener('click', (event) => {
-            if (!event.target.closest('.dropdown')) {
-                openSprintViewMode(sprint, key);
-            }
-        });
-        return card;
-    }
+
+    card.addEventListener('click', (event) => {
+        if (!event.target.closest('.dropdown')) {
+            openSprintViewMode(sprint, key);
+        }
+    });
+
+    return card;
+}
 
     // Function to handle adding a new sprint
     window.handleAddSprintClick = function (event) {
