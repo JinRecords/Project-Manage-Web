@@ -542,7 +542,6 @@ function createSprintCard(sprint, key) {
 
     // Determine if buttons should be disabled
     const isDisabled = sprint.status === 'In progress' || sprint.status === 'Completed';
-    const isDisabled2 = sprint.status === 'In progress';
 
 
     card.innerHTML = `
@@ -551,7 +550,7 @@ function createSprintCard(sprint, key) {
             <div class="dropdown">
                 <button class="btn btn-link dropdown-toggle three-dot-menu" type="button" id="dropdownMenu-${key}" data-bs-toggle="dropdown" aria-expanded="false">⋮</button>
                 <ul class="dropdown-menu" aria-labelledby="dropdownMenu-${key}">
-                    <li><a class="dropdown-item text-danger delete-sprint ${isDisabled2 ? 'disabled' : ''}" href="#" data-sprint-id="${key}">Delete</a></li>
+                    <li><a class="dropdown-item text-danger delete-sprint ${isDisabled ? 'disabled' : ''}" href="#" data-sprint-id="${key}">Delete</a></li>
                     <li><a class="dropdown-item text-primary edit-sprint ${isDisabled ? 'disabled' : ''}" href="#" data-sprint-id="${key}">Edit</a></li>
                 </ul>
             </div>
@@ -800,6 +799,24 @@ function createSprintCard(sprint, key) {
 
     // Initial fetch of sprint board data
     fetchSprintBoard();
+
+
+
+    // Function to clear all sprints (DEBUGGING ONLY)
+    function clearAllSprints() {
+        const database = getDatabase();
+        const sprintBoardRef = ref(database, 'sprintboard');
+        remove(sprintBoardRef)
+            .then(() => {
+                console.log("All sprints cleared successfully.");
+            })
+            .catch((error) => {
+                console.error("Error clearing sprints:", error);
+            });
+    }
+
+    // Expose the function to the global scope for console access
+    window.clearAllSprints = clearAllSprints;
 </script>
 </body>
 </html>
