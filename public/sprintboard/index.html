@@ -13,10 +13,6 @@
     <link rel="stylesheet" type="text/css" href="../css/ionicons.min.css">
     <link href='https://fonts.googleapis.com/css?family=Poppins:100,500,700,40&display=swap&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" type="text/css" href="../css/sprintboardStyle.css">
-    <script type="module">
-        import {initializeApp} from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-        import {getDatabase, ref, push} from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
-    </script>
 </head>
 <body data-clean-url="true">
 
@@ -75,6 +71,9 @@
         </div>
     </div>
 
+        <!-- Overlay -->
+    <div id="overlay" class="overlay"></div>
+
     <!-- Delete Confirmation Popup -->
     <div id="delete-confirmation-popup" class="custom-popup">
         <div class="custom-popup-content">
@@ -87,8 +86,7 @@
         </div>
     </div>
 
-    <!-- Overlay -->
-    <div id="overlay" class="overlay"></div>
+
 
     <!-- Sprint Form Popup -->
     <div id="sprintFormPopup" class="popup-form">
@@ -216,7 +214,7 @@ function setDefaultSprintFormValues() {
 }
 
 // Function to toggle sprint popup
-window.toggleSprintPopup = function() {
+function toggleSprintPopup() {
     console.log("Toggling sprint popup");
     const popup = document.getElementById('sprintFormPopup');
     const overlay = document.getElementById('overlay');
@@ -343,7 +341,36 @@ function createSprintCard(sprint, key) {
             <p>End: ${new Date(sprint.endTime).toLocaleString()}</p>
         </div>
     `;
+    card.addEventListener('click', (event) => {
+        if (!event.target.closest('.dropdown')) {
+            openSprintViewMode(sprint, key);
+        }
+    });
     return card;
+}
+
+
+function openSprintViewMode(sprint, key) {
+    const form = document.getElementById('sprintForm');
+
+    // Fill in the form fields
+    form.elements['sprintTitle'].value = sprint.title || '';
+    form.elements['sprintDescription'].value = sprint.description || '';
+    form.elements['productOwner'].value = sprint.productOwner || '';
+    form.elements['scrumMaster'].value = sprint.scrumMaster || '';
+    form.elements['sprintStartTime'].value = sprint.startTime || '';
+    form.elements['sprintEndTime'].value = sprint.endTime || '';
+    form.elements['sprintStatus'].value = sprint.status || '';
+
+    // Disable all form fields
+    Array.from(form.elements).forEach(el => el.disabled = true);
+
+    // Change buttons: Only "Back"
+    const buttons = document.querySelector('.form-buttons');
+    buttons.innerHTML = '<button type="button" class="btn btn-secondary" onclick="toggleSprintPopup()">Back</button>';
+
+    // Open popup
+    toggleSprintPopup();
 }
 
 // Event listeners
@@ -391,33 +418,20 @@ function hideDeleteConfirmation() {
 
 // Function to edit a sprint
 function editSprint(sprintId) {
-    // Fetch the sprint data from Firebase and then open the form
+    console.log("Editing sprint with ID:", sprintId);
+    toggleSprintPopup();
     getSprintFromFirebase(sprintId).then(sprint => {
         if (sprint) {
             sprint.key = sprintId;
             setSprintFormMode('edit', sprint);
+        } else {
+            console.log("Sprint not found");
         }
     }).catch(console.error);
 }
 
-function getSprintFromFirebase(sprintId) {
-    return new Promise((resolve, reject) => {
-        get(ref(database, `sprintboard/${sprintId}`))
-            .then((snapshot) => {
-                if (snapshot.exists()) {
-                    const sprintData = snapshot.val();
-                    sprintData.key = sprintId; // Add the key to the sprint data
-                    resolve(sprintData);
-                } else {
-                    resolve(null); // Sprint not found
-                }
-            })
-            .catch((error) => {
-                console.error("Error fetching sprint:", error);
-                reject(error);
-            });
-    });
-}
+
+
 
 // Function to periodically update sprint statuses
 function updateAllSprintStatuses() {
@@ -440,15 +454,7 @@ setInterval(updateAllSprintStatuses, 60000);
 <script type="module">
 // Import necessary modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-import {
-    getDatabase,
-    ref,
-    push,
-    get,
-    remove,
-    update,
-    onValue
-} from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
+import { getDatabase, ref, push, get, remove, update, onValue } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
 
 // Firebase configuration (same as Product Backlog)
 const firebaseConfig = {
@@ -466,6 +472,23 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 const sprintBoardRef = ref(database, 'sprintboard');
+
+window.getSprintFromFirebase = function(sprintId) {
+    return get(ref(database, `sprintboard/${sprintId}`))
+        .then((snapshot) => {
+            if (snapshot.exists()) {
+                const sprintData = snapshot.val();
+                sprintData.key = sprintId;
+                return sprintData;
+            } else {
+                return null;
+            }
+        })
+        .catch((error) => {
+            console.error("Error fetching sprint:", error);
+            return null;
+        });
+}
 
 // Function to fetch sprint board data
 window.fetchSprintBoard = async function () {
@@ -522,10 +545,15 @@ function createSprintCard(sprint, key) {
             <p>Product Owner: ${sprint.productOwner}</p>
             <p>Scrum Master: ${sprint.scrumMaster}</p>
             <p>Status: ${sprint.status}</p>
-            <p>Start: ${sprint.startTime}</p>
-            <p>End: ${sprint.endTime}</p>
+            <p>Start: ${new Date(sprint.startTime).toLocaleString()}</p>
+            <p>End: ${new Date(sprint.endTime).toLocaleString()}</p>
         </div>
     `;
+    card.addEventListener('click', (event) => {
+        if (!event.target.closest('.dropdown')) {
+            openSprintViewMode(sprint, key);
+        }
+    });
     return card;
 }
 
@@ -583,6 +611,14 @@ window.toggleSprintPopup = function() {
     const overlay = document.getElementById('overlay');
     popup.classList.toggle('open');
     overlay.classList.toggle('open');
+
+    if (!popup.classList.contains('open')) {
+        // Reset form state
+
+        const form = document.getElementById('sprintForm');
+        form.reset();
+        Array.from(form.elements).forEach(el => el.disabled = false);
+    }
 }
 
 // Function to save a new sprint
@@ -669,18 +705,12 @@ document.addEventListener('DOMContentLoaded', () => {
 // Event listeners
 document.addEventListener('DOMContentLoaded', () => {
     setupSprintRealtimeListener();
-    document.querySelector('.btn-lg.btn-8-style').addEventListener('click', handleAddSprintClick);
+    document.querySelector('.btn-lg.btn-9-style').addEventListener('click', handleAddSprintClick);
 });
 
 // Event delegation for delete and edit buttons
 document.addEventListener('click', (event) => {
-    if (event.target.classList.contains('delete-sprint')) {
-        event.preventDefault();
-        const sprintId = event.target.getAttribute('data-sprint-id');
-        if (confirm('Are you sure you want to delete this sprint?')) {
-            deleteSprint(sprintId);
-        }
-    } else if (event.target.classList.contains('edit-sprint')) {
+    if (event.target.classList.contains('edit-sprint')) {
         event.preventDefault();
         const sprintId = event.target.getAttribute('data-sprint-id');
         get(ref(database, `sprintboard/${sprintId}`)).then((snapshot) => {
@@ -690,6 +720,21 @@ document.addEventListener('click', (event) => {
                 setSprintFormMode('edit', sprint);
             }
         }).catch(console.error);
+    }
+});
+
+document.addEventListener('click', (event) => {
+    const card = event.target.closest('.card');
+    if (card && !event.target.closest('.dropdown, .btn-link')) {
+        const sprintId = card.getAttribute('data-sprint-id');
+        if (sprintId) {
+            getSprintFromFirebase(sprintId).then((sprint) => {
+                if (sprint) {
+                    sprint.key = sprintId;
+                    openSprintViewMode(sprint, sprintId);
+                }
+            }).catch(console.error);
+        }
     }
 });
 
@@ -716,12 +761,26 @@ window.getAllSprintsFromFirebase = async function() {
     }
 }
 
+
+document.addEventListener('click', (event) => {
+    const card = event.target.closest('.card');
+    if (card && !event.target.closest('.dropdown, .btn-link')) {
+        const sprintId = card.getAttribute('data-sprint-id');
+        if (sprintId) {
+            getSprintFromFirebase(sprintId).then((sprint) => {
+                if (sprint) {
+                    sprint.key = sprintId;
+                    openSprintViewMode(sprint, sprintId);
+                }
+            }).catch(console.error);
+        }
+    }
+});
 // Set interval to update sprint statuses every minute
 setInterval(updateAllSprintStatuses, 60000);
 
 // Initial fetch of sprint board data
 fetchSprintBoard();
-
 </script>
 </body>
 </html>
