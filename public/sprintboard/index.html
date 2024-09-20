@@ -1,0 +1,727 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Sprint Board</title>
+    <link rel="shortcut icon" type="image/jpeg" href="../favicon.jpeg">
+    <link rel="stylesheet" type="text/css" href="../css/bootstrap.min.css?2917">
+    <link rel="stylesheet" type="text/css" href="../style.css?4034">
+    <link rel="stylesheet" type="text/css" href="../css/animate.min.css?9837">
+    <link rel="stylesheet" type="text/css" href="../css/feather.min.css">
+    <link rel="stylesheet" type="text/css" href="../css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="../css/ionicons.min.css">
+    <link href='https://fonts.googleapis.com/css?family=Poppins:100,500,700,40&display=swap&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="../css/sprintboardStyle.css">
+    <script type="module">
+        import {initializeApp} from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+        import {getDatabase, ref, push} from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
+    </script>
+</head>
+<body data-clean-url="true">
+
+<!-- Preloader -->
+<div id="page-loading-blocs-notifaction" class="page-preloader"></div>
+
+<!-- Main container -->
+<div class="page-container">
+    <!-- Logo Sidebar -->
+    <div class="logo-sidebar">
+        <div class="icon-container">
+            <picture>
+                <source type="image/webp" srcset="../img/lazyload-ph.png" data-srcset="../img/favicon.webp">
+                <img src="../img/lazyload-ph.png" data-src="../img/favicon.jpeg" class="lazyload" alt="favicon.jpeg">
+            </picture>
+            <div class="text-center mt-lg-4">
+                <span class="icon-md feather-icon icon-content-left icon-672"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Links Sidebar -->
+    <div class="links-sidebar">
+        <div class="button-container">
+            <a href="../backlog/index.html" class=" btn btn-lg btn-button-style mt-lg-2 btn-c-7647 mb-lg-3 float-lg-none">
+                <span class="icon-spacer fa fa-laptop icon-7097 me-lg-3 "></span>Product Backlog
+            </a>
+            <a href="../sprintboard/index.html" class="btn btn-lg mb-lg-3 btn-c-672 btn-style ps-lg-0 btn-clean-clicked product-backlog-btn">
+                <span class="icon-spacer fa fa-running  icon-7647 icon-md me-lg-3"></span>Sprint Board
+            </a>
+            <a href="../" class="btn btn-lg btn-button-style mt-lg-2 btn-c-7647 mb-lg-3">
+                <span class="icon-spacer ion ion-android-people icon-md me-lg-3"></span>Team members
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="bloc l-bloc" id="bloc-1">
+            <div class="container bloc-lg">
+                <div class="row align-items-center">
+                    <div class="col">
+
+                      <!-- Sprint Cards Container -->
+                      <div id="sprintCardsContainer" class="sprint-cards-container">
+                          <!-- Sprint cards will be dynamically added here -->
+                      </div>
+                        <div class="form-group mb-3">
+                            <button class="btn btn-lg btn-9-style btn-c-7647" id="addSprintButton">
+                                <span class="fa fa-plus"></span> Add Sprint
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Popup -->
+    <div id="delete-confirmation-popup" class="custom-popup">
+        <div class="custom-popup-content">
+            <h4>Confirm Deletion</h4>
+            <p>Are you sure you want to delete this item?</p>
+            <div class="custom-popup-buttons">
+                <button class="btn btn-secondary" onclick="hideDeleteConfirmation()">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div id="overlay" class="overlay"></div>
+
+    <!-- Sprint Form Popup -->
+    <div id="sprintFormPopup" class="popup-form">
+        <form id="sprintForm">
+            <div class="form-group">
+                <label for="sprintTitle">Title</label>
+                <input type="text" class="form-control" id="sprintTitle" placeholder="Enter Sprint Title">
+            </div>
+            <div class="form-group">
+                <label for="sprintDescription">Description</label>
+                <textarea class="form-control" id="sprintDescription" rows="3" placeholder="Enter sprint description"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="productOwner">Product Owner:</label>
+                <select class="form-control" id="productOwner">
+                    <option>test1</option>
+                    <option>test2</option>
+                    <option>test3</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="scrumMaster">Scrum Master:</label>
+                <select class="form-control" id="scrumMaster">
+                    <option>test1</option>
+                    <option>test2</option>
+                    <option>test3</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="sprintStartTime">Sprint Start Time:</label>
+                <input type="datetime-local" class="form-control" id="sprintStartTime">
+            </div>
+            <div class="form-group">
+                <label for="sprintEndTime">Sprint End Time:</label>
+                <input type="datetime-local" class="form-control" id="sprintEndTime">
+            </div>
+            <div class="form-group">
+                <label for="sprintStatus">Status:</label>
+                <input type="text" class="form-control" id="sprintStatus" readonly>
+            </div>
+            <div class="form-buttons">
+                <button type="button" class="btn btn-secondary" onclick="toggleSprintPopup()">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="handleSaveSprint()">Save Sprint</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- ScrollToTop Button -->
+    <button aria-label="Scroll to top button" class="bloc-button btn btn-d scrollToTop" onclick="scrollToTarget('1',this)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 32 32">
+            <path class="scroll-to-top-btn-icon" d="M30,22.656l-14-13-14,13"/>
+        </svg>
+    </button>
+</div>
+
+<script src="../js/bootstrap.bundle.min.js?3058"></script>
+<script src="../js/blocs.min.js?6353"></script>
+<script src="../js/lazysizes.min.js" defer></script>
+<script>
+// Global variables
+let currentSprintId = null;
+
+// Function to handle adding a new sprint
+window.handleAddSprintClick = function(event) {
+    event.preventDefault();
+    setSprintFormMode('add');
+}
+
+function fetchSprintBoard() {
+    get(ref(database, 'sprintboard')).then((snapshot) => {
+        if (snapshot.exists()) {
+            currentData = snapshot.val();
+            console.log('Fetched Data:', currentData); // Debugging line
+            renderProductBacklog(currentData);
+        } else {
+            console.log("No data available");
+        }
+    }).catch(console.error);
+}
+
+
+// Function to set sprint form mode (add or edit)
+function setSprintFormMode(mode, sprint = null) {
+    console.log("Setting sprint form mode:", mode);
+    const form = document.getElementById('sprintForm');
+    const buttons = document.querySelector('.form-buttons');
+    buttons.innerHTML = '';
+
+    if (mode === 'edit' && sprint) {
+        fillSprintFormWithData(sprint);
+        buttons.innerHTML = `
+            <button type="button" class="btn btn-secondary" onclick="toggleSprintPopup()">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="updateSprint('${sprint.key}')">Update</button>
+        `;
+        currentSprintId = sprint.key;
+    } else if (mode === 'add') {
+        form.reset();
+        setDefaultSprintFormValues();
+        buttons.innerHTML = `
+            <button type="button" class="btn btn-secondary" onclick="toggleSprintPopup()">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="saveSprint()">Save Sprint</button>
+        `;
+        currentSprintId = null;
+    }
+
+    toggleSprintPopup();
+}
+
+// Function to fill sprint form with data
+function fillSprintFormWithData(sprint) {
+    const form = document.getElementById('sprintForm');
+    form.elements['sprintTitle'].value = sprint.title || '';
+    form.elements['sprintDescription'].value = sprint.description || '';
+    form.elements['productOwner'].value = sprint.productOwner || '';
+    form.elements['scrumMaster'].value = sprint.scrumMaster || '';
+    form.elements['sprintStartTime'].value = sprint.startTime || '';
+    form.elements['sprintEndTime'].value = sprint.endTime || '';
+    form.elements['sprintStatus'].value = sprint.status || '';
+}
+
+// Function to set default sprint form values
+function setDefaultSprintFormValues() {
+    const form = document.getElementById('sprintForm');
+    form.elements['sprintStatus'].value = 'Not started';
+}
+
+// Function to toggle sprint popup
+window.toggleSprintPopup = function() {
+    console.log("Toggling sprint popup");
+    const popup = document.getElementById('sprintFormPopup');
+    const overlay = document.getElementById('overlay');
+    popup.classList.toggle('open');
+    overlay.classList.toggle('open');
+    console.log("Popup visibility:", popup.classList.contains('open'));
+}
+
+// Function to save a new sprint
+function saveSprint() {
+    const sprintData = getSprintFormData();
+    if (validateSprintData(sprintData)) {
+        sendFormDataToFirebase(sprintData);
+        toggleSprintPopup();
+    }
+}
+
+// Function to get sprint form data
+function getSprintFormData() {
+    const form = document.getElementById('sprintForm');
+    return {
+        title: form.elements['sprintTitle'].value,
+        description: form.elements['sprintDescription'].value,
+        productOwner: form.elements['productOwner'].value,
+        scrumMaster: form.elements['scrumMaster'].value,
+        startTime: form.elements['sprintStartTime'].value,
+        endTime: form.elements['sprintEndTime'].value,
+        status: calculateSprintStatus(form.elements['sprintStartTime'].value, form.elements['sprintEndTime'].value)
+    };
+}
+
+window.sendFormDataToFirebase = async function () {
+    try {
+        const formData = getFormData();
+        if (Object.values(formData).some(value => value === '')) {
+            alert('Please fill in all fields');
+            return;
+        }
+
+        await push(productBacklogRef, formData);
+        console.log('Data saved successfully');
+        togglePopup();
+    } catch (error) {
+        console.error("Error sending form data:", error);
+    }
+}
+
+// Function to validate sprint data
+function validateSprintData(data) {
+    for (let key in data) {
+        if (data[key] === '') {
+            alert(`Please fill in the ${key} field.`);
+            return false;
+        }
+    }
+    if (new Date(data.startTime) >= new Date(data.endTime)) {
+        alert('End time must be after start time.');
+        return false;
+    }
+    return true;
+}
+
+// Function to calculate sprint status based on time
+function calculateSprintStatus(startTime, endTime) {
+    const now = new Date();
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+
+    if (now < start) return 'Not started';
+    if (now >= start && now <= end) return 'In progress';
+    return 'Completed';
+}
+
+// Function to update a sprint
+function updateSprint(sprintId) {
+    const sprintData = getSprintFormData();
+    if (validateSprintData(sprintData)) {
+        updateSprintInFirebase(sprintId, sprintData);
+        toggleSprintPopup();
+    }
+}
+
+// Function to render sprint board
+function renderSprintBoard(data) {
+    const container = document.getElementById('sprintCardsContainer');
+    container.innerHTML = '';
+
+    if (!data || Object.keys(data).length === 0) {
+        const noDataMessage = document.createElement('p');
+        noDataMessage.textContent = 'No sprints added yet.';
+        noDataMessage.style.textAlign = 'center';
+        noDataMessage.style.padding = '20px';
+        container.appendChild(noDataMessage);
+    } else {
+        Object.entries(data).forEach(([key, sprint]) => {
+            const card = createSprintCard(sprint, key);
+            container.appendChild(card);
+        });
+    }
+}
+
+// Function to create a sprint card
+function createSprintCard(sprint, key) {
+    const card = document.createElement('div');
+    card.className = 'card mb-3';
+    card.setAttribute('data-sprint-id', key);
+    card.innerHTML = `
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h3 class="mg-clear">${sprint.title}</h3>
+            <div class="dropdown">
+                <button class="btn btn-link dropdown-toggle three-dot-menu" type="button" id="dropdownMenu-${key}" data-bs-toggle="dropdown" aria-expanded="false">⋮</button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenu-${key}">
+                    <li><a class="dropdown-item text-danger delete-sprint" href="#" data-sprint-id="${key}">Delete</a></li>
+                    <li><a class="dropdown-item text-primary edit-sprint" href="#" data-sprint-id="${key}">Edit</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="card-body">
+            <p>${sprint.description}</p>
+            <p>Product Owner: ${sprint.productOwner}</p>
+            <p>Scrum Master: ${sprint.scrumMaster}</p>
+            <p>Status: ${sprint.status}</p>
+            <p>Start: ${new Date(sprint.startTime).toLocaleString()}</p>
+            <p>End: ${new Date(sprint.endTime).toLocaleString()}</p>
+        </div>
+    `;
+    return card;
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', () => {
+
+    // Event delegation for delete and edit buttons
+    document.addEventListener('click', (event) => {
+        if (event.target.classList.contains('delete-sprint')) {
+            event.preventDefault();
+            const sprintId = event.target.getAttribute('data-sprint-id');
+            showDeleteConfirmation(sprintId);
+        } else if (event.target.classList.contains('edit-sprint')) {
+            event.preventDefault();
+            const sprintId = event.target.getAttribute('data-sprint-id');
+            editSprint(sprintId);
+        }
+    });
+
+    // Close popup when clicking outside
+    document.getElementById('overlay').addEventListener('click', toggleSprintPopup);
+
+    // Initial fetch of sprint board data
+    fetchSprintBoard();
+});
+
+// Function to show delete confirmation
+function showDeleteConfirmation(sprintId) {
+    const popup = document.getElementById('delete-confirmation-popup');
+    popup.style.display = 'block';
+    document.getElementById('overlay').classList.add('open');
+
+    // Set up event listeners for delete confirmation
+    document.querySelector('#delete-confirmation-popup .btn-secondary').onclick = hideDeleteConfirmation;
+    document.querySelector('#delete-confirmation-popup .btn-danger').onclick = () => {
+        deleteSprint(sprintId);
+        hideDeleteConfirmation();
+    };
+}
+
+// Function to hide delete confirmation
+function hideDeleteConfirmation() {
+    document.getElementById('delete-confirmation-popup').style.display = 'none';
+    document.getElementById('overlay').classList.remove('open');
+}
+
+// Function to edit a sprint
+function editSprint(sprintId) {
+    // Fetch the sprint data from Firebase and then open the form
+    getSprintFromFirebase(sprintId).then(sprint => {
+        if (sprint) {
+            sprint.key = sprintId;
+            setSprintFormMode('edit', sprint);
+        }
+    }).catch(console.error);
+}
+
+function getSprintFromFirebase(sprintId) {
+    return new Promise((resolve, reject) => {
+        get(ref(database, `sprintboard/${sprintId}`))
+            .then((snapshot) => {
+                if (snapshot.exists()) {
+                    const sprintData = snapshot.val();
+                    sprintData.key = sprintId; // Add the key to the sprint data
+                    resolve(sprintData);
+                } else {
+                    resolve(null); // Sprint not found
+                }
+            })
+            .catch((error) => {
+                console.error("Error fetching sprint:", error);
+                reject(error);
+            });
+    });
+}
+
+// Function to periodically update sprint statuses
+function updateAllSprintStatuses() {
+    getAllSprintsFromFirebase().then(sprints => {
+        if (sprints) {
+            Object.entries(sprints).forEach(([sprintId, sprint]) => {
+                const newStatus = calculateSprintStatus(sprint.startTime, sprint.endTime);
+                if (newStatus !== sprint.status) {
+                    updateSprintStatusInFirebase(sprintId, newStatus);
+                }
+            });
+        }
+    }).catch(console.error);
+}
+
+// Set interval to update sprint statuses every minute
+setInterval(updateAllSprintStatuses, 60000);
+
+</script>
+<script type="module">
+// Import necessary modules
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+import {
+    getDatabase,
+    ref,
+    push,
+    get,
+    remove,
+    update,
+    onValue
+} from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
+
+// Firebase configuration (same as Product Backlog)
+const firebaseConfig = {
+    apiKey: "AIzaSyDicFj4DUKZo2iYXZN8tUE2FcMLqmQ_cgU",
+    authDomain: "izuck-digital.firebaseapp.com",
+    databaseURL: "https://izuck-digital-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "izuck-digital",
+    storageBucket: "izuck-digital.appspot.com",
+    messagingSenderId: "875586622876",
+    appId: "1:875586622876:web:dab65a8d81690d7a18e459",
+    measurementId: "G-1YRPZNH521"
+};
+
+// Initialize Firebase app
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+const sprintBoardRef = ref(database, 'sprintboard');
+
+// Function to fetch sprint board data
+window.fetchSprintBoard = async function () {
+    try {
+        const snapshot = await get(sprintBoardRef);
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            window.renderSprintBoard(data);
+        } else {
+            console.log("No sprint data available");
+        }
+    } catch (error) {
+        console.error("Error fetching sprint board:", error);
+    }
+}
+
+// Function to render sprint board
+window.renderSprintBoard = function(data) {
+    const container = document.getElementById('sprintCardsContainer');
+    container.innerHTML = '';
+
+    if (!data || Object.keys(data).length === 0) {
+        const noDataMessage = document.createElement('p');
+        noDataMessage.textContent = 'No sprints added yet.';
+        noDataMessage.style.textAlign = 'center';
+        noDataMessage.style.padding = '20px';
+        container.appendChild(noDataMessage);
+    } else {
+        Object.entries(data).forEach(([key, sprint]) => {
+            const card = createSprintCard(sprint, key);
+            container.appendChild(card);
+        });
+    }
+}
+
+// Function to create a sprint card
+function createSprintCard(sprint, key) {
+    const card = document.createElement('div');
+    card.className = 'card mb-3';
+    card.setAttribute('data-sprint-id', key);
+    card.innerHTML = `
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h3 class="mg-clear">${sprint.title}</h3>
+            <div class="dropdown">
+                <button class="btn btn-link dropdown-toggle three-dot-menu" type="button" id="dropdownMenu-${key}" data-bs-toggle="dropdown" aria-expanded="false">⋮</button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenu-${key}">
+                    <li><a class="dropdown-item text-danger delete-sprint" href="#" data-sprint-id="${key}">Delete</a></li>
+                    <li><a class="dropdown-item text-primary edit-sprint" href="#" data-sprint-id="${key}">Edit</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="card-body">
+            <p>${sprint.description}</p>
+            <p>Product Owner: ${sprint.productOwner}</p>
+            <p>Scrum Master: ${sprint.scrumMaster}</p>
+            <p>Status: ${sprint.status}</p>
+            <p>Start: ${sprint.startTime}</p>
+            <p>End: ${sprint.endTime}</p>
+        </div>
+    `;
+    return card;
+}
+
+// Function to handle adding a new sprint
+window.handleAddSprintClick = function(event) {
+    event.preventDefault();
+    setSprintFormMode('add');
+}
+
+// Function to set sprint form mode
+function setSprintFormMode(mode, sprint = null) {
+    const form = document.getElementById('sprintForm');
+    const buttons = document.querySelector('.form-buttons');
+    buttons.innerHTML = '';
+
+    if (mode === 'edit' && sprint) {
+        fillSprintFormWithData(sprint);
+        buttons.innerHTML = `
+            <button type="button" class="btn btn-secondary" onclick="toggleSprintPopup()">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="updateSprint('${sprint.key}')">Update</button>
+        `;
+    } else if (mode === 'add') {
+        form.reset();
+        setDefaultSprintFormValues();
+        buttons.innerHTML = `
+            <button type="button" class="btn btn-secondary" onclick="toggleSprintPopup()">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="saveSprint()">Save Sprint</button>
+        `;
+    }
+
+    toggleSprintPopup();
+}
+
+// Function to fill sprint form with data
+function fillSprintFormWithData(sprint) {
+    const form = document.getElementById('sprintForm');
+    form.elements['sprintTitle'].value = sprint.title || '';
+    form.elements['sprintDescription'].value = sprint.description || '';
+    form.elements['productOwner'].value = sprint.productOwner || '';
+    form.elements['scrumMaster'].value = sprint.scrumMaster || '';
+    form.elements['sprintStartTime'].value = sprint.startTime || '';
+    form.elements['sprintEndTime'].value = sprint.endTime || '';
+    form.elements['sprintStatus'].value = sprint.status || '';
+}
+
+// Function to set default sprint form values
+function setDefaultSprintFormValues() {
+    const form = document.getElementById('sprintForm');
+    form.elements['sprintStatus'].value = 'Not started';
+}
+
+// Function to toggle sprint popup
+window.toggleSprintPopup = function() {
+    const popup = document.getElementById('sprintFormPopup');
+    const overlay = document.getElementById('overlay');
+    popup.classList.toggle('open');
+    overlay.classList.toggle('open');
+}
+
+// Function to save a new sprint
+window.saveSprint = async function() {
+    try {
+        const sprintData = getSprintFormData();
+        if (Object.values(sprintData).some(value => value === '')) {
+            alert('Please fill in all fields');
+            return;
+        }
+
+        await push(sprintBoardRef, sprintData);
+        console.log('Sprint saved successfully');
+        toggleSprintPopup();
+    } catch (error) {
+        console.error("Error saving sprint:", error);
+    }
+}
+
+// Function to get sprint form data
+function getSprintFormData() {
+    const form = document.getElementById('sprintForm');
+    return {
+        title: form.elements['sprintTitle'].value,
+        description: form.elements['sprintDescription'].value,
+        productOwner: form.elements['productOwner'].value,
+        scrumMaster: form.elements['scrumMaster'].value,
+        startTime: form.elements['sprintStartTime'].value,
+        endTime: form.elements['sprintEndTime'].value,
+        status: calculateSprintStatus(form.elements['sprintStartTime'].value, form.elements['sprintEndTime'].value)
+    };
+}
+
+// Function to calculate sprint status based on time
+function calculateSprintStatus(startTime, endTime) {
+    const now = new Date();
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+
+    if (now < start) return 'Not started';
+    if (now >= start && now <= end) return 'In progress';
+    return 'Completed';
+}
+
+// Function to update sprint status
+function updateSprintStatus(sprintId, startTime, endTime) {
+    const status = calculateSprintStatus(startTime, endTime);
+    update(ref(database, `sprintboard/${sprintId}`), { status: status });
+}
+
+// Function to update a sprint
+window.updateSprint = async function(sprintId) {
+    try {
+        const sprintData = getSprintFormData();
+        await update(ref(database, `sprintboard/${sprintId}`), sprintData);
+        console.log('Sprint updated successfully');
+        toggleSprintPopup();
+    } catch (error) {
+        console.error("Error updating sprint:", error);
+    }
+}
+
+// Function to delete a sprint
+window.deleteSprint = async function(sprintId) {
+    try {
+        await remove(ref(database, `sprintboard/${sprintId}`));
+        console.log("Sprint deleted successfully");
+    } catch (error) {
+        console.error("Error deleting sprint:", error);
+    }
+}
+
+// Set up real-time listener for sprint board
+function setupSprintRealtimeListener() {
+    onValue(sprintBoardRef, (snapshot) => {
+        const data = snapshot.val() || {};
+        window.renderSprintBoard(data);
+    });
+}
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('addSprintButton').addEventListener('click', handleAddSprintClick);
+});
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', () => {
+    setupSprintRealtimeListener();
+    document.querySelector('.btn-lg.btn-8-style').addEventListener('click', handleAddSprintClick);
+});
+
+// Event delegation for delete and edit buttons
+document.addEventListener('click', (event) => {
+    if (event.target.classList.contains('delete-sprint')) {
+        event.preventDefault();
+        const sprintId = event.target.getAttribute('data-sprint-id');
+        if (confirm('Are you sure you want to delete this sprint?')) {
+            deleteSprint(sprintId);
+        }
+    } else if (event.target.classList.contains('edit-sprint')) {
+        event.preventDefault();
+        const sprintId = event.target.getAttribute('data-sprint-id');
+        get(ref(database, `sprintboard/${sprintId}`)).then((snapshot) => {
+            if (snapshot.exists()) {
+                const sprint = snapshot.val();
+                sprint.key = sprintId;
+                setSprintFormMode('edit', sprint);
+            }
+        }).catch(console.error);
+    }
+});
+
+// Function to periodically update sprint statuses
+function updateAllSprintStatuses() {
+    get(sprintBoardRef).then((snapshot) => {
+        if (snapshot.exists()) {
+            const sprints = snapshot.val();
+            Object.entries(sprints).forEach(([sprintId, sprint]) => {
+                updateSprintStatus(sprintId, sprint.startTime, sprint.endTime);
+            });
+        }
+    }).catch(console.error);
+}
+
+
+window.getAllSprintsFromFirebase = async function() {
+    try {
+        const snapshot = await get(sprintBoardRef);
+        return snapshot.val();
+    } catch (error) {
+        console.error("Error fetching all sprints:", error);
+        return null;
+    }
+}
+
+// Set interval to update sprint statuses every minute
+setInterval(updateAllSprintStatuses, 60000);
+
+// Initial fetch of sprint board data
+fetchSprintBoard();
+
+</script>
+</body>
+</html>
