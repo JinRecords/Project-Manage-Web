@@ -4,7 +4,6 @@
     <meta name="keywords" content="">
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <link rel="canonical" href="https://jinrecords.github.io/izuckdigital.github.io/backlog/">
     <meta name="robots" content="index, follow">
     <link rel="shortcut icon" type="image/jpeg" href="../favicon.jpeg">
 
@@ -48,10 +47,10 @@
     <!-- Links Sidebar -->
     <div class="links-sidebar">
         <div class="button-container">
-            <a href="../" class="btn btn-lg mb-lg-3 btn-c-672 btn-style ps-lg-0 btn-clean-clicked product-backlog-btn">
+            <a href="../backlog/index.html" class="btn btn-lg mb-lg-3 btn-c-672 btn-style ps-lg-0 btn-clean-clicked product-backlog-btn">
                 <span class="icon-spacer fa fa-laptop icon-7647 me-lg-3"></span>Product Backlog
             </a>
-            <a href="../" class="btn btn-lg btn-button-style mt-lg-2 btn-c-7647 mb-lg-3 float-lg-none">
+            <a href="../sprintboard/index.html" class="btn btn-lg btn-button-style mt-lg-2 btn-c-7647 mb-lg-3 float-lg-none">
                 <span class="icon-spacer fa fa-running icon-7097 icon-md me-lg-3"></span>Sprint Board
             </a>
             <a href="../" class="btn btn-lg btn-button-style mt-lg-2 btn-c-7647 mb-lg-3">
@@ -129,10 +128,10 @@
                 <button type="button" class="pill-button priority-low" onclick="setPriority('Low')">Low</button>
                 <button type="button" class="pill-button priority-medium" onclick="setPriority('Medium')">Medium
                 </button>
-                <button type="button" class="pill-button priority-urgent" onclick="setPriority('Urgent')">Urgent
+                <button type="button" class="pill-button priority-important" onclick="setPriority('Important')">Important
                 </button>
-                <button type="button" class="pill-button priority-important" onclick="setPriority('Important')">
-                    Important
+                <button type="button" class="pill-button priority-urgent" onclick="setPriority('Urgent')">
+                    Urgent
                 </button>
                 <input type="hidden" id="priority-input" value="">
             </div>
@@ -369,7 +368,7 @@ function renderProductBacklog(data) {
     }
 
     function getPriorityColor(priority) {
-        const colors = {'Low': '#C6F4D6', 'Medium': '#F7DC6F', 'Urgent': '#FFD7BE', 'Important': '#FFC0CB'};
+        const colors = {'Low': '#C6F4D6', 'Medium': '#F7DC6F', 'Important': '#FFC0CB', 'Urgent': '#FFD7BE'};
         return colors[priority] || '#6E6AF0';
     }
 
@@ -456,7 +455,7 @@ function renderProductBacklog(data) {
         }
 
         priority = p;
-        document.querySelectorAll('.pill-button.priority-low, .pill-button.priority-medium, .pill-button.priority-important, .pill-button.priority-urgent')
+        document.querySelectorAll('.pill-button.priority-low, .pill-button.priority-medium, .pill-button.priority-urgent, .pill-button.priority-important')
             .forEach(button => button.classList.remove('selected'));
         document.querySelector(`.pill-button.priority-${p.toLowerCase()}`).classList.add('selected');
         document.getElementById('priority-input').value = p;
@@ -567,7 +566,7 @@ function sortBacklogItems(items) {
         return {};
     }
     const itemsArray = Object.entries(items).map(([key, value]) => ({key, ...value}));
-    const priorityValues = {'Low': 1, 'Medium': 2, 'Urgent': 3, 'Important': 4};
+    const priorityValues = {'Low': 1, 'Medium': 2, 'Important': 3, 'Urgent': 4};
     const sortFunctions = {
         'oldest-recent': (a, b) => a.timestamp - b.timestamp,
         'recent-oldest': (a, b) => b.timestamp - a.timestamp,

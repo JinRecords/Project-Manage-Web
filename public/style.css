@@ -339,6 +339,15 @@ h1,h2,h3,h4,h5,h6,p,label,.btn,a{
 	display: inline-block;
 }
 
+.btn-9-style{
+	width:100%;
+	border-width:3px 3px 3px 3px;
+	border-radius:9px 9px 9px 9px;
+	border-style:solid;
+	border-color:var(--swatch-var-5665)!important;
+	display: inline-block;
+}
+
 /* = Colour
 -------------------------------------------------------------- */
 
