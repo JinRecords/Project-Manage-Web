@@ -1,5 +1,8 @@
 <!doctype html>
+<html lang="en">
 <head>
+    <!-- STYLE FOR THIS PAGE IS NOW MOVED TO public/css/backlogStyle.css -->
+    <link rel="stylesheet" type="text/css" href="../css/backlogStyle.css">
     <meta charset="utf-8">
     <meta name="keywords" content="">
     <meta name="description" content="">
@@ -20,8 +23,8 @@
         import {getDatabase, ref, push} from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
     </script>
     <title>Backlog</title>
-    <!-- STYLE FOR THIS PAGE IS NOW MOVED TO public/css/backlogStyle.css -->
-    <link rel="stylesheet" type="text/css" href="../css/backlogStyle.css">
+<link rel="preload" href="../css/backlogStyle.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="../css/backlogStyle.css"></noscript>
 </head>
 <body data-clean-url="true">
 
@@ -47,10 +50,12 @@
     <!-- Links Sidebar -->
     <div class="links-sidebar">
         <div class="button-container">
-            <a href="../backlog/index.html" class="btn btn-lg mb-lg-3 btn-c-672 btn-style ps-lg-0 btn-clean-clicked product-backlog-btn">
+            <a href="../backlog/index.html"
+               class="btn btn-lg mb-lg-3 btn-c-672 btn-style ps-lg-0 btn-clean-clicked product-backlog-btn">
                 <span class="icon-spacer fa fa-laptop icon-7647 me-lg-3"></span>Product Backlog
             </a>
-            <a href="../sprintboard/index.html" class="btn btn-lg btn-button-style mt-lg-2 btn-c-7647 mb-lg-3 float-lg-none">
+            <a href="../sprintboard/index.html"
+               class="btn btn-lg btn-button-style mt-lg-2 btn-c-7647 mb-lg-3 float-lg-none">
                 <span class="icon-spacer fa fa-running icon-7097 icon-md me-lg-3"></span>Sprint Board
             </a>
             <a href="../" class="btn btn-lg btn-button-style mt-lg-2 btn-c-7647 mb-lg-3">
@@ -128,7 +133,8 @@
                 <button type="button" class="pill-button priority-low" onclick="setPriority('Low')">Low</button>
                 <button type="button" class="pill-button priority-medium" onclick="setPriority('Medium')">Medium
                 </button>
-                <button type="button" class="pill-button priority-important" onclick="setPriority('Important')">Important
+                <button type="button" class="pill-button priority-important" onclick="setPriority('Important')">
+                    Important
                 </button>
                 <button type="button" class="pill-button priority-urgent" onclick="setPriority('Urgent')">
                     Urgent
@@ -308,30 +314,30 @@
         }).catch(console.error);
     }
 
-function renderProductBacklog(data) {
-    const container = document.querySelector('.col .form-group.mb-3');
-    container.innerHTML = ''; // Clear the container
+    function renderProductBacklog(data) {
+        const container = document.querySelector('.col .form-group.mb-3');
+        container.innerHTML = ''; // Clear the container
 
-    if (!data || Object.keys(data).length === 0) {
-        const noDataMessage = document.createElement('p');
-        noDataMessage.textContent = 'No items in the product backlog.';
-        noDataMessage.style.textAlign = 'center';
-        noDataMessage.style.padding = '20px';
-        container.appendChild(noDataMessage);
-    } else {
-        Object.entries(data).forEach(([key, item]) => {
-            const card = createBacklogCard(item, key);
-            container.appendChild(card);
-        });
+        if (!data || Object.keys(data).length === 0) {
+            const noDataMessage = document.createElement('p');
+            noDataMessage.textContent = 'No items in the product backlog.';
+            noDataMessage.style.textAlign = 'center';
+            noDataMessage.style.padding = '20px';
+            container.appendChild(noDataMessage);
+        } else {
+            Object.entries(data).forEach(([key, item]) => {
+                const card = createBacklogCard(item, key);
+                container.appendChild(card);
+            });
+        }
+
+        // Always add the "Add" button
+        const addButton = document.createElement('button');
+        addButton.className = 'btn btn-lg btn-8-style btn-c-7647';
+        addButton.onclick = handleAddButtonClick;
+        addButton.innerHTML = '<span class="fa fa-plus"></span>';
+        container.appendChild(addButton);
     }
-
-    // Always add the "Add" button
-    const addButton = document.createElement('button');
-    addButton.className = 'btn btn-lg btn-8-style btn-c-7647';
-    addButton.onclick = handleAddButtonClick;
-    addButton.innerHTML = '<span class="fa fa-plus"></span>';
-    container.appendChild(addButton);
-}
 
     function createBacklogCard(item, key) {
         const card = document.createElement('div');
@@ -561,21 +567,21 @@ function renderProductBacklog(data) {
         fetchProductBacklog();
     }
 
-function sortBacklogItems(items) {
-    if (!items || Object.keys(items).length === 0) {
-        return {};
+    function sortBacklogItems(items) {
+        if (!items || Object.keys(items).length === 0) {
+            return {};
+        }
+        const itemsArray = Object.entries(items).map(([key, value]) => ({key, ...value}));
+        const priorityValues = {'Low': 1, 'Medium': 2, 'Important': 3, 'Urgent': 4};
+        const sortFunctions = {
+            'oldest-recent': (a, b) => a.timestamp - b.timestamp,
+            'recent-oldest': (a, b) => b.timestamp - a.timestamp,
+            'low-important': (a, b) => (priorityValues[a.priority] || 0) - (priorityValues[b.priority] || 0),
+            'important-low': (a, b) => (priorityValues[b.priority] || 0) - (priorityValues[a.priority] || 0),
+        };
+        itemsArray.sort(sortFunctions[currentSortOption] || sortFunctions['recent-oldest']);
+        return Object.fromEntries(itemsArray.map(item => [item.key, item]));
     }
-    const itemsArray = Object.entries(items).map(([key, value]) => ({key, ...value}));
-    const priorityValues = {'Low': 1, 'Medium': 2, 'Important': 3, 'Urgent': 4};
-    const sortFunctions = {
-        'oldest-recent': (a, b) => a.timestamp - b.timestamp,
-        'recent-oldest': (a, b) => b.timestamp - a.timestamp,
-        'low-important': (a, b) => (priorityValues[a.priority] || 0) - (priorityValues[b.priority] || 0),
-        'important-low': (a, b) => (priorityValues[b.priority] || 0) - (priorityValues[a.priority] || 0),
-    };
-    itemsArray.sort(sortFunctions[currentSortOption] || sortFunctions['recent-oldest']);
-    return Object.fromEntries(itemsArray.map(item => [item.key, item]));
-}
 
 
     function showFilterPopup() {
@@ -592,28 +598,28 @@ function sortBacklogItems(items) {
     }
 
 
-function filterBacklogItems(items) {
-    if (!items || Object.keys(items).length === 0) {
-        return {};
+    function filterBacklogItems(items) {
+        if (!items || Object.keys(items).length === 0) {
+            return {};
+        }
+        const itemsArray = Object.entries(items).map(([key, value]) => ({key, ...value}));
+
+        if (currentFilterOption.length === 0) {
+            return items;
+        }
+
+        const filteredItemsArray = itemsArray.filter(item => {
+            const itemTags = item.tags ? item.tags.map(tag => tag.name) : [];
+            const filterTags = currentFilterOption;
+
+            return itemTags.length === filterTags.length &&
+                filterTags.every(tag => itemTags.includes(tag)) &&
+                itemTags.every(tag => filterTags.includes(tag));
+        });
+
+        return filteredItemsArray.length === 0 ? {} :
+            Object.fromEntries(filteredItemsArray.map(item => [item.key, item]));
     }
-    const itemsArray = Object.entries(items).map(([key, value]) => ({key, ...value}));
-
-    if (currentFilterOption.length === 0) {
-        return items;
-    }
-
-    const filteredItemsArray = itemsArray.filter(item => {
-        const itemTags = item.tags ? item.tags.map(tag => tag.name) : [];
-        const filterTags = currentFilterOption;
-
-        return itemTags.length === filterTags.length &&
-            filterTags.every(tag => itemTags.includes(tag)) &&
-            itemTags.every(tag => filterTags.includes(tag));
-    });
-
-    return filteredItemsArray.length === 0 ? {} :
-           Object.fromEntries(filteredItemsArray.map(item => [item.key, item]));
-}
 
 
     function toggleFilterTagSelection(button, tag) {
@@ -913,16 +919,16 @@ function filterBacklogItems(items) {
     }
 
     // Function to handle delete item
-window.deleteData = async function (path) {
-    try {
-        await remove(ref(database, path));
-        console.log("Data deleted successfully");
-        hideDeleteConfirmation();
-        // The listener will automatically update the UI
-    } catch (error) {
-        console.error("Error deleting data:", error);
+    window.deleteData = async function (path) {
+        try {
+            await remove(ref(database, path));
+            console.log("Data deleted successfully");
+            hideDeleteConfirmation();
+            // The listener will automatically update the UI
+        } catch (error) {
+            console.error("Error deleting data:", error);
+        }
     }
-}
 
     // Function to handle update item
     window.updateBacklogItem = async function (itemId) {
@@ -1037,10 +1043,10 @@ window.deleteData = async function (path) {
     });
 
     document.addEventListener('DOMContentLoaded', () => {
-    setupRealtimeListener();
-    document.getElementById('sortButton').addEventListener('click', showSortingPopup);
-    document.getElementById('filterButton').addEventListener('click', showFilterPopup);
-});
+        setupRealtimeListener();
+        document.getElementById('sortButton').addEventListener('click', showSortingPopup);
+        document.getElementById('filterButton').addEventListener('click', showFilterPopup);
+    });
 
     window.setupRealtimeListener = setupRealtimeListener;
     window.fetchProductBacklog = fetchProductBacklog;
@@ -1051,7 +1057,7 @@ window.deleteData = async function (path) {
     });
 
     document.getElementById('overlay').addEventListener('click', function () {
-        togglePopup(); // This will close the form
+        togglePopup();
     });
 
     document.addEventListener('click', (event) => {
@@ -1069,6 +1075,5 @@ window.deleteData = async function (path) {
             }
         }
     });
-
 </script>
 </body>
