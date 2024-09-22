@@ -225,12 +225,12 @@
                     </label>
                 </div>
                 <div class="sorting-option">
-                    <label for="sort-low-important">Low → Important
+                    <label for="sort-low-important">Low → Urgent
                         <input type="radio" id="sort-low-important" name="sort-option" value="low-important">
                     </label>
                 </div>
                 <div class="sorting-option">
-                    <label for="sort-important-low">Important → Low
+                    <label for="sort-important-low">Urgent → Low
                         <input type="radio" id="sort-important-low" name="sort-option" value="important-low">
                     </label>
                 </div>
@@ -356,13 +356,13 @@
       </div>
     </div>
     <div class="card-body">
-      <p>${item.description}</p>
+      <!-- <p>${item.description}</p> -->
       <div class="d-flex mb-2">
         <button class="btn btn-secondary me-2 card-tag" disabled style="background-color: ${getPriorityColor(item.priority)}">${item.priority}</button>
-        <button class="btn btn-secondary card-tag" disabled>${item.assignee}</button>
+        <!-- <button class="btn btn-secondary card-tag" disabled>${item.assignee}</button> -->
       </div>
       <div class="tags-container">${renderCardTags(item.tags)}</div>
-            <div class="mt-2"><small>Created on: ${timeCreated}</small></div>
+            <div class="mt-2"><small>Story Point: ${item.storypoint}</small></div>
     </div>
   `;
         return card;
@@ -603,22 +603,21 @@
             return {};
         }
         const itemsArray = Object.entries(items).map(([key, value]) => ({key, ...value}));
-
         if (currentFilterOption.length === 0) {
             return items;
         }
-
         const filteredItemsArray = itemsArray.filter(item => {
             const itemTags = item.tags ? item.tags.map(tag => tag.name) : [];
             const filterTags = currentFilterOption;
-
-            return itemTags.length === filterTags.length &&
-                filterTags.every(tag => itemTags.includes(tag)) &&
-                itemTags.every(tag => filterTags.includes(tag));
+            if (currentFilterOption.length === 1) {
+                return itemTags.includes(filterTags[0]);
+            } else {
+                return itemTags.length === currentFilterOption.length && itemTags.sort().every((value, index) => value === filterTags.sort()[index]);
+            }
         });
-
+    
         return filteredItemsArray.length === 0 ? {} :
-            Object.fromEntries(filteredItemsArray.map(item => [item.key, item]));
+               Object.fromEntries(filteredItemsArray.map(item => [item.key, item]));
     }
 
 
