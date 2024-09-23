@@ -386,6 +386,9 @@
                 event.preventDefault();
                 const sprintId = event.target.getAttribute('data-sprint-id');
                 editSprint(sprintId);
+            } else if (event.target.getAttribute('data-task-id')) {
+                event.preventDefault();
+                editTask(taskId)
             }
         });
 
@@ -1077,7 +1080,21 @@ function createTaskCard(key, task) {
     card.className = 'task-card';
     card.setAttribute('draggable', 'true');
     card.setAttribute('data-task-id', key);
-    card.innerHTML = `<h4>${task.title}</h4><p>${task.description}</p>`;
+    card.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center">
+            <h4 class="mg-clear mb-0">${task.title}</h4>
+            <div>
+                <div class="dropdown d-inline-block edit-task">
+                    <button class="btn btn-link three-dot-menu" type="button" id="dropdownMenu-${key}" data-bs-toggle="dropdown" aria-expanded="false">⋮</button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenu-${key}">
+                        <li><a class="dropdown-item text-primary edit-task" href="#" data-task-id="${key}">Edit</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <p>${task.description}</p>
+        
+    `
     return card;
 }
 
