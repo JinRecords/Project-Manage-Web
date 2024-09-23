@@ -487,15 +487,15 @@
 }
 
 .btn:hover{
-    color: #ffffff; !important; /* Text color */
+    color: #ffffff !important; /* Text color */
 }
 .sprint-backlog-button {
     text-align: center;
 }
 
 .sprint-backlog-button:hover {
-    background-color: #cccccc; !important;/* Hover color */
-    color: #ffffff; !important; /* Text color */
+    background-color: #cccccc !important;/* Hover color */
+    color: #ffffff !important; /* Text color */
 
 }
 
