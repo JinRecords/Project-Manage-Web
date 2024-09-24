@@ -91,7 +91,6 @@
         </div>
     </div>
 
-
     <!-- Sprint Form Popup -->
     <div id="sprintFormPopup" class="popup-form">
         <form id="sprintForm">
@@ -154,6 +153,7 @@
 <script>
     // Global variables
     let currentSprintId = null;
+    let isSprintUpdated = false;
 
     // Function to handle adding a new sprint
     window.handleAddSprintClick = function (event) {
@@ -396,10 +396,6 @@
         fetchSprintBoard();
 
     });
-
-    ;
-
-
 
 
     // Function to render sprint board
@@ -728,16 +724,28 @@ async function getTasksFromDatabase() {
             buttons.innerHTML = `
             <button type="button" class="btn btn-secondary" onclick="toggleSprintPopup()">Cancel</button>
             <button type="button" class="btn btn-primary" onclick="updateSprint('${sprint.key}')">Update</button>
-        `;
+            `;
+            document.addEventListener("keyup", function(event) {
+                    if (event.key === 'Enter' && isSprintUpdated === false) {
+                        updateSprint(sprint.key);
+                        isSprintUpdated = true;
+                    }
+            });
         } else if (mode === 'add') {
             form.reset();
             setDefaultSprintFormValues();
             buttons.innerHTML = `
             <button type="button" class="btn btn-secondary" onclick="toggleSprintPopup()">Cancel</button>
             <button type="button" class="btn btn-primary" onclick="saveSprint()">Save Sprint</button>
-        `;
+            `;
+            document.addEventListener("keyup", function(event) {
+                    if (event.key === 'Enter' && isSprintUpdated === false) {
+                        saveSprint();
+                        isSprintUpdated = true;
+                    }
+            });
         }
-
+        isSprintUpdated = false;
         toggleSprintPopup();
     }
 
@@ -1139,7 +1147,6 @@ document.addEventListener('DOMContentLoaded', initDragAndDrop);
                 console.error("Error clearing sprints:", error);
             });
     }
-
 
     // Expose the function to the global scope for console access
     window.clearAllSprints = clearAllSprints;
