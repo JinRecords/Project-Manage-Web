@@ -139,6 +139,110 @@
         </form>
     </div>
 
+    <!-- Edit Task Popup Form -->
+    <div id="editTaskPopupForm" class="popup-form">
+        <form id="backlogForm">
+            <div class="form-group">
+                <label for="title">Title</label>
+                <input type="text" class="form-control" id="title" placeholder="Enter Title">
+            </div>
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea class="form-control" id="description" rows="3" placeholder="Enter description"></textarea>
+                <hr class="grey-line-break">
+            </div>
+            <div class="form-group">
+                <label for="tags">Tags:</label>
+                <div class="tags-container" id="popup-tags-container"></div>
+                <button type="button" class="add-tag-button" id="add-tag-button" onclick="showTagSelectionPopup()">+
+                </button>
+            </div>
+            <div class="form-group">
+                <label for="assignee">Assignee:</label>
+                <select class="form-control" id="assignee"
+                        style="width: 150px; display: inline-block; margin-left: 10px;">
+                    <option>test1</option>
+                    <option>test2</option>
+                    <option>test3</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="priority">Priority:</label>
+                <button type="button" class="pill-button priority-low" onclick="setPriority('Low')">Low</button>
+                <button type="button" class="pill-button priority-medium" onclick="setPriority('Medium')">Medium
+                </button>
+                <button type="button" class="pill-button priority-important" onclick="setPriority('Important')">
+                    Important
+                </button>
+                <button type="button" class="pill-button priority-urgent" onclick="setPriority('Urgent')">
+                    Urgent
+                </button>
+                <input type="hidden" id="priority-input" value="">
+            </div>
+            <div class="form-group">
+                <label for="status">Status:</label>
+                <button type="button" class="pill-button status-not-started" onclick="setStatus('Not started')">Not
+                    started
+                </button>
+                <button type="button" class="pill-button status-in-progress" onclick="setStatus('In progress')">In
+                    progress
+                </button>
+                <button type="button" class="pill-button status-done" onclick="setStatus('Done')">Done</button>
+                <input type="hidden" id="status-input" value="Not started">
+            </div>
+            <div class="form-group">
+                <label for="stage">Stage:</label>
+                <button type="button" class="pill-button stage-planning" onclick="setStage('Planning')">Planning
+                </button>
+                <button type="button" class="pill-button stage-development" onclick="setStage('Development')">
+                    Development
+                </button>
+                <button type="button" class="pill-button stage-testing" onclick="setStage('Testing')">Testing</button>
+                <button type="button" class="pill-button stage-integration" onclick="setStage('Integration')">
+                    Integration
+                </button>
+                <input type="hidden" id="stage-input" value="">
+            </div>
+            <div class="form-group">
+                <label for="storypoint">Storypoint:</label>
+                <select class="form-control" id="storypoint"
+                        style="width: 150px; display: inline-block; margin-left: 10px;">
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                    <option>6</option>
+                    <option>7</option>
+                    <option>8</option>
+                    <option>9</option>
+                    <option>10</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <input type="text" class="form-control" id="timeCreated" readonly>
+            </div>
+            <div class="timeline-container">
+                <div class="timeline-line"></div>
+                <div id="timeline-events"></div>
+            </div>
+            <div class="form-buttons">
+                <button type="button" class="btn btn-secondary" onclick="toggleEditPopup()">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="handleSaveChanges()">Save Changes</button>
+            </div>
+        </form>
+    </div>
+
+     <!-- Tag Selection Popup -->
+     <div id="tag-selection-popup" class="tag-selection-popup">
+        <h4>Select Tags</h4>
+        <div class="tag-selection" id="tag-selection"></div>
+        <div class="close-button-container">
+            <button class="btn btn-secondary" onclick="hideTagSelectionPopup()">Close</button>
+        </div>
+    </div>
+
+
     <!-- ScrollToTop Button -->
     <button aria-label="Scroll to top button" class="bloc-button btn btn-d scrollToTop"
             onclick="scrollToTarget('1',this)">
@@ -218,6 +322,79 @@
         overlay.classList.toggle('open');
         console.log("Popup visibility:", popup.classList.contains('open'));
     }
+
+    function toggleEditPopup(){
+        console.log("Toggling sprint popup");
+        const popup = document.getElementById('editTaskPopupForm');
+        const overlay = document.getElementById('overlay');
+        popup.classList.toggle('open');
+        overlay.classList.toggle('open');
+        console.log("Popup visibility:", popup.classList.contains('open'));
+    }
+
+    let tags = [], priority = '', sprint = '', status = 'Not started', stage = '';
+    const availableTags = ['UI', 'UX', 'Frontend', 'Backend', 'Framework', 'Testing', 'Database', 'API'];
+    const tagColors = ['#FFC0CB', '#FFD7BE', '#F7DC6F', '#C6F4D6', '#9ED2C0', '#8DB8CB', '#9F9CE9', '#BE8DE4'];
+    window.tags = [];
+
+    function showTagSelectionPopup() {
+        const tagSelectionPopup = document.getElementById('tag-selection-popup');
+        const tagSelection = document.getElementById('tag-selection');
+        tagSelection.innerHTML = '';
+        availableTags.forEach((tag, index) => {
+            const tagElement = document.createElement('div');
+            tagElement.classList.add('tag-selection-tag');
+            tagElement.style.backgroundColor = tagColors[index % tagColors.length];
+            tagElement.textContent = tag;
+            tagElement.addEventListener('click', () => {
+                if (!window.tags.some(t => t.name === tag)) {
+                    window.tags.push({name: tag, color: tagColors[index % tagColors.length]});
+                }
+                renderPopupTags();
+                hideTagSelectionPopup();
+            });
+            tagSelection.appendChild(tagElement);
+        });
+        tagSelectionPopup.classList.add('open');
+    }
+
+    function hideTagSelectionPopup() {
+        document.getElementById('tag-selection-popup').classList.remove('open');
+    }
+
+    function renderPopupTags(isViewMode = false) {
+        const tagsContainer = document.getElementById('popup-tags-container');
+        tagsContainer.innerHTML = '';
+
+        // Loop through and render the tags
+        if (Array.isArray(window.tags)) {
+            window.tags.forEach(tag => {
+                const tagElement = document.createElement('div');
+                tagElement.classList.add('tag');
+                tagElement.style.backgroundColor = tag.color;
+                tagElement.textContent = tag.name;
+
+                // In view mode, tags should not be clickable
+                if (!isViewMode) {
+                    tagElement.addEventListener('click', () => {
+                        window.tags = window.tags.filter(t => t.name !== tag.name);
+                        renderPopupTags();
+                    });
+                }
+
+                tagsContainer.appendChild(tagElement);
+            });
+        }
+
+        // Hide or show the "Add Tag" button based on the mode
+        const addTagButton = document.getElementById('add-tag-button');
+        if (isViewMode) {
+            addTagButton.style.display = 'none'; // Hide the button in view mode
+        } else {
+            addTagButton.style.display = 'inline-block'; // Show the button in edit/add mode
+        }
+    }
+
 
     // Function to save a new sprint
     function saveSprint() {
@@ -398,7 +575,6 @@
     });
 
     ;
-
 
 
 
@@ -728,28 +904,15 @@ async function getTasksFromDatabase() {
             buttons.innerHTML = `
             <button type="button" class="btn btn-secondary" onclick="toggleSprintPopup()">Cancel</button>
             <button type="button" class="btn btn-primary" onclick="updateSprint('${sprint.key}')">Update</button>
-            `;
-            document.addEventListener("keyup", function(event) {
-                    if (event.key === 'Enter' && isSprintUpdated === false) {
-                        updateSprint(sprint.key);
-                        isSprintUpdated = true;
-                    }
-            });
+        `;
         } else if (mode === 'add') {
             form.reset();
             setDefaultSprintFormValues();
             buttons.innerHTML = `
             <button type="button" class="btn btn-secondary" onclick="toggleSprintPopup()">Cancel</button>
             <button type="button" class="btn btn-primary" onclick="saveSprint()">Save Sprint</button>
-            `;
-            document.addEventListener("keyup", function(event) {
-                    if (event.key === 'Enter' && isSprintUpdated === false) {
-                        saveSprint();
-                        isSprintUpdated = true;
-                    }
-            });
+        `;
         }
-        isSprintUpdated = false;
         toggleSprintPopup();
     }
 
@@ -785,6 +948,21 @@ async function getTasksFromDatabase() {
             // Reset form state
 
             const form = document.getElementById('sprintForm');
+            form.reset();
+            Array.from(form.elements).forEach(el => el.disabled = false);
+        }
+    }
+
+    window.toggleEditPopup = function () {
+        const popup = document.getElementById('editTaskPopupForm');
+        const overlay = document.getElementById('overlay');
+        popup.classList.toggle('open');
+        overlay.classList.toggle('open');
+
+        if (!popup.classList.contains('open')) {
+            // Reset form state
+
+            const form = document.getElementById('Form');
             form.reset();
             Array.from(form.elements).forEach(el => el.disabled = false);
         }
@@ -1089,7 +1267,21 @@ function createTaskCard(key, task) {
     card.className = 'task-card';
     card.setAttribute('draggable', 'true');
     card.setAttribute('data-task-id', key);
-    card.innerHTML = `<h4>${task.title}</h4><p>${task.description}</p>`;
+    card.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center">
+            <h4 class="mg-clear mb-0">${task.title}</h4>
+            <div>
+                <div class="dropdown d-inline-block edit-task">
+                    <button class="btn btn-link three-dot-menu" type="button" id="dropdownMenu-${key}" data-bs-toggle="dropdown" aria-expanded="false">⋮</button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenu-${key}">
+                        <li><a class="dropdown-item text-primary edit-task" href="#" data-task-id="${key}" onclick="toggleEditPopup()">Edit</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <p>${task.description}</p>
+
+    `
     return card;
 }
 
@@ -1158,3 +1350,4 @@ document.addEventListener('DOMContentLoaded', initDragAndDrop);
 </script>
 </body>
 </html>
+
