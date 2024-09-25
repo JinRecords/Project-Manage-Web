@@ -324,22 +324,12 @@
         console.log("Popup visibility:", popup.classList.contains('open'));
     }
 
-    
     function toggleEditPopup() {
         const popup = document.getElementById('editTaskPopupForm');
         const overlay = document.getElementById('overlay');
-
         popup.classList.toggle('open');
         overlay.classList.toggle('open');
-
-        if (!popup.classList.contains('open')) {
-            // Reset form state without changing buttons
-            const form = document.getElementById('backlogForm');
-            form.reset();
-            Array.from(form.elements).forEach(el => el.disabled = false);
-            window.tags = [];
-            renderPopupTags();
-        }
+        console.log("Popup visibility:", popup.classList.contains('open'));
     }
 
     let tags = [], priority = '', sprint = '', status = 'Not started', stage = '';
@@ -478,10 +468,12 @@
 
         if (mode === 'edit' && item) {
             fillFormWithItemData(item);
+            console.log('Item key:', item ? item.key : 'No item');
             buttons.innerHTML = `
             <button type="button" class="btn btn-secondary" onclick="toggleEditPopup()">Cancel</button>
-            <button type="button" class="btn btn-primary" onclick="updateBacklogItem('${item.key}')">Update</button>
+            <button type="button" class="btn btn-primary" onclick="updateSprintBacklogItem('${item.key}')">Save Changes</button>
             `;
+            console.log(buttons.innerHTML);
         
         } else if (mode === 'view') {
             fillFormWithItemData(item);
@@ -498,6 +490,7 @@
 
     function fillFormWithItemData(item) {
         const form = document.getElementById('backlogForm');
+        console.log("Item filled: ", form);
         form.elements['title'].value = item.title || '';
         form.elements['description'].value = item.description || '';
         form.elements['assignee'].value = item.assignee || '';
@@ -516,7 +509,6 @@
         }
         //renderTimeline(item.history || []);
     }
-
 
     // Function to save a new sprint
     function saveSprint() {
@@ -719,6 +711,13 @@
         }
     }
 
+    function handleSaveChanges() {
+        if (typeof window.sendFormDataToFirebase === 'function') {
+            window.sendFormDataToFirebase();
+        } else {
+            console.error('sendFormDataToFirebase is not defined');
+        }
+    }
 
     // Function to show delete confirmation
     function showDeleteConfirmation(sprintId) {
@@ -868,6 +867,7 @@
     const app = initializeApp(firebaseConfig);
     const database = getDatabase(app);
     const sprintBoardRef = ref(database, 'sprintboard');
+    const taskRef = ref(database, 'sprintbacklog');
 
     window.getSprintFromFirebase = function (sprintId) {
         return get(ref(database, `sprintboard/${sprintId}`))
@@ -904,19 +904,20 @@
 
     window.sendFormDataToFirebase = async function () {
         try {
-            const formData = getFormData();
+            const formData = getFormDataForUpdate();
             if (Object.values(formData).some(value => value === '')) {
                 alert('Please fill in all fields');
                 return;
             }
 
-            await push(productBacklogRef, formData);
-            console.log('Data saved successfully');
-            togglePopup();
+            await push(taskRef, formData);
+            console.log("Data saved successfully.")
+            toggleEditPopup();
         } catch (error) {
             console.error("Error sending form data:", error);
         }
     }
+
     // Function to handle adding a new sprint
     window.handleAddSprintClick = function (event) {
         event.preventDefault();
@@ -1074,12 +1075,31 @@ async function getTasksFromDatabase() {
             get(ref(database, `productBacklog/${itemId}`)).then((snapshot) => {
                 if (snapshot.exists()) {
                     const item = snapshot.val();
+                    console.log("ASDFGHJK: ", item);
                     item.key = itemId;
                     setFormMode('edit', item);
                 }
             }).catch(console.error);
         }
     });
+
+    // Function to handle update item
+    window.updateSprintBacklogItem = async function (itemId) {
+        try {
+            const formData = getFormDataForUpdate(itemId);
+            console.log("HELLO HELLO", formData);
+            const currentData = await get(ref(database, `productBacklog/${itemId}`));
+            if (currentData.exists()) {
+                const changes = getChanges(currentData.val(), formData);
+                const updatedData = updateItemHistory(currentData.val(), formData, changes);
+                await update(ref(database, `productBacklog/${itemId}`), updatedData);
+                console.log('Data updated successfully');
+                toggleEditPopup();
+            }
+        } catch (error) {
+            console.error("Error updating data:", error);
+        }
+    }
 
     function getFormDataForUpdate(itemId) {
         const form = document.getElementById('backlogForm');
@@ -1130,9 +1150,8 @@ async function getTasksFromDatabase() {
         overlay.classList.toggle('open');
 
         if (!popup.classList.contains('open')) {
-            // Reset form state
-
-            const form = document.getElementById('Form');
+            // Reset form state without changing buttons
+            const form = document.getElementById('backlogForm');
             form.reset();
             Array.from(form.elements).forEach(el => el.disabled = false);
         }
