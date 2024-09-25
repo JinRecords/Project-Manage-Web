@@ -296,14 +296,12 @@
 <script src="../js/lazysizes.min.js" defer></script>
 
 <script>
-    //Global Variable for the NFR ENTER button
-    let isSprintUpdated = false;
-
     let tags = [], priority = '', sprint = '', status = 'Not started', stage = '';
     const availableTags = ['UI', 'UX', 'Frontend', 'Backend', 'Framework', 'Testing', 'Database', 'API'];
     const tagColors = ['#FFC0CB', '#FFD7BE', '#F7DC6F', '#C6F4D6', '#9ED2C0', '#8DB8CB', '#9F9CE9', '#BE8DE4'];
     let currentSortOption = 'default', currentFilterOption = [];
     window.tags = [];
+    let isBacklogUpdated = false;
 
     function fetchProductBacklog() {
         get(ref(database, 'productBacklog')).then((snapshot) => {
@@ -528,9 +526,11 @@
 
     function handleSaveChanges() {
         if (typeof window.sendFormDataToFirebase === 'function') {
-            window.sendFormDataToFirebase();
+            if (window.sendFormDataToFirebase() instanceof Error) {
+                throw error;
+            }
         } else {
-            console.error('sendFormDataToFirebase is not defined');
+            throw new Error('sendFormDataToFirebase is not defined');
         }
     }
 
@@ -618,7 +618,7 @@
                 return itemTags.length === currentFilterOption.length && itemTags.sort().every((value, index) => value === filterTags.sort()[index]);
             }
         });
-    
+
         return filteredItemsArray.length === 0 ? {} :
                Object.fromEntries(filteredItemsArray.map(item => [item.key, item]));
     }
@@ -699,9 +699,18 @@
         if (mode === 'edit' && item) {
             fillFormWithItemData(item);
             buttons.innerHTML = `
-  <button type="button" class="btn btn-secondary" onclick="togglePopup()">Cancel</button>
-  <button type="button" class="btn btn-primary" onclick="updateBacklogItem('${item.key}')">Update</button>
-`;
+                <button type="button" class="btn btn-secondary" onclick="togglePopup()">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="updateBacklogItem('${item.key}')">Update</button>
+            `;
+
+            // Enter key to save
+            // Somehow doesn't check for empty fields.
+            document.addEventListener("keyup", function(event) {
+                if (event.key === 'Enter' && isBacklogUpdated === false) {
+                    updateBacklogItem(item.key);
+                    isBacklogUpdated = true;
+                }
+            });
         } else if (mode === 'add') {
             console.log('Entering add mode'); // Debug log
             // Force reset for add mode
@@ -726,17 +735,23 @@
 
             // Force the correct buttons for add mode
             buttons.innerHTML = `
-            <button type="button" class="btn btn-secondary" onclick="togglePopup()">Cancel</button>
-            <button type="button" class="btn btn-primary" onclick="handleSaveChanges()">Save Changes</button>
-        `;
+                <button type="button" class="btn btn-secondary" onclick="togglePopup()">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="handleSaveChanges()">Save Changes</button>
+            `;
+            // Enter key to save
+            // Somehow doesn't check for empty fields.
             document.addEventListener("keyup", function(event) {
-                    if (event.key === 'Enter' && isSprintUpdated === false) {
-                        handleSaveChanges();
-                        isSprintUpdated = true;
+                if (event.key === 'Enter' && isBacklogUpdated === false) {
+                    try { handleSaveChanges(); } catch (error) {
+                        console.log('huh');
+                        isBacklogUpdated = false;
+                        return;
                     }
+                    isBackLogUpdated = true;
+                }
             });
+
             console.log('Add mode buttons set:', buttons.innerHTML); // Debug log
-        isSprintUpdated = false;
         } else if (mode === 'view') {
             fillFormWithItemData(item);
             Array.from(form.elements).forEach(el => el.disabled = true);
@@ -748,6 +763,8 @@
         const overlay = document.getElementById('overlay');
         popup.classList.add('open');
         overlay.classList.add('open');
+
+        isBacklogUpdated = false;
     }
 
     window.handleAddButtonClick = function (event) {
@@ -889,9 +906,8 @@
             const formData = getFormData();
             if (Object.values(formData).some(value => value === '')) {
                 alert('Please fill in all fields');
-                return;
+                return new Error('Empty field(s)');
             }
-
             await push(productBacklogRef, formData);
             console.log('Data saved successfully');
             togglePopup();
