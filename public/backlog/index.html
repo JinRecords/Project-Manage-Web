@@ -296,6 +296,9 @@
 <script src="../js/lazysizes.min.js" defer></script>
 
 <script>
+    //Global Variable for the NFR ENTER button
+    let isSprintUpdated = false;
+
     let tags = [], priority = '', sprint = '', status = 'Not started', stage = '';
     const availableTags = ['UI', 'UX', 'Frontend', 'Backend', 'Framework', 'Testing', 'Database', 'API'];
     const tagColors = ['#FFC0CB', '#FFD7BE', '#F7DC6F', '#C6F4D6', '#9ED2C0', '#8DB8CB', '#9F9CE9', '#BE8DE4'];
@@ -726,7 +729,14 @@
             <button type="button" class="btn btn-secondary" onclick="togglePopup()">Cancel</button>
             <button type="button" class="btn btn-primary" onclick="handleSaveChanges()">Save Changes</button>
         `;
+            document.addEventListener("keyup", function(event) {
+                    if (event.key === 'Enter' && isSprintUpdated === false) {
+                        handleSaveChanges();
+                        isSprintUpdated = true;
+                    }
+            });
             console.log('Add mode buttons set:', buttons.innerHTML); // Debug log
+        isSprintUpdated = false;
         } else if (mode === 'view') {
             fillFormWithItemData(item);
             Array.from(form.elements).forEach(el => el.disabled = true);
