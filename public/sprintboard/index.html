@@ -121,6 +121,12 @@
                 </select>
             </div>
             <div class="form-group">
+                <label for="teamMembers">Team Members:</label>
+                <div class="teamMembers-container" id="popup-teamMembers-container"></div>
+                <button type="button" class="add-teamMembers-button" id="add-teamMembers-button" onclick="showTeamMemberSelectionPopup()">+
+                </button>
+            </div>
+            <div class="form-group">
                 <label for="sprintStartTime">Sprint Start Time:</label>
                 <input type="datetime-local" class="form-control" id="sprintStartTime">
             </div>
@@ -233,12 +239,21 @@
         </form>
     </div>
 
-     <!-- Tag Selection Popup -->
-     <div id="tag-selection-popup" class="tag-selection-popup">
+    <!-- Tag Selection Popup -->
+    <div id="tag-selection-popup" class="tag-selection-popup">
         <h4>Select Tags</h4>
         <div class="tag-selection" id="tag-selection"></div>
         <div class="close-button-container">
             <button class="btn btn-secondary" onclick="hideTagSelectionPopup()">Close</button>
+        </div>
+    </div>
+
+    <!-- Team Members Selection Popup -->
+    <div id="teamMembers-selection-popup" class="teamMembers-selection-popup">
+        <h4>Select Members</h4>
+        <div class="teamMembers-selection" id="teamMembers-selection"></div>
+        <div class="close-button-container">
+            <button class="btn btn-secondary" onclick="hideTeamMemberSelectionPopup()">Close</button>
         </div>
     </div>
 
@@ -269,28 +284,30 @@
 
     // Function to set sprint form mode (add or edit)
     function setSprintFormMode(mode, sprint = null) {
-        console.log("Setting sprint form mode:", mode);
         const form = document.getElementById('sprintForm');
         const buttons = document.querySelector('.form-buttons');
         buttons.innerHTML = '';
-
+    
         if (mode === 'edit' && sprint) {
             fillSprintFormWithData(sprint);
             buttons.innerHTML = `
             <button type="button" class="btn btn-secondary" onclick="toggleSprintPopup()">Cancel</button>
-            <button type="button" class="btn btn-primary" onclick="updateSprint('${sprint.key}')">Update</button>
-        `;
-            currentSprintId = sprint.key;
+            <button type="button" class="btn btn-primary" id="save-sprint-button">Update</button>
+            `;
+            document.getElementById('save-sprint-button').addEventListener('click', () => {
+                updateSprint(sprint.key);
+            });
         } else if (mode === 'add') {
             form.reset();
             setDefaultSprintFormValues();
+            window.teamMembers = [];
+            renderPopupTeamMembers();
             buttons.innerHTML = `
             <button type="button" class="btn btn-secondary" onclick="toggleSprintPopup()">Cancel</button>
             <button type="button" class="btn btn-primary" onclick="saveSprint()">Save Sprint</button>
-        `;
-            currentSprintId = null;
+            `;
         }
-
+    
         toggleSprintPopup();
     }
 
@@ -303,6 +320,8 @@
         form.elements['scrumMaster'].value = sprint.scrumMaster || '';
         form.elements['sprintStartTime'].value = sprint.startTime || '';
         form.elements['sprintEndTime'].value = sprint.endTime || '';
+        window.teamMembers = sprint.teamMembers || [];
+        renderPopupTeamMembers();
 
         const statusContainer = document.getElementById('sprintStatus');
         statusContainer.innerHTML = `<div class="pill-button status-${sprint.status.toLowerCase().replace(/ /g, '-')}">${sprint.status}</div>`;
@@ -322,6 +341,15 @@
         popup.classList.toggle('open');
         overlay.classList.toggle('open');
         console.log("Popup visibility:", popup.classList.contains('open'));
+
+        // Reset team members array and re-render team members container when popup is closed
+        if (!popup.classList.contains('open')) {
+            const form = document.getElementById('sprintForm');
+            form.reset();
+            Array.from(form.elements).forEach(el => el.disabled = false);
+            window.teamMembers = [];
+            renderPopupTeamMembers();
+        }
     }
 
     function toggleEditPopup() {
@@ -332,10 +360,13 @@
         console.log("Popup visibility:", popup.classList.contains('open'));
     }
 
-    let tags = [], priority = '', sprint = '', status = 'Not started', stage = '';
+    let tags = [], teamMembers = [], priority = '', sprint = '', status = 'Not started', stage = '';
     const availableTags = ['UI', 'UX', 'Frontend', 'Backend', 'Framework', 'Testing', 'Database', 'API'];
     const tagColors = ['#FFC0CB', '#FFD7BE', '#F7DC6F', '#C6F4D6', '#9ED2C0', '#8DB8CB', '#9F9CE9', '#BE8DE4'];
+    const availableTeamMembers = ['test1', 'test2', 'test3', 'test4', 'test5'];
+    const teamMembersColors = ['#C6F4D6', '#C6F4D6', '#C6F4D6', '#C6F4D6', '#C6F4D6'];
     window.tags = [];
+    window.teamMembers = [];
 
     function showTagSelectionPopup() {
         const tagSelectionPopup = document.getElementById('tag-selection-popup');
@@ -358,8 +389,33 @@
         tagSelectionPopup.classList.add('open');
     }
 
+    function showTeamMemberSelectionPopup() {
+        const teamMembersSelectionPopup = document.getElementById('teamMembers-selection-popup');
+        const teamMembersSelection = document.getElementById('teamMembers-selection');
+        teamMembersSelection.innerHTML = '';
+        availableTeamMembers.forEach((tag, index) => {
+            const tagElement = document.createElement('div');
+            tagElement.classList.add('teamMembers-selection-teamMembers');
+            tagElement.style.backgroundColor = tagColors[index % tagColors.length];
+            tagElement.textContent = tag;
+            tagElement.addEventListener('click', () => {
+                if (!window.teamMembers.some(t => t.name === tag)) {
+                    window.teamMembers.push({name: tag, color: tagColors[index % tagColors.length]});
+                }
+                renderPopupTeamMembers();
+                hideTeamMemberSelectionPopup();
+            });
+            teamMembersSelection.appendChild(tagElement);
+        });
+        teamMembersSelectionPopup.classList.add('open');
+    }
+
     function hideTagSelectionPopup() {
         document.getElementById('tag-selection-popup').classList.remove('open');
+    }
+
+    function hideTeamMemberSelectionPopup() {
+        document.getElementById('teamMembers-selection-popup').classList.remove('open');
     }
 
     function renderPopupTags(isViewMode = false) {
@@ -393,6 +449,43 @@
         } else {
             addTagButton.style.display = 'inline-block'; // Show the button in edit/add mode
         }
+    }
+
+    function renderPopupTeamMembers(isViewMode = false) {
+        const teamMembersContainer = document.getElementById('popup-teamMembers-container');
+        teamMembersContainer.innerHTML = '';
+
+        // Loop through and render the tags
+        if (Array.isArray(window.teamMembers)) {
+            window.teamMembers.forEach(tag => {
+                const tagElement = document.createElement('div');
+                tagElement.classList.add('teamMembers');
+                tagElement.style.backgroundColor = tag.color;
+                tagElement.textContent = tag.name;
+
+                // In view mode, tags should not be clickable
+                if (!isViewMode) {
+                    tagElement.addEventListener('click', () => {
+                        window.teamMembers = window.teamMembers.filter(t => t.name !== tag.name);
+                        renderPopupTeamMembers();
+                    });
+                }
+
+                teamMembersContainer.appendChild(tagElement);
+            });
+        }
+
+        // Hide or show the "Add Tag" button based on the mode
+        const addTagButton = document.getElementById('add-tag-button');
+        if (isViewMode) {
+            addTagButton.style.display = 'none'; // Hide the button in view mode
+        } else {
+            addTagButton.style.display = 'inline-block'; // Show the button in edit/add mode
+        }
+    }
+
+    function renderTeamMembers(teamMembers) {
+        return teamMembers ? teamMembers.map(teamMember => `<div class="teamMembers" style="background-color: ${teamMember.color}; color: black;">${teamMember.name}</div>`).join('') : '';
     }
 
     function setPriority(p) {
@@ -475,6 +568,8 @@
 
         } else if (mode === 'view') {
             fillFormWithItemData(item);
+            window.teamMembers = [];
+            renderPopupTeamMembers();
             Array.from(form.elements).forEach(el => el.disabled = true);
             buttons.innerHTML = '<button type="button" class="btn btn-secondary" onclick="toggleEditPopup()">Back</button>';
         }
@@ -514,6 +609,13 @@
         if (validateSprintData(sprintData)) {
             sendFormDataToFirebase(sprintData);
             toggleSprintPopup();
+            isSprintUpdated = false;
+            document.removeEventListener("keyup", function(event) {
+                if (event.key === 'Enter' && isSprintUpdated === false) {
+                    saveSprint();
+                    isSprintUpdated = true;
+                }
+            });
         }
     }
 
@@ -525,6 +627,7 @@
             description: form.elements['sprintDescription'].value,
             productOwner: form.elements['productOwner'].value,
             scrumMaster: form.elements['scrumMaster'].value,
+            teamMembers: window.teamMembers || [],
             startTime: form.elements['sprintStartTime'].value,
             endTime: form.elements['sprintEndTime'].value,
             status: calculateSprintStatus(form.elements['sprintStartTime'].value, form.elements['sprintEndTime'].value)
@@ -617,6 +720,8 @@
             <p>${sprint.description}</p>
             <p>Product Owner: ${sprint.productOwner}</p>
             <p>Scrum Master: ${sprint.scrumMaster}</p>
+            <p>Team Members:<p>
+            <div class="teamMembers-container">${renderTeamMembers(sprint.teamMembers)}</div>
             <p>Status: ${statusPill}</p>
             <p>Start: ${new Date(sprint.startTime).toLocaleString()}</p>
             <p>End: ${new Date(sprint.endTime).toLocaleString()}</p>
@@ -649,6 +754,9 @@
         } else {
             console.error('Sprint status element not found');
         }
+
+        window.teamMembers = sprint.teamMembers || [];
+        renderPopupTeamMembers(true);
 
         // Disable all form fields
         Array.from(form.elements).forEach(el => el.disabled = true);
@@ -734,9 +842,18 @@
     window.updateSprint = async function (sprintId) {
         try {
             const sprintData = getSprintFormData();
-            await update(ref(database, `sprintboard/${sprintId}`), sprintData);
-            console.log('Sprint updated successfully');
-            toggleSprintPopup();
+            if (validateSprintData(sprintData)) {
+                await update(ref(database, `sprintboard/${sprintId}`), sprintData);
+                console.log('Sprint updated successfully');
+                toggleSprintPopup();
+                isSprintUpdated = false;
+                document.removeEventListener("keyup", function(event) {
+                    if (event.key === 'Enter' && isSprintUpdated === false) {
+                        updateSprint(sprint.key);
+                        isSprintUpdated = true;
+                    }
+                });
+            }
         } catch (error) {
             console.error("Error updating sprint:", error);
         }
@@ -770,6 +887,8 @@
             <p>${sprint.description}</p>
             <p>Product Owner: ${sprint.productOwner}</p>
             <p>Scrum Master: ${sprint.scrumMaster}</p>
+            <p>Team Members:<p>
+            <div class="teamMembers-container">${renderTeamMembers(sprint.teamMembers)}</div>
             <p>Status: ${statusPill}</p>
             <p>Start: ${new Date(sprint.startTime).toLocaleString()}</p>
             <p>End: ${new Date(sprint.endTime).toLocaleString()}</p>
@@ -1020,37 +1139,29 @@ async function getTasksFromDatabase() {
         const form = document.getElementById('sprintForm');
         const buttons = document.querySelector('.form-buttons');
         buttons.innerHTML = '';
-
+    
         if (mode === 'edit' && sprint) {
             fillSprintFormWithData(sprint);
             buttons.innerHTML = `
             <button type="button" class="btn btn-secondary" onclick="toggleSprintPopup()">Cancel</button>
-            <button type="button" class="btn btn-primary" onclick="updateSprint('${sprint.key}')">Update</button>
+            <button type="button" class="btn btn-primary" id="save-sprint-button">Update</button>
             `;
-            document.addEventListener("keyup", function(event) {
-                    if (event.key === 'Enter' && isSprintUpdated === false) {
-                        updateSprint(sprint.key);
-                        isSprintUpdated = true;
-                    }
+            document.getElementById('save-sprint-button').addEventListener('click', () => {
+                updateSprint(sprint.key);
             });
         } else if (mode === 'add') {
             form.reset();
             setDefaultSprintFormValues();
+            window.teamMembers = [];
+            renderPopupTeamMembers();
             buttons.innerHTML = `
             <button type="button" class="btn btn-secondary" onclick="toggleSprintPopup()">Cancel</button>
             <button type="button" class="btn btn-primary" onclick="saveSprint()">Save Sprint</button>
             `;
-            document.addEventListener("keyup", function(event) {
-                    if (event.key === 'Enter' && isSprintUpdated === false) {
-                        saveSprint();
-                        isSprintUpdated = true;
-                    }
-            });
         }
-        isSprintUpdated = false;
+    
         toggleSprintPopup();
     }
-
     // Function to fill sprint form with data
     function fillSprintFormWithData(sprint) {
         const form = document.getElementById('sprintForm');
@@ -1060,6 +1171,8 @@ async function getTasksFromDatabase() {
         form.elements['scrumMaster'].value = sprint.scrumMaster || '';
         form.elements['sprintStartTime'].value = sprint.startTime || '';
         form.elements['sprintEndTime'].value = sprint.endTime || '';
+        window.teamMembers = sprint.teamMembers || [];
+        renderPopupTeamMembers();
 
         // Update the status display
         const statusContainer = form.querySelector('#sprintStatus');
@@ -1216,6 +1329,7 @@ async function getTasksFromDatabase() {
             description: form.elements['sprintDescription'].value,
             productOwner: form.elements['productOwner'].value,
             scrumMaster: form.elements['scrumMaster'].value,
+            teamMembers: window.teamMembers || [],
             startTime: form.elements['sprintStartTime'].value,
             endTime: form.elements['sprintEndTime'].value,
             status: statusElement ? statusElement.textContent : 'Not started'
