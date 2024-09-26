@@ -284,30 +284,28 @@
 
     // Function to set sprint form mode (add or edit)
     function setSprintFormMode(mode, sprint = null) {
+        console.log("Setting sprint form mode:", mode);
         const form = document.getElementById('sprintForm');
         const buttons = document.querySelector('.form-buttons');
         buttons.innerHTML = '';
-    
+
         if (mode === 'edit' && sprint) {
             fillSprintFormWithData(sprint);
             buttons.innerHTML = `
             <button type="button" class="btn btn-secondary" onclick="toggleSprintPopup()">Cancel</button>
-            <button type="button" class="btn btn-primary" id="save-sprint-button">Update</button>
-            `;
-            document.getElementById('save-sprint-button').addEventListener('click', () => {
-                updateSprint(sprint.key);
-            });
+            <button type="button" class="btn btn-primary" onclick="updateSprint('${sprint.key}')">Update</button>
+        `;
+            currentSprintId = sprint.key;
         } else if (mode === 'add') {
             form.reset();
             setDefaultSprintFormValues();
-            window.teamMembers = [];
-            renderPopupTeamMembers();
             buttons.innerHTML = `
             <button type="button" class="btn btn-secondary" onclick="toggleSprintPopup()">Cancel</button>
             <button type="button" class="btn btn-primary" onclick="saveSprint()">Save Sprint</button>
-            `;
+        `;
+            currentSprintId = null;
         }
-    
+
         toggleSprintPopup();
     }
 
@@ -1144,24 +1142,34 @@ async function getTasksFromDatabase() {
             fillSprintFormWithData(sprint);
             buttons.innerHTML = `
             <button type="button" class="btn btn-secondary" onclick="toggleSprintPopup()">Cancel</button>
-            <button type="button" class="btn btn-primary" id="save-sprint-button">Update</button>
+            <button type="button" class="btn btn-primary" onclick="updateSprint('${sprint.key}')">Update</button>
             `;
-            document.getElementById('save-sprint-button').addEventListener('click', () => {
-                updateSprint(sprint.key);
+            document.addEventListener("keyup", function(event) {
+                    if (event.key === 'Enter' && isSprintUpdated === false) {
+                        updateSprint(sprint.key);
+                        isSprintUpdated = true;
+                    }
             });
         } else if (mode === 'add') {
             form.reset();
             setDefaultSprintFormValues();
-            window.teamMembers = [];
+            window.teamMembers =[];
             renderPopupTeamMembers();
             buttons.innerHTML = `
             <button type="button" class="btn btn-secondary" onclick="toggleSprintPopup()">Cancel</button>
             <button type="button" class="btn btn-primary" onclick="saveSprint()">Save Sprint</button>
             `;
+            document.addEventListener("keyup", function(event) {
+                    if (event.key === 'Enter' && isSprintUpdated === false) {
+                        saveSprint();
+                        isSprintUpdated = true;
+                    }
+            });
         }
-    
+        isSprintUpdated = false;
         toggleSprintPopup();
     }
+
     // Function to fill sprint form with data
     function fillSprintFormWithData(sprint) {
         const form = document.getElementById('sprintForm');
