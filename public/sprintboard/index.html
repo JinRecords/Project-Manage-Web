@@ -837,23 +837,19 @@
         };
     }
 
-    window.updateSprint = async function (sprintId) {
-        try {
-            const sprintData = getSprintFormData();
-            if (validateSprintData(sprintData)) {
-                await update(ref(database, `sprintboard/${sprintId}`), sprintData);
-                console.log('Sprint updated successfully');
-                toggleSprintPopup();
-                isSprintUpdated = false;
-                document.removeEventListener("keyup", function(event) {
-                    if (event.key === 'Enter' && isSprintUpdated === false) {
-                        updateSprint(sprint.key);
-                        isSprintUpdated = true;
-                    }
-                });
-            }
-        } catch (error) {
-            console.error("Error updating sprint:", error);
+    // Function to get sprint form data for update
+    function getSprintFormDataForUpdate(sprintId) {
+        const form = document.getElementById('sprintForm');
+        const statusElement = document.querySelector('#sprintStatus .pill-button');
+        return {
+            title: form.elements['sprintTitle'].value,
+            description: form.elements['sprintDescription'].value,
+            productOwner: form.elements['productOwner'].value,
+            scrumMaster: form.elements['scrumMaster'].value,
+            teamMembers: window.teamMembers || [],
+            startTime: form.elements['sprintStartTime'].value,
+            endTime: form.elements['sprintEndTime'].value,
+            status: statusElement ? statusElement.textContent : 'Not started'
         }
     }
 
@@ -1221,6 +1217,27 @@ async function getTasksFromDatabase() {
         }
     }
 
+    // Function to update a sprint
+    window.updateSprint = async function (sprintId) {
+        try {
+            const sprintData = getSprintFormDataForUpdate(sprintId);
+            if (validateSprintData(sprintData)) {
+                await update(ref(database, `sprintboard/${sprintId}`), sprintData);
+                console.log('Sprint updated successfully');
+                toggleSprintPopup();
+                // Remove the event listener to prevent multiple updates
+                document.removeEventListener("keyup", function(event) {
+                    if (event.key === 'Enter' && isSprintUpdated === false) {
+                        updateSprint(sprintId);
+                        isSprintUpdated = true;
+                    }
+                });
+            }
+        } catch (error) {
+            console.error("Error updating sprint:", error);
+        }
+    }
+
     function getFormDataForUpdate(itemId) {
         const form = document.getElementById('backlogForm');
         return {
@@ -1350,8 +1367,6 @@ async function getTasksFromDatabase() {
         const status = calculateSprintStatus(startTime, endTime);
         update(ref(database, `sprintboard/${sprintId}`), {status: status});
     }
-
-    // Function to update a sprint
 
 
     // Function to delete a sprint
