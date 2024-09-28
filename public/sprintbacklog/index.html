@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Drag and Drop</title>
+        <link rel="stylesheet" href="style.css" />
+    </head>
+
+    <head>
+        <link rel="preload" href="../css/sprintboardStyle.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+        <title>Sprint Backlog</title>
+        <link rel="shortcut icon" type="image/jpeg" href="../favicon.jpeg">
+        <link rel="stylesheet" type="text/css" href="../css/bootstrap.min.css?2917">
+        <link rel="stylesheet" type="text/css" href="../style.css?4034">
+        <link rel="stylesheet" type="text/css" href="../css/animate.min.css?9837">
+        <link rel="stylesheet" type="text/css" href="../css/all.min.css">
+        <link rel="stylesheet" type="text/css" href="../css/ionicons.min.css">
+        <link href='https://fonts.googleapis.com/css?family=Poppins:100,500,700,40&display=swap&subset=latin,latin-ext'
+              rel='stylesheet' type='text/css'>
+    </head>
+
+    <body>
+        <!-- Preloader -->
+        <div id="page-loading-blocs-notifaction" class="page-preloader"></div>
+
+
+        <!-- Main container -->
+        <div class="page-container">
+            <div class="logo-sidebar">
+                <div class="icon-container">
+                    <picture>
+                        <source type="image/webp" srcset="../img/lazyload-ph.png" data-srcset="../img/favicon.webp">
+                        <img src="../img/lazyload-ph.png" data-src="../img/favicon.jpeg" class="lazyload" alt="favicon.jpeg">
+                    </picture>
+                    <div class="text-center mt-lg-4">
+                        <span class="icon-md feather-icon icon-content-left icon-672"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="links-sidebar">
+                <div class="button-container">
+                    <a href="../backlog/index.html" class="btn btn-lg btn-button-style mt-lg-2 btn-c-7647 mb-lg-3 float-lg-none">
+                        <span class="icon-spacer fa fa-laptop icon-7097 me-lg-3"></span>Product Backlog
+                    </a>
+                    <a href="../sprintboard/index.html" class="btn btn-lg mb-lg-3 btn-c-672 btn-style ps-lg-0 btn-clean-clicked product-backlog-btn">
+                        <span class="icon-spacer fa fa-running icon-7647 icon-md me-lg-3"></span>Sprint Board
+                    </a>
+                    <a href="../" class="btn btn-lg btn-button-style mt-lg-2 btn-c-7647 mb-lg-3">
+                        <span class="icon-spacer ion ion-android-people icon-md me-lg-3"></span>Team members
+                    </a>
+                </div>
+            </div>
+
+            <main class="board">
+                <div class="column column-todo" ondrop="drop(event)" ondragover="allowDrop(event)">
+                    <h2>Not Started</h2>
+                    <article class="card" draggable="true" ondragstart="drag(event)" data-id="1">
+                        <h3>Not Started #1</h3>
+                    </article>
+                    <article class="card" draggable="true" ondragstart="drag(event)" data-id="2">
+                        <h3>Not Started #2</h3>
+                    </article>
+                    <article class="card" draggable="true" ondragstart="drag(event)" data-id="3">
+                        <h3>Not Started #3</h3>
+                    </article>
+                </div>
+                <div class="column column-ip" ondrop="drop(event)" ondragover="allowDrop(event)">
+                    <h2>In Progress</h2>
+                    <article class="card" draggable="true" ondragstart="drag(event)" data-id="4">
+                        <h3>IP #1</h3>
+                    </article>
+                    <article class="card" draggable="true" ondragstart="drag(event)" data-id="5">
+                        <h3>IP #2</h3>
+                    </article>
+                    <article class="card" draggable="true" ondragstart="drag(event)" data-id="6">
+                        <h3>IP #3</h3>
+                    </article>
+                </div>
+                <div class="column column-done" ondrop="drop(event)" ondragover="allowDrop(event)">
+                    <h2>Completed</h2>
+                    <article class="card" draggable="true" ondragstart="drag(event)" data-id="7">
+                        <h3>Completed #1</h3>
+                    </article>
+                    <article class="card" draggable="true" ondragstart="drag(event)" data-id="8">
+                        <h3>Completed #2</h3>
+                    </article>
+                    <article class="card" draggable="true" ondragstart="drag(event)" data-id="9">
+                        <h3>Completed #3</h3>
+                    </article>
+                </div>
+            </main>
+        </div>
+        <script>
+            const dragStart = target => {
+                target.classList.add('dragging');
+            };
+    
+            const dragEnd = target => {
+                target.classList.remove('dragging');
+            };
+    
+            const dragEnter = event => {
+                event.currentTarget.classList.add('drop');
+            };
+    
+            const dragLeave = event => {
+                event.currentTarget.classList.remove('drop');
+            };
+    
+            const drag = event => {
+                event.dataTransfer.setData('text/html', event.currentTarget.outerHTML);
+                event.dataTransfer.setData('text/plain', event.currentTarget.dataset.id);
+            };
+    
+            const drop = event => {
+                document.querySelectorAll('.column').forEach(column => column.classList.remove('drop'));
+                document.querySelector(`[data-id="${event.dataTransfer.getData('text/plain')}"]`).remove();
+    
+                event.preventDefault();
+                event.currentTarget.innerHTML = event.currentTarget.innerHTML + event.dataTransfer.getData('text/html');
+            };
+    
+            const allowDrop = event => {
+                event.preventDefault();
+            };
+    
+            document.querySelectorAll('.column').forEach(column => {
+                column.addEventListener('dragenter', dragEnter);
+                column.addEventListener('dragleave', dragLeave);
+            });
+    
+            document.addEventListener('dragstart', e => {
+                if (e.target.className.includes('card')) {
+                    dragStart(e.target);
+                }
+            });
+    
+            document.addEventListener('dragend', e => {
+                if (e.target.className.includes('card')) {
+                    dragEnd(e.target);
+                }
+            });
+        </script>
+    </body>
+</html>
