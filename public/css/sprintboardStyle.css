@@ -32,6 +32,26 @@
     padding-top: 20px;
 }
 
+.pill-button.disabled {
+    opacity: 0.6 !important;
+    color: #000000 !important;
+    cursor: not-allowed;
+}
+
+.pill-button.disabled:hover {
+    background-color: inherit;
+}
+
+.pill-button.disabled.selected {
+    opacity: 1;
+}
+
+.status-pills-container{
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
 .edit-form-buttons {
     display: flex;
     justify-content: flex-end;
@@ -409,6 +429,12 @@
     background: #DDDDDD;
 }
 
+.three-dot-menu.disabled {
+    pointer-events: none;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 .disabled {
     pointer-events: none; /* Disable interactions */
     color: #cccccc !important; /* Grey out the text */
@@ -583,6 +609,13 @@
 .task-card.dragging {
     opacity: 0.5;
 }
+.dropdown-item.disabled {
+    color: #6c757d !important;
+    pointer-events: none !important;
+    background-color: transparent;
+    opacity: 0.65;
+}
+
 
 .btn:hover{
     color: #ffffff !important; /* Text color */
