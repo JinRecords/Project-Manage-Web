@@ -77,12 +77,13 @@
     </div>
 
     <!-- Overlay -->
-    <div id="overlay" class="overlay"></div>
+    <div id="overlay-sprint" class="overlay-sprint"></div>
+    <div id="overlay-task" class="overlay-task"></div>
 
     <!-- Delete Confirmation Popup -->
     <div id="delete-confirmation-popup" class="custom-popup">
         <div class="custom-popup-content">
-            <h4>Confirm Deletion</h4>c
+            <h4>Confirm Deletion</h4>
             <p>Are you sure you want to delete this item?</p>
             <div class="custom-popup-buttons">
                 <button class="btn btn-secondary" onclick="hideDeleteConfirmation()">Cancel</button>
@@ -335,7 +336,7 @@
     function toggleSprintPopup() {
         console.log("Toggling sprint popup");
         const popup = document.getElementById('sprintFormPopup');
-        const overlay = document.getElementById('overlay');
+        const overlay = document.getElementById('overlay-sprint');
         popup.classList.toggle('open');
         overlay.classList.toggle('open');
         console.log("Popup visibility:", popup.classList.contains('open'));
@@ -352,10 +353,16 @@
 
     function toggleEditPopup() {
         const popup = document.getElementById('editTaskPopupForm');
-        const overlay = document.getElementById('overlay');
         popup.classList.toggle('open');
-        overlay.classList.toggle('open');
-        console.log("Popup visibility:", popup.classList.contains('open'));
+    
+        if (!popup.classList.contains('open')) {
+            // Reset form state without changing buttons
+            const form = document.getElementById('backlogForm');
+            form.reset();
+            Array.from(form.elements).forEach(el => el.disabled = false);
+            window.tags = [];
+            renderPopupTags();
+        }
     }
 
     let tags = [], teamMembers = [], priority = '', sprint = '', status = 'Not started', stage = '';
@@ -560,21 +567,19 @@
             fillFormWithItemData(item);
             console.log('Item key:', item ? item.key : 'No item');
             buttons.innerHTML = `
-            <button type="button" class="btn btn-secondary" onclick="toggleEditPopup()">Cancel</button>
+            <button type="button" class="btn btn-secondary" onclick="toggleEditPopup(); hideTagSelectionPopup()">Cancel</button>
             <button type="button" class="btn btn-primary" onclick="updateSprintBacklogItem('${item.key}')">Update</button>
             `;
 
         } else if (mode === 'view') {
             fillFormWithItemData(item);
-            window.teamMembers = [];
-            renderPopupTeamMembers();
             Array.from(form.elements).forEach(el => el.disabled = true);
             buttons.innerHTML = '<button type="button" class="btn btn-secondary" onclick="toggleEditPopup()">Back</button>';
         }
 
         // Force the popup to open
         const popup = document.getElementById('editTaskPopupForm');
-        const overlay = document.getElementById('overlay');
+        const overlay = document.getElementById('overlay-task');
         popup.classList.add('open');
         overlay.classList.add('open');
     }
@@ -598,7 +603,52 @@
         } else {
             form.elements['timeCreated'].value = item.timeCreated || '';
         }
-        //renderTimeline(item.history || []);
+        renderTimeline(item.history || []);
+    }
+
+    function renderTimeline(history) {
+        const timelineContainer = document.getElementById('timeline-events');
+        timelineContainer.innerHTML = '';
+
+        // Reverse the history array to display the most recent item at the top
+        history.slice().reverse().forEach((event, index) => {
+            const timelineEvent = document.createElement('div');
+            timelineEvent.className = 'timeline-event';
+
+            const dot = document.createElement('div');
+            dot.className = 'timeline-dot';
+
+            const content = document.createElement('div');
+            content.className = 'timeline-content';
+
+            const actionTime = document.createElement('p');
+            actionTime.textContent = `${event.action} on ${event.timestamp} \n | by: test1`;
+            actionTime.style.fontFamily = 'Poppins, sans-serif';
+            actionTime.style.width = '45%';
+            actionTime.style.marginRight = '10px';
+            actionTime.style.float = 'left';
+
+
+            const changes = document.createElement('p');
+            changes.textContent = event.changes;
+            changes.style.fontFamily = 'Poppins, sans-serif';
+            changes.style.width = '45%';
+            changes.style.float = 'right';
+            changes.style.marginTop = '10px';
+
+            // Truncate text if it's too long
+            if (changes.textContent.length > 50) {
+                changes.textContent = changes.textContent.substring(0, 47) + '...';
+            }
+
+            content.appendChild(actionTime);
+            content.appendChild(changes);
+
+            timelineEvent.appendChild(dot);
+            timelineEvent.appendChild(content);
+
+            timelineContainer.appendChild(timelineEvent);
+        });
     }
 
     // Function to save a new sprint
@@ -767,34 +817,54 @@
         toggleSprintPopup();
     }
 
+    function openFormInViewMode(item) {
+        console.log('Opening form in view mode with item:', item);
 
-    // Event listeners
-    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('backlogForm');
 
-        // Event delegation for delete and edit buttons
-        document.addEventListener('click', (event) => {
-            if (event.target.classList.contains('delete-sprint')) {
-                event.preventDefault();
-                const sprintId = event.target.getAttribute('data-sprint-id');
-                showDeleteConfirmation(sprintId);
-            } else if (event.target.classList.contains('edit-sprint')) {
-                event.preventDefault();
-                const sprintId = event.target.getAttribute('data-sprint-id');
-                editSprint(sprintId);
-            }
-        });
+        // Prefill form fields
+        form.elements['title'].value = item.title || '';
+        form.elements['description'].value = item.description || '';
+        form.elements['assignee'].value = item.assignee || '';
 
-        // Close popup when clicking outside
-        document.getElementById('overlay').addEventListener('click', toggleSprintPopup);
+        // Set priority
+        if (item.priority) {
+            setPriority(item.priority);
+        } else {
+            console.warn("Priority is missing for item:", item);
+        }
 
-        // Initial fetch of sprint board data
-        fetchSprintBoard();
+        // Set status
+        setStatus(item.status || 'Not started');
 
-    });
+        // Set stage
+        if (item.stage) {
+            setStage(item.stage);
+        } else {
+            console.warn("Stage is missing for item:", item);
+        }
 
-    ;
+        form.elements['storypoint'].value = item.storypoint || '';
 
+        // Populate 'timeCreated' field in view mode (use 'timeCreated' or fallback to history)
+        form.elements['timeCreated'].value = item.timeCreated || (item.history && item.history.length > 0 ? `Created on ${item.history[0].timestamp}` : 'No creation date available');
 
+        window.tags = item.tags || [];
+
+        // Render tags
+        renderPopupTags(true);
+
+        // Disable all form fields
+        Array.from(form.elements).forEach(el => el.disabled = true);
+
+        // Change buttons: Only "Back"
+        const buttons = document.getElementById('edit-form-buttons');
+        buttons.innerHTML = '<button type="button" class="btn btn-secondary" onclick="toggleEditPopup()">Back</button>';
+
+        // Open popup
+        toggleEditPopup();
+        renderTimeline(item.history || []);
+    }
 
     // Function to render sprint board
     window.renderSprintBoard = function (data) {
@@ -827,7 +897,7 @@
     function showDeleteConfirmation(sprintId) {
         const popup = document.getElementById('delete-confirmation-popup');
         popup.style.display = 'block';
-        document.getElementById('overlay').classList.add('open');
+        document.getElementById('overlay-sprint').classList.add('open');
 
         // Set up event listeners for delete confirmation
         document.querySelector('#delete-confirmation-popup .btn-secondary').onclick = hideDeleteConfirmation;
@@ -901,7 +971,7 @@
     // Function to hide delete confirmation
     function hideDeleteConfirmation() {
         document.getElementById('delete-confirmation-popup').style.display = 'none';
-        document.getElementById('overlay').classList.remove('open');
+        document.getElementById('overlay-sprint').classList.remove('open');
     }
 
     // Function to calculate sprint status based on time
@@ -1016,7 +1086,7 @@
 
     window.sendFormDataToFirebase = async function () {
         try {
-            const formData = getFormDataForUpdate();
+            const formData = getFormData();
             if (Object.values(formData).some(value => value === '')) {
                 alert('Please fill in all fields');
                 return;
@@ -1028,6 +1098,32 @@
         } catch (error) {
             console.error("Error sending form data:", error);
         }
+    }
+
+    function getFormData() {
+        return {
+            title: document.getElementById('title').value,
+            description: document.getElementById('description').value,
+            assignee: document.getElementById('assignee').value,
+            priority: document.getElementById('priority-input').value,
+            status: document.getElementById('status-input').value,
+            stage: document.getElementById('stage-input').value,
+            storypoint: document.getElementById('storypoint').value,
+            history: [{
+                action: 'Created',
+                timestamp: new Date().toLocaleString('en-GB', {
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit'
+                }).replace(/\//g, '-'),
+                changes: 'Item created'
+            }],
+            timeModified: new Date().toLocaleString('en-GB', {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit', second: '2-digit'
+            }).replace(/\//g, '-'),
+            timestamp: Date.now(),
+            tags: window.tags || []
+        };
     }
 
     // Function to handle adding a new sprint
@@ -1064,27 +1160,28 @@
     }
 
 
-function enterSprintBacklogMode(sprintId, sprintTitle) {
-    currentSprintTasks = []; // Reset the current sprint tasks
-    const mainContent = document.querySelector('.main-content');
-    mainContent.innerHTML = `
-        <div class="main-container">
-            <div class="tasks-container">
-                <h2 data-sprint-id="${sprintId}">${sprintTitle}</h2>
-                <div id="sprintTasks" class="sprint-tasks"></div>
+    function enterSprintBacklogMode(sprintId, sprintTitle) {
+        currentSprintTasks = []; // Reset the current sprint tasks
+        const mainContent = document.querySelector('.main-content');
+        mainContent.innerHTML = `
+            <div class="main-container">
+                <div class="tasks-container">
+                    <h2>Backlog Tasks</h2>
+                    <div id="backlogTasks" class="backlog-tasks"></div>
+                </div>
+                <div class="tasks-container">
+                    <h2 data-sprint-id="${sprintId}">${sprintTitle}</h2>
+                    <div id="sprintTasks" class="sprint-tasks"></div>
+                </div>
             </div>
-            <div class="tasks-container">
-                <h2>Backlog Tasks</h2>
-                <div id="backlogTasks" class="backlog-tasks"></div>
+            <div class="sprint-backlog-buttons">
+                <button id="cancelSprintBacklog" class="btn btn-secondary">Cancel</button>
+                <button id="saveSprintBacklog" class="btn btn-primary">Save Changes</button>
             </div>
-        </div>
-        <div class="sprint-backlog-buttons">
-            <button id="cancelSprintBacklog" class="btn btn-secondary">Cancel</button>
-            <button id="saveSprintBacklog" class="btn btn-primary">Save Changes</button>
-        </div>
-    `;
-    fetchSprintTasks(sprintId).then(() => fetchBacklogTasks());
-}
+        `;
+        setupSprintBacklogRealtimeListener(sprintId); // Call the setupSprintBacklogRealtimeListener function
+        fetchSprintTasks(sprintId).then(() => fetchBacklogTasks());
+    }
 
 async function fetchBacklogTasks() {
     const backlogContainer = document.getElementById('backlogTasks');
@@ -1183,11 +1280,62 @@ async function getTasksFromDatabase() {
         statusContainer.innerHTML = `<div class="pill-button status-${sprint.status.toLowerCase().replace(/ /g, '-')}">${sprint.status}</div>`;
     }
 
+    // Event listeners
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // Event delegation for delete and edit buttons
+        document.addEventListener('click', (event) => {
+            if (event.target.classList.contains('delete-sprint')) {
+                event.preventDefault();
+                const sprintId = event.target.getAttribute('data-sprint-id');
+                showDeleteConfirmation(sprintId);
+            } else if (event.target.classList.contains('edit-sprint')) {
+                event.preventDefault();
+                const sprintId = event.target.getAttribute('data-sprint-id');
+                editSprint(sprintId);
+            }
+        });
+
+        // Close popup when clicking outside
+        document.getElementById('overlay-sprint').addEventListener('click', (event) => {
+            if (event.target === document.getElementById('overlay-sprint')) {
+                toggleSprintPopup();
+    }
+});
+
+    // Initial fetch of sprint board data
+    fetchSprintBoard();
+
+    // Event delegation for delete and edit buttons
+    document.addEventListener('click', (event) => {
+        if (event.target.classList.contains('edit-item')) {
+            event.preventDefault();
+            const itemId = event.target.getAttribute('data-task-id');
+            get(ref(database, `productBacklog/${itemId}`)).then((snapshot) => {
+                if (snapshot.exists()) {
+                    const item = snapshot.val();
+                    item.key = itemId;
+                    setFormMode('edit', item);
+                }
+            }).catch(console.error);
+        }
+
+    });
+
+    document.getElementById('overlay-task').addEventListener('click', (event) => {
+                if (event.target === document.getElementById('overlay-task')) {
+                    toggleEditPopup();
+                }
+            });
+    });
+
+    ;
+
 
     document.addEventListener('click', (event) => {
         if (event.target.classList.contains('edit-item')) {
             event.preventDefault();
-            const itemId = event.target.getAttribute('data-item-id');
+            const itemId = event.target.getAttribute('data-task-id');
             get(ref(database, `productBacklog/${itemId}`)).then((snapshot) => {
                 if (snapshot.exists()) {
                     const item = snapshot.val();
@@ -1203,13 +1351,17 @@ async function getTasksFromDatabase() {
         try {
             const formData = getFormDataForUpdate(itemId);
             const currentData = await get(ref(database, `productBacklog/${itemId}`));
-
+    
             if (currentData.exists()) {
-
                 const changes = getChanges(currentData.val(), formData);
                 const updatedData = updateItemHistory(currentData.val(), formData, changes);
                 await update(ref(database, `productBacklog/${itemId}`), updatedData);
                 console.log('Data updated successfully');
+    
+                // Re-render the sprint backlog tasks immediately
+                await fetchSprintTasks(currentSprintId);
+                console.log('Sprint backlog re-rendered.');
+    
                 toggleEditPopup();
             }
         } catch (error) {
@@ -1301,7 +1453,7 @@ async function getTasksFromDatabase() {
     // Function to toggle sprint popup
     window.toggleSprintPopup = function () {
         const popup = document.getElementById('sprintFormPopup');
-        const overlay = document.getElementById('overlay');
+        const overlay = document.getElementById('overlay-sprint');
         popup.classList.toggle('open');
         overlay.classList.toggle('open');
 
@@ -1316,7 +1468,7 @@ async function getTasksFromDatabase() {
 
     window.toggleEditPopup = function () {
         const popup = document.getElementById('editTaskPopupForm');
-        const overlay = document.getElementById('overlay');
+        const overlay = document.getElementById('overlay-task');
         popup.classList.toggle('open');
         overlay.classList.toggle('open');
 
@@ -1387,6 +1539,24 @@ async function getTasksFromDatabase() {
         });
     }
 
+    function setupSprintBacklogRealtimeListener(sprintId) {
+        const productBacklogRef = ref(database, 'productBacklog');
+        onValue(productBacklogRef, (snapshot) => {
+            const data = snapshot.val() || {};
+            fetchSprintTasks(sprintId).then(() => {
+                const sprintTasksContainer = document.getElementById('sprintTasks');
+                sprintTasksContainer.innerHTML = '';
+                for (const taskId of currentSprintTasks) {
+                    const task = data[taskId];
+                    if (task) {
+                        const taskCard = createTaskCard(taskId, task);
+                        sprintTasksContainer.appendChild(taskCard);
+                    }
+                }
+            });
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('addSprintButton').addEventListener('click', handleAddSprintClick);
     });
@@ -1429,7 +1599,25 @@ async function getTasksFromDatabase() {
     });
 
     document.addEventListener('click', (event) => {
+        const card = event.target.closest('.task-card');
+        if (card && !event.target.closest('.dropdown, .btn-link')) {
+            const itemId = card.getAttribute('data-task-id');
+            if (itemId) {
+                get(ref(database, `productBacklog/${itemId}`)).then((snapshot) => {
+                    if (snapshot.exists()) {
+                        const item = snapshot.val();
+                        item.key = itemId;
+                        openFormInViewMode(item);
+                    }
+                }).catch(console.error);
+            }
+        }
+    });
+    
+
+    document.addEventListener('click', (event) => {
         if (event.target.classList.contains('sprint-backlog-button')) {
+            console.log('Sprint Backlog button clicked');
             const sprintId = event.target.getAttribute('data-sprint-id');
             const sprintTitle = event.target.closest('.card').querySelector('h3').textContent;
             enterSprintBacklogMode(sprintId, sprintTitle);
@@ -1454,25 +1642,26 @@ async function getTasksFromDatabase() {
         return snapshot.exists() ? snapshot.val() : null;
     }
 
-async function saveSprintBacklog() {
-    const sprintTasks = Array.from(document.querySelectorAll('#sprintTasks .task-card'))
-        .map(card => card.getAttribute('data-task-id'));
-    const sprintIdElement = document.querySelector('.tasks-container h2');
-    const sprintId = sprintIdElement.getAttribute('data-sprint-id');
-    if (!sprintId) {
-        console.error('Sprint ID not found');
-        return;
+    async function saveSprintBacklog() {
+        const sprintTasks = Array.from(document.querySelectorAll('#sprintTasks .task-card'))
+            .map(card => card.getAttribute('data-task-id'));
+        const sprintIdElement = document.querySelector('h2[data-sprint-id]');
+        const sprintId = sprintIdElement.getAttribute('data-sprint-id');
+        console.log('Sprint ID:', sprintId);
+        if (!sprintId) {
+            console.error('Sprint ID not found');
+            return;
+        }
+        const sprintRef = ref(database, `sprintboard/${sprintId}/sprintTasks`);
+        try {
+            await set(sprintRef, sprintTasks);
+            console.log('Sprint tasks saved successfully');
+            // Do not remove tasks from backlog
+            exitSprintBacklogMode();
+        } catch (error) {
+            console.error('Error saving sprint tasks:', error);
+        }
     }
-    const sprintRef = ref(database, `sprintboard/${sprintId}/sprintTasks`);
-    try {
-        await set(sprintRef, sprintTasks);
-        console.log('Sprint tasks saved successfully');
-        // Do not remove tasks from backlog
-        exitSprintBacklogMode();
-    } catch (error) {
-        console.error('Error saving sprint tasks:', error);
-    }
-}
 
     window.getAllSprintsFromFirebase = async function () {
         try {
@@ -1515,6 +1704,7 @@ async function fetchSprintTasks(sprintId) {
             }
         }
     }
+    await fetchBacklogTasks();
     initDragAndDrop();
 }
 
@@ -1622,10 +1812,13 @@ function updateTaskStatus(taskId, newContainerId) {
 
 
 function createTaskCard(key, task) {
+    console.log(`Task Priority: ${task.priority.toLowerCase()}`);
     const card = document.createElement('div');
     card.className = 'task-card';
     card.setAttribute('draggable', 'true');
     card.setAttribute('data-task-id', key);
+    const tags = task.tags ? task.tags.map(tag => `<div class="tag" style="background-color: ${tag.color};">${tag.name}</div>`).join('') : '';
+
     card.innerHTML = `
         <div class="d-flex justify-content-between align-items-center">
             <h4 class="mg-clear mb-0">${task.title}</h4>
@@ -1633,15 +1826,27 @@ function createTaskCard(key, task) {
                 <div class="dropdown d-inline-block edit-item">
                     <button class="btn btn-link three-dot-menu" type="button" id="dropdownMenu-${key}" data-bs-toggle="dropdown" aria-expanded="false">⋮</button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownMenu-${key}">
-                        <li><a class="dropdown-item text-primary edit-item" href="#" data-item-id="${key}" >Edit</a></li>
+                        <li><a class="dropdown-item text-primary edit-item" href="#" data-task-id="${key}" >Edit</a></li>
                     </ul>
                 </div>
             </div>
         </div>
-        <p>${task.description}</p>
+        <div class="card-body">
+            <div class="d-flex mb-2">
+                <button class="btn btn-secondary me-2 card-tag" disabled style="background-color: ${getPriorityColor(task.priority)}">${task.priority}</button>
+            </div>
+            
+            <p>Tags: ${tags}</p>
+            <p>Storypoint: ${task.storypoint}</p>
+        </div>
 
     `
     return card;
+}
+
+function getPriorityColor(priority) {
+    const colors = {'Low': '#C6F4D6', 'Medium': '#F7DC6F', 'Important': '#FFC0CB', 'Urgent': '#FFD7BE'};
+    return colors[priority] || '#6E6AF0';
 }
 
 document.addEventListener('DOMContentLoaded', function() {

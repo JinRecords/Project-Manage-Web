@@ -343,6 +343,7 @@
     }
 
     function createBacklogCard(item, key) {
+        console.log(`Task Priority: ${item.priority}`);
         const card = document.createElement('div');
         card.className = 'card mb-3';
         card.setAttribute('data-item-id', key);  // Add this line to set the item ID on the card
@@ -699,7 +700,7 @@
         if (mode === 'edit' && item) {
             fillFormWithItemData(item);
             buttons.innerHTML = `
-  <button type="button" class="btn btn-secondary" onclick="togglePopup()">Cancel</button>
+  <button type="button" class="btn btn-secondary" onclick="togglePopup(); hideTagSelectionPopup();">Cancel</button>
   <button type="button" class="btn btn-primary" onclick="updateBacklogItem('${item.key}')">Update</button>
 `;
         } else if (mode === 'add') {
