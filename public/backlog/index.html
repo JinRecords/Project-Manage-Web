@@ -149,7 +149,7 @@
                 <button type="button" class="pill-button status-in-progress" onclick="setStatus('In progress')">In
                     progress
                 </button>
-                <button type="button" class="pill-button status-done" onclick="setStatus('Done')">Done</button>
+                <button type="button" class="pill-button status-completed" onclick="setStatus('Completed')">Completed</button>
                 <input type="hidden" id="status-input" value="Not started">
             </div>
             <div class="form-group">
@@ -474,7 +474,7 @@
 
     function setStatus(status) {
         // Clear any previously selected status buttons
-        document.querySelectorAll('.pill-button.status-not-started, .pill-button.status-in-progress, .pill-button.status-done').forEach(button => {
+        document.querySelectorAll('.pill-button.status-not-started, .pill-button.status-in-progress, .pill-button.status-completed').forEach(button => {
             button.classList.remove('selected');
         });
 
@@ -482,7 +482,7 @@
         const statusClassMap = {
             'Not started': '.pill-button.status-not-started',
             'In progress': '.pill-button.status-in-progress',
-            'Done': '.pill-button.status-done'
+            'Completed': '.pill-button.status-completed'
         };
 
         const statusButton = document.querySelector(statusClassMap[status]);
@@ -700,7 +700,7 @@
         if (mode === 'edit' && item) {
             fillFormWithItemData(item);
             buttons.innerHTML = `
-  <button type="button" class="btn btn-secondary" onclick="togglePopup(); hideTagSelectionPopup();">Cancel</button>
+  <button type="button" class="btn btn-secondary" onclick="togglePopup(); hideTagSelectionPopup()">Cancel</button>
   <button type="button" class="btn btn-primary" onclick="updateBacklogItem('${item.key}')">Update</button>
 `;
         } else if (mode === 'add') {
@@ -727,7 +727,7 @@
 
             // Force the correct buttons for add mode
             buttons.innerHTML = `
-            <button type="button" class="btn btn-secondary" onclick="togglePopup()">Cancel</button>
+            <button type="button" class="btn btn-secondary" onclick="togglePopup(); hideTagSelectionPopup()">Cancel</button>
             <button type="button" class="btn btn-primary" onclick="handleSaveChanges()">Save Changes</button>
         `;
             document.addEventListener("keyup", function(event) {
