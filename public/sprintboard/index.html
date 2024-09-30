@@ -191,7 +191,7 @@
     <div id="status-pills" class="status-pills-container">
         <button type="button" class="pill-button status-not-started edit-status disabled">Not started</button>
         <button type="button" class="pill-button status-in-progress edit-status disabled">In progress</button>
-        <button type="button" class="pill-button status-done edit-status disabled">Done</button>
+        <button type="button" class="pill-button status-completed edit-status disabled">Completed</button>
     </div>
     <input type="hidden" id="status-input" value="Not started">
 </div>
@@ -292,7 +292,7 @@
         if (mode === 'edit' && sprint) {
             fillSprintFormWithData(sprint);
             buttons.innerHTML = `
-            <button type="button" class="btn btn-secondary" onclick="toggleSprintPopup()">Cancel</button>
+            <button type="button" class="btn btn-secondary" onclick="toggleSprintPopup(); hideTeamMemberSelectionPopup()">Cancel</button>
             <button type="button" class="btn btn-primary" onclick="updateSprint('${sprint.key}')">Update</button>
         `;
             currentSprintId = sprint.key;
@@ -300,7 +300,7 @@
             form.reset();
             setDefaultSprintFormValues();
             buttons.innerHTML = `
-            <button type="button" class="btn btn-secondary" onclick="toggleSprintPopup()">Cancel</button>
+            <button type="button" class="btn btn-secondary" onclick="toggleSprintPopup(); hideTeamMemberSelectionPopup()">Cancel</button>
             <button type="button" class="btn btn-primary" onclick="saveSprint()">Save Sprint</button>
         `;
             currentSprintId = null;
@@ -696,7 +696,7 @@ function setStatus(status) {
 
         if (now < start) return 'Not started';
         if (now >= start && now <= end) return 'In progress';
-        return 'Done';
+        return 'Completed';
     }
 
     // Function to update a sprint
@@ -740,7 +740,7 @@ function createSprintCard(sprint, key) {
     card.setAttribute('data-sprint-id', key);
 
     const statusPill = `<div class="pill-button status-${sprint.status.toLowerCase().replace(/ /g, '-')}">${sprint.status}</div>`;
-    const isActive = sprint.status === 'In progress' || sprint.status === 'Done';
+    const isActive = sprint.status === 'In progress' || sprint.status === 'Completed';
     const deleteButtonClasses = `dropdown-item text-danger delete-sprint${isActive ? ' disabled' : ''}`;
     const editButtonClasses = `dropdown-item text-primary edit-sprint${isActive ? ' disabled' : ''}`;
     console.log('isActive:', isActive);
@@ -934,7 +934,7 @@ function createSprintCard(sprint, key) {
 
         if (now < start) return 'Not started';
         if (now >= start && now <= end) return 'In progress';
-        return 'Done';
+        return 'Completed';
     }
 
     // Function to edit a sprint
@@ -1131,39 +1131,45 @@ document.addEventListener('DOMContentLoaded', updateBacklogTasksStatus);
     }
 
 
-async function enterSprintBacklogMode(sprintId, sprintTitle) {
-    currentSprintTasks = [];
-    const mainContent = document.querySelector('.main-content');
-    mainContent.innerHTML = `
-        <div class="main-container">
-            <div class="tasks-container">
-                <h2 data-sprint-id="${sprintId}">${sprintTitle}</h2>
-                <div id="sprintTasks" class="sprint-tasks"></div>
+    async function enterSprintBacklogMode(sprintId, sprintTitle) {
+        currentSprintTasks = [];
+        const mainContent = document.querySelector('.main-content');
+        mainContent.innerHTML = `
+            <div class="main-container">
+                <div class="tasks-container">
+                    <h2 data-sprint-id="${sprintId}">Product Backlog</h2>
+                    <div id="backlogTasks" class="backlog-tasks"></div>
+                </div>
+                <div class="tasks-container">
+                    <h2 data-sprint-id="${sprintId}">${sprintTitle}</h2>
+                    <div id="sprintTasks" class="sprint-tasks"></div>
+                </div>
             </div>
-            <div class="tasks-container">
-                <h2>Backlog Tasks</h2>
-                <div id="backlogTasks" class="backlog-tasks"></div>
+            <div class="sprint-backlog-buttons">
+                <button id="cancelSprintBacklog" class="btn btn-secondary">Cancel</button>
+                <button id="saveSprintBacklog" class="btn btn-primary">Save Changes</button>
             </div>
-        </div>
-        <div class="sprint-backlog-buttons">
-            <button id="cancelSprintBacklog" class="btn btn-secondary">Cancel</button>
-            <button id="saveSprintBacklog" class="btn btn-primary">Save Changes</button>
-        </div>
-    `;
-
-    const sprint = await getSprintFromFirebase(sprintId);
-    if (sprint) {
-        if (sprint.status === 'In progress' || sprint.status === 'Done') {
-            document.getElementById('saveSprintBacklog').style.display = 'none';
-            disableDragAndDrop();
+        `;
+    
+        const sprint = await getSprintFromFirebase(sprintId);
+        if (sprint) {
+            if (sprint.status === 'In progress' || sprint.status === 'Completed') {
+                document.getElementById('saveSprintBacklog').style.display = 'none';
+                disableDragAndDrop();
+            }
+            await fetchSprintTasks(sprintId);
+            await fetchBacklogTasks();
+            initDragAndDrop(sprintId, sprint.status);
+    
+            // Save sprint backlog to database
+            const sprintBacklogRef = ref(database, `sprintboard/${sprintId}/sprintBacklog`);
+            await set(sprintBacklogRef, {
+                sprintId: sprintId,
+                sprintTitle: sprintTitle,
+                tasks: currentSprintTasks
+            });
         }
-        await fetchSprintTasks(sprintId);
-        await fetchBacklogTasks();
-        initDragAndDrop(sprintId, sprint.status);
     }
-}
-
-
 
 
 
@@ -1219,7 +1225,7 @@ async function getTasksFromDatabase() {
         if (mode === 'edit' && sprint) {
             fillSprintFormWithData(sprint);
             buttons.innerHTML = `
-            <button type="button" class="btn btn-secondary" onclick="toggleSprintPopup()">Cancel</button>
+            <button type="button" class="btn btn-secondary" onclick="toggleSprintPopup(); hideTeamMemberSelectionPopup()">Cancel</button>
             <button type="button" class="btn btn-primary" onclick="updateSprint('${sprint.key}')">Update</button>
             `;
             document.addEventListener("keyup", function(event) {
@@ -1234,7 +1240,7 @@ async function getTasksFromDatabase() {
             window.teamMembers =[];
             renderPopupTeamMembers();
             buttons.innerHTML = `
-            <button type="button" class="btn btn-secondary" onclick="toggleSprintPopup()">Cancel</button>
+            <button type="button" class="btn btn-secondary" onclick="toggleSprintPopup(); hideTeamMemberSelectionPopup()">Cancel</button>
             <button type="button" class="btn btn-primary" onclick="saveSprint()">Save Sprint</button>
             `;
             document.addEventListener("keyup", function(event) {
@@ -1336,17 +1342,17 @@ async function getTasksFromDatabase() {
         try {
             const formData = getFormDataForUpdate(itemId);
             const currentData = await get(ref(database, `productBacklog/${itemId}`));
-
+    
             if (currentData.exists()) {
                 const changes = getChanges(currentData.val(), formData);
                 const updatedData = updateItemHistory(currentData.val(), formData, changes);
                 await update(ref(database, `productBacklog/${itemId}`), updatedData);
                 console.log('Data updated successfully');
-
-                // Re-render the sprint backlog tasks immediately
+    
+                // Re-render the sprint backlog tasks and product backlog tasks
                 await fetchSprintTasks(currentSprintId);
-                console.log('Sprint backlog re-rendered.');
-
+                await fetchBacklogTasks();
+    
                 toggleEditPopup();
             }
         } catch (error) {
@@ -1640,11 +1646,15 @@ function setupSprintRealtimeListener() {
             console.error('Sprint ID not found');
             return;
         }
-        const sprintRef = ref(database, `sprintboard/${sprintId}/sprintTasks`);
+        currentSprintId = sprintId; // Update the currentSprintId variable
+        const sprintRef = ref(database, `sprintbacklog/${sprintId}`);
         try {
-            await set(sprintRef, sprintTasks);
+            await set(sprintRef, {
+                sprintId: sprintId,
+                tasks: sprintTasks
+            });
             console.log('Sprint tasks saved successfully');
-            // Do not remove tasks from backlog
+            await fetchSprintTasks(sprintId); // Pass the sprintId to the fetchSprintTasks function
             exitSprintBacklogMode();
         } catch (error) {
             console.error('Error saving sprint tasks:', error);
@@ -1664,6 +1674,8 @@ function setupSprintRealtimeListener() {
     document.addEventListener('click', (event) => {
         if (event.target.id === 'saveSprintBacklog') {
             saveSprintBacklog();
+            fetchSprintTasks(currentSprintId);
+            fetchBacklogTasks();
         } else if (event.target.id === 'cancelSprintBacklog') {
             exitSprintBacklogMode();
         }
@@ -1672,18 +1684,25 @@ function setupSprintRealtimeListener() {
 let currentSprintTasks = [];
 
 async function fetchSprintTasks(sprintId) {
+    console.log(`Fetching sprint tasks for sprintId: ${sprintId}`);
+
     const sprintContainer = document.getElementById('sprintTasks');
+    console.log(sprintContainer)
     if (!sprintContainer) {
         console.error('Sprint tasks container not found');
         return;
     }
 
     const db = getDatabase();
-    const sprintRef = ref(db, `sprintboard/${sprintId}`);
+    const sprintRef = ref(db, `sprintboard/${sprintId}/sprintTasks`);
+    console.log(`Sprint ref: ${sprintRef.toString()}`);
+
     const snapshot = await get(sprintRef);
+    console.log(`Snapshot exists: ${snapshot.exists()}`);
 
     if (snapshot.exists()) {
         const sprint = snapshot.val();
+        console.log(`Sprint data: ${JSON.stringify(sprint)}`);
         const sprintTasks = sprint.sprintTasks || [];
         currentSprintTasks = sprintTasks; // Store the current sprint tasks
         sprintContainer.innerHTML = '';
@@ -1706,6 +1725,7 @@ async function fetchSprintTasks(sprintId) {
 
 function initDragAndDrop() {
     const sprintIdElement = document.querySelector('.tasks-container h2[data-sprint-id]');
+    console.log(sprintIdElement);
     if (!sprintIdElement) {
         console.error('Sprint ID element not found');
         return;
@@ -1718,7 +1738,7 @@ function initDragAndDrop() {
             return;
         }
 
-        if (sprint.status === 'In progress' || sprint.status === 'Done') {
+        if (sprint.status === 'In progress' || sprint.status === 'Completed') {
             disableDragAndDrop();
             return;
         }
@@ -1817,17 +1837,23 @@ function dropHandler(e) {
         const fromContainer = draggable.parentNode.id;
         const toContainer = this.id;
 
-        // Remove from original container
-        draggable.parentNode.removeChild(draggable);
+        // Check if toContainer is a valid container ID
+        if (toContainer === 'sprintTasks' || toContainer === 'backlogTasks') {
+            // Remove from original container
+            draggable.parentNode.removeChild(draggable);
 
-        // Add to new container
-        this.appendChild(draggable);
+            // Add to new container
+            this.appendChild(draggable);
 
-        // Update task status
-        const taskId = draggable.getAttribute('data-task-id');
-        updateTaskStatus(taskId, fromContainer, toContainer);
+            // Update task status
+            const taskId = draggable.getAttribute('data-task-id');
+            updateTaskStatus(taskId, fromContainer, toContainer);
+        } else {
+            console.error('Invalid container ID:', toContainer);
+        }
     }
 }
+
 
 function dragStartHandler() {
     this.classList.add('dragging');
@@ -1857,7 +1883,7 @@ async function updateTaskStatus(taskId, fromContainer, toContainer) {
     console.log(`Moving task ${taskId} from ${fromContainer} to ${toContainer}`);
 
     const db = getDatabase();
-    const sprintIdElement = document.querySelector('.tasks-container h2');
+    const sprintIdElement = document.querySelector('.tasks-container h2[data-sprint-id]');
     const sprintId = sprintIdElement ? sprintIdElement.getAttribute('data-sprint-id') : null;
 
     if (!sprintId) {
