@@ -730,14 +730,10 @@
             <button type="button" class="btn btn-secondary" onclick="togglePopup(); hideTagSelectionPopup()">Cancel</button>
             <button type="button" class="btn btn-primary" onclick="handleSaveChanges()">Save Changes</button>
         `;
-            document.addEventListener("keyup", function(event) {
-                    if (event.key === 'Enter' && isSprintUpdated === false) {
-                        handleSaveChanges();
-                        isSprintUpdated = true;
-                    }
-            });
+            // Ensure only one event listener is added for the Enter key
+            document.removeEventListener("keyup", handleEnterKey);
+            document.addEventListener("keyup", handleEnterKey);
             console.log('Add mode buttons set:', buttons.innerHTML); // Debug log
-        isSprintUpdated = false;
         } else if (mode === 'view') {
             fillFormWithItemData(item);
             Array.from(form.elements).forEach(el => el.disabled = true);
@@ -749,6 +745,12 @@
         const overlay = document.getElementById('overlay');
         popup.classList.add('open');
         overlay.classList.add('open');
+    }
+
+    function handleEnterKey(event) {
+        if (event.key === 'Enter') {
+            handleSaveChanges();
+        }
     }
 
     window.handleAddButtonClick = function (event) {
@@ -779,7 +781,6 @@
         renderTimeline(item.history || []);
     }
 
-
     function renderTimeline(history) {
         const timelineContainer = document.getElementById('timeline-events');
         timelineContainer.innerHTML = '';
@@ -801,7 +802,6 @@
             actionTime.style.width = '45%';
             actionTime.style.marginRight = '10px';
             actionTime.style.float = 'left';
-
 
             const changes = document.createElement('p');
             changes.textContent = event.changes;
