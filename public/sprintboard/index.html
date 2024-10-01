@@ -191,7 +191,7 @@
     <div id="status-pills" class="status-pills-container">
         <button type="button" class="pill-button status-not-started edit-status disabled">Not started</button>
         <button type="button" class="pill-button status-in-progress edit-status disabled">In progress</button>
-        <button type="button" class="pill-button status-done edit-status disabled">Done</button>
+        <button type="button" class="pill-button status-done edit-status disabled">Completed</button>
     </div>
     <input type="hidden" id="status-input" value="Not started">
 </div>
@@ -696,7 +696,7 @@ function setStatus(status) {
 
         if (now < start) return 'Not started';
         if (now >= start && now <= end) return 'In progress';
-        return 'Done';
+        return 'Completed';
     }
 
     // Function to update a sprint
@@ -740,7 +740,7 @@ function createSprintCard(sprint, key) {
     card.setAttribute('data-sprint-id', key);
 
     const statusPill = `<div class="pill-button status-${sprint.status.toLowerCase().replace(/ /g, '-')}">${sprint.status}</div>`;
-    const isActive = sprint.status === 'In progress' || sprint.status === 'Done';
+    const isActive = sprint.status === 'In progress' || sprint.status === 'Completed';
     const deleteButtonClasses = `dropdown-item text-danger delete-sprint${isActive ? ' disabled' : ''}`;
     const editButtonClasses = `dropdown-item text-primary edit-sprint${isActive ? ' disabled' : ''}`;
     console.log('isActive:', isActive);
@@ -934,7 +934,7 @@ function createSprintCard(sprint, key) {
 
         if (now < start) return 'Not started';
         if (now >= start && now <= end) return 'In progress';
-        return 'Done';
+        return 'Completed';
     }
 
     // Function to edit a sprint
@@ -952,22 +952,6 @@ function createSprintCard(sprint, key) {
     }
 
 
-    // Function to periodically update sprint statuses
-    function updateAllSprintStatuses() {
-        getAllSprintsFromFirebase().then(sprints => {
-            if (sprints) {
-                Object.entries(sprints).forEach(([sprintId, sprint]) => {
-                    const newStatus = calculateSprintStatus(sprint.startTime, sprint.endTime);
-                    if (newStatus !== sprint.status) {
-                        updateSprintStatusInFirebase(sprintId, newStatus);
-                    }
-                });
-            }
-        }).catch(console.error);
-    }
-
-    // Set interval to update sprint statuses every minute
-    setInterval(updateAllSprintStatuses, 60000);
 
 </script>
 <script type="module">
@@ -1000,7 +984,6 @@ function createSprintCard(sprint, key) {
     const app = initializeApp(firebaseConfig);
     const database = getDatabase(app);
     const sprintBoardRef = ref(database, 'sprintboard');
-    const taskRef = ref(database, 'sprintbacklog');
     const productBacklogRef = ref(database, 'productBacklog');
 
 window.getSprintFromFirebase = function (sprintId) {
@@ -1136,14 +1119,15 @@ async function enterSprintBacklogMode(sprintId, sprintTitle) {
     const mainContent = document.querySelector('.main-content');
     mainContent.innerHTML = `
         <div class="main-container">
+                    <div class="tasks-container">
+                <h2>Product Backlog</h2>
+                <div id="backlogTasks" class="backlog-tasks"></div>
+            </div>
             <div class="tasks-container">
                 <h2 data-sprint-id="${sprintId}">${sprintTitle}</h2>
                 <div id="sprintTasks" class="sprint-tasks"></div>
             </div>
-            <div class="tasks-container">
-                <h2>Backlog Tasks</h2>
-                <div id="backlogTasks" class="backlog-tasks"></div>
-            </div>
+
         </div>
         <div class="sprint-backlog-buttons">
             <button id="cancelSprintBacklog" class="btn btn-secondary">Cancel</button>
@@ -1153,7 +1137,7 @@ async function enterSprintBacklogMode(sprintId, sprintTitle) {
 
     const sprint = await getSprintFromFirebase(sprintId);
     if (sprint) {
-        if (sprint.status === 'In progress' || sprint.status === 'Done') {
+        if (sprint.status === 'In progress' || sprint.status === 'Completed') {
             document.getElementById('saveSprintBacklog').style.display = 'none';
             disableDragAndDrop();
         }
@@ -1189,8 +1173,6 @@ async function fetchBacklogTasks() {
     }
     initDragAndDrop();
 }
-
-
 
     // Function to set sprint form mode
     function setSprintFormMode(mode, sprint = null) {
@@ -1288,6 +1270,8 @@ async function fetchBacklogTasks() {
         }
 
     });
+
+
 
     document.getElementById('overlay-task').addEventListener('click', (event) => {
                 if (event.target === document.getElementById('overlay-task')) {
@@ -1577,16 +1561,7 @@ function setupSprintRealtimeListener() {
     })
 
     // Function to periodically update sprint statuses
-    function updateAllSprintStatuses() {
-        get(sprintBoardRef).then((snapshot) => {
-            if (snapshot.exists()) {
-                const sprints = snapshot.val();
-                Object.entries(sprints).forEach(([sprintId, sprint]) => {
-                    updateSprintStatus(sprintId, sprint.startTime, sprint.endTime);
-                });
-            }
-        }).catch(console.error);
-    }
+
 
     async function fetchTaskDetails(taskId) {
         const taskRef = ref(database, `productBacklog/${taskId}`);
@@ -1682,7 +1657,7 @@ function initDragAndDrop() {
             return;
         }
 
-        if (sprint.status === 'In progress' || sprint.status === 'Done') {
+        if (sprint.status === 'In progress' || sprint.status === 'Completed') {
             disableDragAndDrop();
             return;
         }
@@ -1885,6 +1860,30 @@ document.addEventListener('DOMContentLoaded', initDragAndDrop);
             renderSprintBoard({}); // Render an empty board in case of error
         });
     }
+
+        async function updateSprintStatusInFirebase(sprintId, newStatus) {
+    try {
+        const sprintRef = ref(database, `sprintboard/${sprintId}`);
+        await update(sprintRef, { status: newStatus });
+        console.log(`Sprint ${sprintId} status updated to ${newStatus}`);
+    } catch (error) {
+        console.error(`Error updating sprint ${sprintId} status:`, error);
+    }
+}
+
+    // Function to periodically update sprint statuses
+function updateAllSprintStatuses() {
+    getAllSprintsFromFirebase().then(sprints => {
+        if (sprints) {
+            Object.entries(sprints).forEach(([sprintId, sprint]) => {
+                const newStatus = calculateSprintStatus(sprint.startTime, sprint.endTime);
+                if (newStatus !== sprint.status) {
+                    updateSprintStatusInFirebase(sprintId, newStatus);
+                }
+            });
+        }
+    }).catch(console.error);
+}
 
     // Set interval to update sprint statuses every minute
     setInterval(updateAllSprintStatuses, 60000);
