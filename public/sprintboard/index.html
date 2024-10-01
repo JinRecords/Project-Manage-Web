@@ -732,7 +732,6 @@ function renderSprintBoard(data) {
     }
 }
 
-
     // Function to create a sprint card
 function createSprintCard(sprint, key) {
     const card = document.createElement('div');
@@ -761,7 +760,6 @@ function createSprintCard(sprint, key) {
             </div>
         </div>
         <div class="card-body">
-            <p>${sprint.description}</p>
             <p>Product Owner: ${sprint.productOwner}</p>
             <p>Scrum Master: ${sprint.scrumMaster}</p>
             <p>Team Members:</p>
@@ -1037,19 +1035,106 @@ window.getSprintFromFirebase = function (sprintId) {
         }
     }
 
-    async function updateBacklogTasksStatus() {
-    const sprints = await getAllSprintsFromFirebase();
-    if (!sprints) return;
-
-    for (const [sprintId, sprint] of Object.entries(sprints)) {
-        if (sprint.sprintTasks && sprint.sprintTasks.length > 0) {
+    
+    async function createSprintCardAsync(sprint, key) {
+        let totalStoryPoints = 0;
+        let completedStoryPoints = 0;
+    
+        if (sprint.sprintTasks) {
             for (const taskId of sprint.sprintTasks) {
-                const taskRef = ref(database, `productBacklog/${taskId}`);
-                update(taskRef, { status: sprint.status });
+                const task = await fetchTaskDetails(taskId);
+                if (task) {
+                    totalStoryPoints += parseInt(task.storypoint);
+                    if (task.status === 'Completed') {
+                        completedStoryPoints += parseInt(task.storypoint);
+                    }
+                }
+            }
+        }
+    
+        const card = document.createElement('div');
+        card.className = 'card mb-3';
+        card.setAttribute('data-sprint-id', key);
+    
+        const statusPill = `<div class="pill-button status-${sprint.status.toLowerCase().replace(/ /g, '-')}">${sprint.status}</div>`;
+        const isActive = sprint.status === 'In progress' || sprint.status === 'Completed';
+        const deleteButtonClasses = `dropdown-item text-danger delete-sprint${isActive ? ' disabled' : ''}`;
+        const editButtonClasses = `dropdown-item text-primary edit-sprint${isActive ? ' disabled' : ''}`;
+        console.log('isActive:', isActive);
+    
+        card.innerHTML = `
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="mg-clear">${sprint.title}</h3>
+                <div>
+                    <button class="sprint-backlog-button btn-secondary btn " data-sprint-id="${key}">Sprint Backlog</button>
+                    <div class="dropdown d-inline-block">
+                    <button class="btn btn-link three-dot-menu" type="button" id="dropdownMenu-${key}" data-bs-toggle="dropdown" aria-expanded="false" ${isActive ? 'disabled' : ''}>⋮</button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenu-${key}">
+                        <li><a class="${deleteButtonClasses}" href="#" data-sprint-id="${key}" ${isActive ? 'onclick="return false;"' : ''}>Delete</a></li>
+                        <li><a class="${editButtonClasses}" href="#" data-sprint-id="${key}" ${isActive ? 'onclick="return false;"' : ''}>Edit</a></li>
+    
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <p>Total Story Points: ${totalStoryPoints}</p>
+                <p>Completed Story Points: ${completedStoryPoints}</p>
+                <p>Product Owner: ${sprint.productOwner}</p>
+                <p>Scrum Master: ${sprint.scrumMaster}</p>
+                <p>Team Members:</p>
+                <div class="teamMembers-container">${renderTeamMembers(sprint.teamMembers)}</div>
+                <p>Status: ${statusPill}</p>
+                <p>Start: ${new Date(sprint.startTime).toLocaleString()}</p>
+                <p>End: ${new Date(sprint.endTime).toLocaleString()}</p>
+            </div>
+        `;
+    
+        card.addEventListener('click', (event) => {
+            if (!event.target.closest('.dropdown') && !event.target.classList.contains('sprint-backlog-button')) {
+                openSprintViewMode(sprint, key);
+            }
+        });
+    
+        return card;
+    }
+
+    async function updateBacklogTasksStatus() {
+        const sprints = await getAllSprintsFromFirebase();
+        if (!sprints) return;
+
+        for (const [sprintId, sprint] of Object.entries(sprints)) {
+            if (sprint.sprintTasks && sprint.sprintTasks.length > 0) {
+                for (const taskId of sprint.sprintTasks) {
+                    const taskRef = ref(database, `productBacklog/${taskId}`);
+                    update(taskRef, { status: sprint.status });
+                }
             }
         }
     }
-}
+    
+    async function renderSprintBoard(data) {
+        const container = document.getElementById('sprintCardsContainer');
+        if (!container) {
+            console.error('Sprint cards container not found');
+            return; // Exit the function if the container is not found
+        }
+    
+        container.innerHTML = '';
+    
+        if (!data || Object.keys(data).length === 0) {
+            const noDataMessage = document.createElement('p');
+            noDataMessage.textContent = 'No sprints added yet.';
+            noDataMessage.style.textAlign = 'center';
+            noDataMessage.style.padding = '20px';
+            container.appendChild(noDataMessage);
+        } else {
+            for (const [key, sprint] of Object.entries(data)) {
+                const card = await createSprintCardAsync(sprint, key);
+                container.appendChild(card);
+            }
+        }
+    }
 
 // Call this function when the page loads
 document.addEventListener('DOMContentLoaded', updateBacklogTasksStatus);
@@ -1117,6 +1202,7 @@ document.addEventListener('DOMContentLoaded', updateBacklogTasksStatus);
 
 async function enterSprintBacklogMode(sprintId, sprintTitle) {
     currentSprintTasks = [];
+    currentSprintId = sprintId;
     const mainContent = document.querySelector('.main-content');
     mainContent.innerHTML = `
         <div class="main-container">
@@ -1145,7 +1231,8 @@ async function enterSprintBacklogMode(sprintId, sprintTitle) {
         await fetchSprintTasks(sprintId);
         await fetchBacklogTasks();
         initDragAndDrop(sprintId, sprint.status);
-    }
+        setupSprintBacklogRealtimeListener(sprintId);
+        }
 }
 
 
@@ -1484,14 +1571,53 @@ async function fetchBacklogTasks() {
     }
 
     // Set up real-time listener for sprint board
-function setupSprintRealtimeListener() {
-    onValue(sprintBoardRef, (snapshot) => {
-        const data = snapshot.val() || {};
-        if (document.getElementById('sprintCardsContainer')) {
-            window.renderSprintBoard(data);
-        }
-    });
-}
+    function setupSprintRealtimeListener() {
+        onValue(sprintBoardRef, (snapshot) => {
+            const data = snapshot.val() || {};
+            if (document.getElementById('sprintCardsContainer')) {
+                window.renderSprintBoard(data);
+            }
+        });
+
+        // Get a reference to the sprint tasks
+        const sprintRef = ref(database, 'sprintboard');
+    
+        // Add an event listener for real-time changes to the sprint tasks
+        sprintRef.on('value', (snapshot) => {
+            const sprints = snapshot.val();
+            // Update the task details in the sprint backlog
+            updateSprintBacklogTasks(sprints);
+        });
+
+        // Get a reference to the product backlog tasks
+        const productBacklogRef = ref(database, 'productBacklog');
+    
+        // Listen for changes to the product backlog tasks
+        onValue(productBacklogRef, (snapshot) => {
+            const tasks = snapshot.val();
+            // Update the task details in the product backlog
+            updateProductBacklogTasks(tasks);
+        });
+    }
+
+    function setupSprintBacklogRealtimeListener(sprintId) {
+        const productBacklogRef = ref(database, 'productBacklog');
+        onValue(productBacklogRef, (snapshot) => {
+            const data = snapshot.val() || {};
+            fetchSprintTasks(sprintId).then(() => {
+                const sprintTasksContainer = document.getElementById('sprintTasks');
+                sprintTasksContainer.innerHTML = '';
+                for (const taskId of currentSprintTasks) {
+                    const task = data[taskId];
+                    if (task) {
+                        const taskCard = createTaskCard(taskId, task);
+                        sprintTasksContainer.appendChild(taskCard);
+                    }
+                }
+            });
+        });
+    }
+
 
 
     document.addEventListener('DOMContentLoaded', () => {
