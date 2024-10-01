@@ -703,6 +703,14 @@
   <button type="button" class="btn btn-secondary" onclick="togglePopup(); hideTagSelectionPopup()">Cancel</button>
   <button type="button" class="btn btn-primary" onclick="updateBacklogItem('${item.key}')">Update</button>
 `;
+                        document.addEventListener("keyup", function (event) {
+
+                            if (event.key === 'Enter' && mode === 'edit') {
+                                updateBacklogItem(item.key);
+                                console.log('Sprint saved with enter key');
+                                mode = 'view';
+                            }
+                        });
         } else if (mode === 'add') {
             console.log('Entering add mode'); // Debug log
             // Force reset for add mode
@@ -714,6 +722,14 @@
             setPriority('Low');  // Default to 'Low'
             setStatus('Not started');  // Default to 'Not started'
             setStage('Planning');  // Default to 'Planning'
+            document.addEventListener("keyup", function (event) {
+
+                if (event.key === 'Enter' && mode === 'add') {
+                    handleSaveChanges();
+                    console.log('Sprint saved with enter key');
+                    mode = 'view';
+                }
+            });
 
 
             // Enable all form fields
@@ -730,9 +746,6 @@
             <button type="button" class="btn btn-secondary" onclick="togglePopup(); hideTagSelectionPopup()">Cancel</button>
             <button type="button" class="btn btn-primary" onclick="handleSaveChanges()">Save Changes</button>
         `;
-            // Ensure only one event listener is added for the Enter key
-            document.removeEventListener("keyup", handleEnterKey);
-            document.addEventListener("keyup", handleEnterKey);
             console.log('Add mode buttons set:', buttons.innerHTML); // Debug log
         } else if (mode === 'view') {
             fillFormWithItemData(item);
@@ -745,12 +758,6 @@
         const overlay = document.getElementById('overlay');
         popup.classList.add('open');
         overlay.classList.add('open');
-    }
-
-    function handleEnterKey(event) {
-        if (event.key === 'Enter') {
-            handleSaveChanges();
-        }
     }
 
     window.handleAddButtonClick = function (event) {
