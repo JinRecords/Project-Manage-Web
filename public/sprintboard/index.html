@@ -1004,7 +1004,6 @@ window.getSprintFromFirebase = function (sprintId) {
         });
 }
 
-
     // Function to fetch sprint board data
     window.fetchSprintBoard = async function () {
         try {
@@ -1463,13 +1462,6 @@ async function fetchBacklogTasks() {
             endTime: form.elements['sprintEndTime'].value,
             status: statusElement ? statusElement.textContent : 'Not started'
         };
-    }
-
-
-    // Function to update sprint status
-    function updateSprintStatus(sprintId, startTime, endTime) {
-        const status = calculateSprintStatus(startTime, endTime);
-        update(ref(database, `sprintboard/${sprintId}`), {status: status});
     }
 
 
