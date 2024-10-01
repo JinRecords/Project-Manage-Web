@@ -103,7 +103,7 @@
    background-color: #E3E649;
 }
 
-.status-done {
+.status-completed {
    background-color: #7EBF60;
 }
    .tag-selection-popup {
@@ -166,7 +166,7 @@
    .card-header {
        background-color: #f8f9fa;
        border-bottom: 1px solid #e9ecef;
-       border-radius: 10px 10px 0 0;
+       border-radius: 20px 20px 0 0 !important;
        padding: 10px 20px;
    }
 
@@ -230,17 +230,17 @@
    }
 
    .three-dot-menu {
-       font-size: 20px;
-       color: #333;
-       background: none;
-       border: none;
-       padding: 10px;
-       text-decoration: none;
-       font-weight: bolder;
+       font-size: 20px !important;
+       color: #333 !important;
+       background: none !important;
+       border: none !important;
+       padding: 10px !important;
+       text-decoration: none !important;
+       font-weight: bolder !important;
    }
 
    .three-dot-menu:after {
-       display: none;
+       display: none !important;
    }
 
    .three-dot-menu:hover {
