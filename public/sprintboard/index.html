@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <link rel="preload" href="../css/sprintboardStyle.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-<noscript><link rel="stylesheet" href="../css/sprintboardStyle.css"></noscript>
+    <noscript>
+        <link rel="stylesheet" href="../css/sprintboardStyle.css">
+    </noscript>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Sprint Board</title>
@@ -124,7 +126,8 @@
             <div class="form-group">
                 <label for="teamMembers">Team Members:</label>
                 <div class="teamMembers-container" id="popup-teamMembers-container"></div>
-                <button type="button" class="add-teamMembers-button" id="add-teamMembers-button" onclick="showTeamMemberSelectionPopup()">+
+                <button type="button" class="add-teamMembers-button" id="add-teamMembers-button"
+                        onclick="showTeamMemberSelectionPopup()">+
                 </button>
             </div>
             <div class="form-group">
@@ -186,15 +189,17 @@
                 </button>
                 <input type="hidden" id="priority-input" value="">
             </div>
-<div class="form-group d-flex align-items-center">
-    <label for="status">Status:</label>
-    <div id="status-pills" class="status-pills-container">
-        <button type="button" class="pill-button status-not-started edit-status disabled">Not started</button>
-        <button type="button" class="pill-button status-in-progress edit-status disabled">In progress</button>
-        <button type="button" class="pill-button status-done edit-status disabled">Completed</button>
-    </div>
-    <input type="hidden" id="status-input" value="Not started">
-</div>
+            <div class="form-group d-flex align-items-center">
+                <label for="status">Status:</label>
+                <div id="status-pills" class="status-pills-container">
+                    <button type="button" class="pill-button status-not-started edit-status disabled">Not started
+                    </button>
+                    <button type="button" class="pill-button status-in-progress edit-status disabled">In progress
+                    </button>
+                    <button type="button" class="pill-button status-done edit-status disabled">Completed</button>
+                </div>
+                <input type="hidden" id="status-input" value="Not started">
+            </div>
 
             <div class="form-group d-flex align-items-center">
                 <label for="stage">Stage:</label>
@@ -296,6 +301,13 @@
             <button type="button" class="btn btn-primary" onclick="updateSprint('${sprint.key}')">Update</button>
         `;
             currentSprintId = sprint.key;
+            document.addEventListener("keyup", function (event) {
+                if (event.key === 'Enter' && mode === 'edit') {
+                    updateSprint(sprint.key);
+                    console.log('Sprint updated with enter key');
+                    mode = 'view';
+                }
+            });
         } else if (mode === 'add') {
             form.reset();
             setDefaultSprintFormValues();
@@ -506,10 +518,10 @@
     }
 
 
-function setStatus(status) {
-    // This function is now a no-op
-    console.log("Status change attempted but disabled:", status);
-}
+    function setStatus(status) {
+        // This function is now a no-op
+        console.log("Status change attempted but disabled:", status);
+    }
 
 
     function setStage(stage) {
@@ -565,16 +577,16 @@ function setStatus(status) {
 
     function fillFormWithItemData(item) {
         const form = document.getElementById('backlogForm');
-          const statusInput = document.getElementById('status-input');
-    const statusPills = document.querySelectorAll('.edit-status');
-    statusInput.value = item.status || 'Not started';
-    statusPills.forEach(pill => {
-        if (pill.textContent === statusInput.value) {
-            pill.classList.add('selected');
-        } else {
-            pill.classList.remove('selected');
-        }
-    });
+        const statusInput = document.getElementById('status-input');
+        const statusPills = document.querySelectorAll('.edit-status');
+        statusInput.value = item.status || 'Not started';
+        statusPills.forEach(pill => {
+            if (pill.textContent === statusInput.value) {
+                pill.classList.add('selected');
+            } else {
+                pill.classList.remove('selected');
+            }
+        });
 
         console.log("Item filled: ", form);
         form.elements['title'].value = item.title || '';
@@ -648,12 +660,6 @@ function setStatus(status) {
             sendFormDataToFirebase(sprintData);
             toggleSprintPopup();
             isSprintUpdated = false;
-            document.removeEventListener("keyup", function(event) {
-                if (event.key === 'Enter' && isSprintUpdated === false) {
-                    saveSprint();
-                    isSprintUpdated = true;
-                }
-            });
         }
     }
 
@@ -709,42 +715,42 @@ function setStatus(status) {
     }
 
     // Function to render sprint board
-function renderSprintBoard(data) {
-    const container = document.getElementById('sprintCardsContainer');
-    if (!container) {
-        console.error('Sprint cards container not found');
-        return; // Exit the function if the container is not found
-    }
+    function renderSprintBoard(data) {
+        const container = document.getElementById('sprintCardsContainer');
+        if (!container) {
+            console.error('Sprint cards container not found');
+            return; // Exit the function if the container is not found
+        }
 
-    container.innerHTML = '';
+        container.innerHTML = '';
 
-    if (!data || Object.keys(data).length === 0) {
-        const noDataMessage = document.createElement('p');
-        noDataMessage.textContent = 'No sprints added yet.';
-        noDataMessage.style.textAlign = 'center';
-        noDataMessage.style.padding = '20px';
-        container.appendChild(noDataMessage);
-    } else {
-        Object.entries(data).forEach(([key, sprint]) => {
-            const card = createSprintCard(sprint, key);
-            container.appendChild(card);
-        });
+        if (!data || Object.keys(data).length === 0) {
+            const noDataMessage = document.createElement('p');
+            noDataMessage.textContent = 'No sprints added yet.';
+            noDataMessage.style.textAlign = 'center';
+            noDataMessage.style.padding = '20px';
+            container.appendChild(noDataMessage);
+        } else {
+            Object.entries(data).forEach(([key, sprint]) => {
+                const card = createSprintCard(sprint, key);
+                container.appendChild(card);
+            });
+        }
     }
-}
 
     // Function to create a sprint card
-function createSprintCard(sprint, key) {
-    const card = document.createElement('div');
-    card.className = 'card mb-3';
-    card.setAttribute('data-sprint-id', key);
+    function createSprintCard(sprint, key) {
+        const card = document.createElement('div');
+        card.className = 'card mb-3';
+        card.setAttribute('data-sprint-id', key);
 
-    const statusPill = `<div class="pill-button status-${sprint.status.toLowerCase().replace(/ /g, '-')}">${sprint.status}</div>`;
-    const isActive = sprint.status === 'In progress' || sprint.status === 'Completed';
-    const deleteButtonClasses = `dropdown-item text-danger delete-sprint${isActive ? ' disabled' : ''}`;
-    const editButtonClasses = `dropdown-item text-primary edit-sprint${isActive ? ' disabled' : ''}`;
-    console.log('isActive:', isActive);
+        const statusPill = `<div class="pill-button status-${sprint.status.toLowerCase().replace(/ /g, '-')}">${sprint.status}</div>`;
+        const isActive = sprint.status === 'In progress' || sprint.status === 'Completed';
+        const deleteButtonClasses = `dropdown-item text-danger delete-sprint${isActive ? ' disabled' : ''}`;
+        const editButtonClasses = `dropdown-item text-primary edit-sprint${isActive ? ' disabled' : ''}`;
+        console.log('isActive:', isActive);
 
-    card.innerHTML = `
+        card.innerHTML = `
         <div class="card-header d-flex justify-content-between align-items-center">
             <h3 class="mg-clear">${sprint.title}</h3>
             <div>
@@ -770,15 +776,14 @@ function createSprintCard(sprint, key) {
         </div>
     `;
 
-    card.addEventListener('click', (event) => {
-        if (!event.target.closest('.dropdown') && !event.target.classList.contains('sprint-backlog-button')) {
-            openSprintViewMode(sprint, key);
-        }
-    });
+        card.addEventListener('click', (event) => {
+            if (!event.target.closest('.dropdown') && !event.target.classList.contains('sprint-backlog-button')) {
+                openSprintViewMode(sprint, key);
+            }
+        });
 
-    return card;
-}
-
+        return card;
+    }
 
 
     function openSprintViewMode(sprint, key) {
@@ -950,7 +955,6 @@ function createSprintCard(sprint, key) {
     }
 
 
-
 </script>
 <script type="module">
     // Import necessary modules
@@ -984,23 +988,23 @@ function createSprintCard(sprint, key) {
     const sprintBoardRef = ref(database, 'sprintboard');
     const productBacklogRef = ref(database, 'productBacklog');
 
-window.getSprintFromFirebase = function (sprintId) {
-    return get(ref(database, `sprintboard/${sprintId}`))
-        .then((snapshot) => {
-            if (snapshot.exists()) {
-                const sprintData = snapshot.val();
-                sprintData.key = sprintId;
-                return sprintData;
-            } else {
-                console.error(`Sprint with ID ${sprintId} not found`);
+    window.getSprintFromFirebase = function (sprintId) {
+        return get(ref(database, `sprintboard/${sprintId}`))
+            .then((snapshot) => {
+                if (snapshot.exists()) {
+                    const sprintData = snapshot.val();
+                    sprintData.key = sprintId;
+                    return sprintData;
+                } else {
+                    console.error(`Sprint with ID ${sprintId} not found`);
+                    return null;
+                }
+            })
+            .catch((error) => {
+                console.error("Error fetching sprint:", error);
                 return null;
-            }
-        })
-        .catch((error) => {
-            console.error("Error fetching sprint:", error);
-            return null;
-        });
-}
+            });
+    }
 
     // Function to fetch sprint board data
     window.fetchSprintBoard = async function () {
@@ -1034,11 +1038,11 @@ window.getSprintFromFirebase = function (sprintId) {
         }
     }
 
-    
+
     async function createSprintCardAsync(sprint, key) {
         let totalStoryPoints = 0;
         let completedStoryPoints = 0;
-    
+
         if (sprint.sprintTasks) {
             for (const taskId of sprint.sprintTasks) {
                 const task = await fetchTaskDetails(taskId);
@@ -1050,17 +1054,17 @@ window.getSprintFromFirebase = function (sprintId) {
                 }
             }
         }
-    
+
         const card = document.createElement('div');
         card.className = 'card mb-3';
         card.setAttribute('data-sprint-id', key);
-    
+
         const statusPill = `<div class="pill-button status-${sprint.status.toLowerCase().replace(/ /g, '-')}">${sprint.status}</div>`;
         const isActive = sprint.status === 'In progress' || sprint.status === 'Completed';
         const deleteButtonClasses = `dropdown-item text-danger delete-sprint${isActive ? ' disabled' : ''}`;
         const editButtonClasses = `dropdown-item text-primary edit-sprint${isActive ? ' disabled' : ''}`;
         console.log('isActive:', isActive);
-    
+
         card.innerHTML = `
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h3 class="mg-clear">${sprint.title}</h3>
@@ -1088,13 +1092,13 @@ window.getSprintFromFirebase = function (sprintId) {
                 <p>End: ${new Date(sprint.endTime).toLocaleString()}</p>
             </div>
         `;
-    
+
         card.addEventListener('click', (event) => {
             if (!event.target.closest('.dropdown') && !event.target.classList.contains('sprint-backlog-button')) {
                 openSprintViewMode(sprint, key);
             }
         });
-    
+
         return card;
     }
 
@@ -1106,21 +1110,21 @@ window.getSprintFromFirebase = function (sprintId) {
             if (sprint.sprintTasks && sprint.sprintTasks.length > 0) {
                 for (const taskId of sprint.sprintTasks) {
                     const taskRef = ref(database, `productBacklog/${taskId}`);
-                    update(taskRef, { status: sprint.status });
+                    update(taskRef, {status: sprint.status});
                 }
             }
         }
     }
-    
+
     async function renderSprintBoard(data) {
         const container = document.getElementById('sprintCardsContainer');
         if (!container) {
             console.error('Sprint cards container not found');
             return; // Exit the function if the container is not found
         }
-    
+
         container.innerHTML = '';
-    
+
         if (!data || Object.keys(data).length === 0) {
             const noDataMessage = document.createElement('p');
             noDataMessage.textContent = 'No sprints added yet.';
@@ -1135,8 +1139,8 @@ window.getSprintFromFirebase = function (sprintId) {
         }
     }
 
-// Call this function when the page loads
-document.addEventListener('DOMContentLoaded', updateBacklogTasksStatus);
+    // Call this function when the page loads
+    document.addEventListener('DOMContentLoaded', updateBacklogTasksStatus);
 
     function getFormData() {
         return {
@@ -1167,6 +1171,7 @@ document.addEventListener('DOMContentLoaded', updateBacklogTasksStatus);
     // Function to handle adding a new sprint
     window.handleAddSprintClick = function (event) {
         event.preventDefault();
+        console.log('Add sprint button clicked');
         setSprintFormMode('add');
     }
 
@@ -1199,11 +1204,11 @@ document.addEventListener('DOMContentLoaded', updateBacklogTasksStatus);
     }
 
 
-async function enterSprintBacklogMode(sprintId, sprintTitle) {
-    currentSprintTasks = [];
-    currentSprintId = sprintId;
-    const mainContent = document.querySelector('.main-content');
-    mainContent.innerHTML = `
+    async function enterSprintBacklogMode(sprintId, sprintTitle) {
+        currentSprintTasks = [];
+        currentSprintId = sprintId;
+        const mainContent = document.querySelector('.main-content');
+        mainContent.innerHTML = `
         <div class="main-container">
                     <div class="tasks-container">
                 <h2>Product Backlog</h2>
@@ -1221,45 +1226,41 @@ async function enterSprintBacklogMode(sprintId, sprintTitle) {
         </div>
     `;
 
-    const sprint = await getSprintFromFirebase(sprintId);
-    if (sprint) {
-        if (sprint.status === 'In progress' || sprint.status === 'Completed') {
-            document.getElementById('saveSprintBacklog').style.display = 'none';
-            disableDragAndDrop();
-        }
-        await fetchSprintTasks(sprintId);
-        await fetchBacklogTasks();
-        initDragAndDrop(sprintId, sprint.status);
-        setupSprintBacklogRealtimeListener(sprintId);
-        }
-}
-
-
-
-
-
-
-async function fetchBacklogTasks() {
-    const backlogContainer = document.getElementById('backlogTasks');
-    if (!backlogContainer) {
-        console.error('Backlog container not found');
-        return;
-    }
-    const db = getDatabase();
-    const backlogRef = ref(db, 'productBacklog');
-    const snapshot = await get(backlogRef);
-    if (snapshot.exists()) {
-        const backlogTasks = snapshot.val();
-        backlogContainer.innerHTML = '';
-        Object.entries(backlogTasks).forEach(([key, task]) => {
-            if (!currentSprintTasks.includes(key)) {
-                const taskCard = createTaskCard(key, task);
-                backlogContainer.appendChild(taskCard);
+        const sprint = await getSprintFromFirebase(sprintId);
+        if (sprint) {
+            if (sprint.status === 'In progress' || sprint.status === 'Completed') {
+                document.getElementById('saveSprintBacklog').style.display = 'none';
+                disableDragAndDrop();
             }
-        });
+            await fetchSprintTasks(sprintId);
+            await fetchBacklogTasks();
+            initDragAndDrop(sprintId, sprint.status);
+            setupSprintBacklogRealtimeListener(sprintId);
+        }
     }
-    initDragAndDrop();
-}
+
+
+    async function fetchBacklogTasks() {
+        const backlogContainer = document.getElementById('backlogTasks');
+        if (!backlogContainer) {
+            console.error('Backlog container not found');
+            return;
+        }
+        const db = getDatabase();
+        const backlogRef = ref(db, 'productBacklog');
+        const snapshot = await get(backlogRef);
+        if (snapshot.exists()) {
+            const backlogTasks = snapshot.val();
+            backlogContainer.innerHTML = '';
+            Object.entries(backlogTasks).forEach(([key, task]) => {
+                if (!currentSprintTasks.includes(key)) {
+                    const taskCard = createTaskCard(key, task);
+                    backlogContainer.appendChild(taskCard);
+                }
+            });
+        }
+        initDragAndDrop();
+    }
 
     // Function to set sprint form mode
     function setSprintFormMode(mode, sprint = null) {
@@ -1273,27 +1274,31 @@ async function fetchBacklogTasks() {
             <button type="button" class="btn btn-secondary" onclick="toggleSprintPopup()">Cancel</button>
             <button type="button" class="btn btn-primary" onclick="updateSprint('${sprint.key}')">Update</button>
             `;
-            document.addEventListener("keyup", function(event) {
-                    if (event.key === 'Enter' && isSprintUpdated === false) {
-                        updateSprint(sprint.key);
-                        isSprintUpdated = true;
-                    }
-            });
+
         } else if (mode === 'add') {
             form.reset();
+            console.log('Adding new sprint');
+
+            //prevent refresh of website
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
+            });
+                        document.addEventListener("keyup", function (event) {
+
+                if (event.key === 'Enter' && mode === 'add') {
+                    saveSprint();
+                    console.log('Sprint saved with enter key');
+                    mode = 'view';
+                }
+            });
+
             setDefaultSprintFormValues();
-            window.teamMembers =[];
+            window.teamMembers = [];
             renderPopupTeamMembers();
             buttons.innerHTML = `
             <button type="button" class="btn btn-secondary" onclick="toggleSprintPopup()">Cancel</button>
             <button type="button" class="btn btn-primary" onclick="saveSprint()">Save Sprint</button>
             `;
-            document.addEventListener("keyup", function(event) {
-                    if (event.key === 'Enter' && isSprintUpdated === false) {
-                        saveSprint();
-                        isSprintUpdated = true;
-                    }
-            });
         }
         isSprintUpdated = false;
         toggleSprintPopup();
@@ -1319,6 +1324,7 @@ async function fetchBacklogTasks() {
     // Event listeners
     document.addEventListener('DOMContentLoaded', () => {
 
+
         // Event delegation for delete and edit buttons
         document.addEventListener('click', (event) => {
             if (event.target.classList.contains('delete-sprint')) {
@@ -1336,38 +1342,35 @@ async function fetchBacklogTasks() {
         document.getElementById('overlay-sprint').addEventListener('click', (event) => {
             if (event.target === document.getElementById('overlay-sprint')) {
                 toggleSprintPopup();
-    }
-});
+            }
+        });
 
-    // Initial fetch of sprint board data
-    fetchSprintBoard();
+        // Initial fetch of sprint board data
+        fetchSprintBoard();
 
-    // Event delegation for delete and edit buttons
-    document.addEventListener('click', (event) => {
-        if (event.target.classList.contains('edit-item')) {
-            event.preventDefault();
-            const itemId = event.target.getAttribute('data-task-id');
-            get(ref(database, `productBacklog/${itemId}`)).then((snapshot) => {
-                if (snapshot.exists()) {
-                    const item = snapshot.val();
-                    item.key = itemId;
-                    setFormMode('edit', item);
-                }
-            }).catch(console.error);
-        }
+        // Event delegation for delete and edit buttons
+        document.addEventListener('click', (event) => {
+            if (event.target.classList.contains('edit-item')) {
+                event.preventDefault();
+                const itemId = event.target.getAttribute('data-task-id');
+                get(ref(database, `productBacklog/${itemId}`)).then((snapshot) => {
+                    if (snapshot.exists()) {
+                        const item = snapshot.val();
+                        item.key = itemId;
+                        setFormMode('edit', item);
+                    }
+                }).catch(console.error);
+            }
 
+        });
+
+
+        document.getElementById('overlay-task').addEventListener('click', (event) => {
+            if (event.target === document.getElementById('overlay-task')) {
+                toggleEditPopup();
+            }
+        });
     });
-
-
-
-    document.getElementById('overlay-task').addEventListener('click', (event) => {
-                if (event.target === document.getElementById('overlay-task')) {
-                    toggleEditPopup();
-                }
-            });
-    });
-
-    ;
 
 
     document.addEventListener('click', (event) => {
@@ -1416,12 +1419,6 @@ async function fetchBacklogTasks() {
                 console.log('Sprint updated successfully');
                 toggleSprintPopup();
                 // Remove the event listener to prevent multiple updates
-                document.removeEventListener("keyup", function(event) {
-                    if (event.key === 'Enter' && isSprintUpdated === false) {
-                        updateSprint(sprintId);
-                        isSprintUpdated = true;
-                    }
-                });
             }
         } catch (error) {
             console.error("Error updating sprint:", error);
@@ -1573,7 +1570,7 @@ async function fetchBacklogTasks() {
 
         // Get a reference to the sprint tasks
         const sprintRef = ref(database, 'sprintboard');
-    
+
         // Add an event listener for real-time changes to the sprint tasks
         sprintRef.on('value', (snapshot) => {
             const sprints = snapshot.val();
@@ -1583,7 +1580,7 @@ async function fetchBacklogTasks() {
 
         // Get a reference to the product backlog tasks
         const productBacklogRef = ref(database, 'productBacklog');
-    
+
         // Listen for changes to the product backlog tasks
         onValue(productBacklogRef, (snapshot) => {
             const tasks = snapshot.val();
@@ -1609,7 +1606,6 @@ async function fetchBacklogTasks() {
             });
         });
     }
-
 
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -1727,190 +1723,187 @@ async function fetchBacklogTasks() {
         }
     });
 
-let currentSprintTasks = [];
+    let currentSprintTasks = [];
 
-async function fetchSprintTasks(sprintId) {
-    const sprintContainer = document.getElementById('sprintTasks');
-    if (!sprintContainer) {
-        console.error('Sprint tasks container not found');
-        return;
-    }
+    async function fetchSprintTasks(sprintId) {
+        const sprintContainer = document.getElementById('sprintTasks');
+        if (!sprintContainer) {
+            console.error('Sprint tasks container not found');
+            return;
+        }
 
-    const db = getDatabase();
-    const sprintRef = ref(db, `sprintboard/${sprintId}`);
-    const snapshot = await get(sprintRef);
+        const db = getDatabase();
+        const sprintRef = ref(db, `sprintboard/${sprintId}`);
+        const snapshot = await get(sprintRef);
 
-    if (snapshot.exists()) {
-        const sprint = snapshot.val();
-        const sprintTasks = sprint.sprintTasks || [];
-        currentSprintTasks = sprintTasks; // Store the current sprint tasks
-        sprintContainer.innerHTML = '';
+        if (snapshot.exists()) {
+            const sprint = snapshot.val();
+            const sprintTasks = sprint.sprintTasks || [];
+            currentSprintTasks = sprintTasks; // Store the current sprint tasks
+            sprintContainer.innerHTML = '';
 
-        for (const taskId of sprintTasks) {
-            const task = await fetchTaskDetails(taskId);
-            if (task) {
-                const taskCard = createTaskCard(taskId, task, sprint.status);
-                sprintContainer.appendChild(taskCard);
+            for (const taskId of sprintTasks) {
+                const task = await fetchTaskDetails(taskId);
+                if (task) {
+                    const taskCard = createTaskCard(taskId, task, sprint.status);
+                    sprintContainer.appendChild(taskCard);
+                }
             }
-        }
 
-        await fetchBacklogTasks();
-        initDragAndDrop();
-    } else {
-        console.error('Sprint not found');
-    }
-}
-
-
-function initDragAndDrop() {
-    const sprintIdElement = document.querySelector('.tasks-container h2[data-sprint-id]');
-    if (!sprintIdElement) {
-        console.error('Sprint ID element not found');
-        return;
-    }
-    const sprintId = sprintIdElement.getAttribute('data-sprint-id');
-
-    getSprintFromFirebase(sprintId).then(sprint => {
-        if (!sprint) {
-            console.error('Sprint data not found');
-            return;
-        }
-
-        if (sprint.status === 'In progress' || sprint.status === 'Completed') {
-            disableDragAndDrop();
-            return;
-        }
-
-        // Rest of the drag and drop initialization code
-        const containers = document.querySelectorAll('#sprintTasks, #backlogTasks');
-
-        containers.forEach(container => {
-            container.addEventListener('dragover', e => {
-                e.preventDefault();
-                const afterElement = getDragAfterElement(container, e.clientY);
-                const draggable = document.querySelector('.dragging');
-                if (draggable && draggable !== afterElement) {
-                    if (afterElement == null) {
-                        container.appendChild(draggable);
-                    } else {
-                        container.insertBefore(draggable, afterElement);
-                    }
-                }
-            });
-
-            container.addEventListener('dragenter', e => {
-                e.preventDefault();
-                container.classList.add('drag-over');
-            });
-
-            container.addEventListener('dragleave', () => {
-                container.classList.remove('drag-over');
-            });
-
-            container.addEventListener('drop', e => {
-                e.preventDefault();
-                container.classList.remove('drag-over');
-                const draggable = document.querySelector('.dragging');
-                if (draggable) {
-                    draggable.parentNode.removeChild(draggable);
-                    container.appendChild(draggable);
-                    draggable.classList.remove('dragging');
-                    updateTaskStatus(draggable.getAttribute('data-task-id'), container.id);
-                }
-            });
-        });
-
-        const draggables = document.querySelectorAll('.task-card');
-        draggables.forEach(draggable => {
-            draggable.setAttribute('draggable', 'true');
-            draggable.addEventListener('dragstart', () => {
-                draggable.classList.add('dragging');
-            });
-            draggable.addEventListener('dragend', () => {
-                draggable.classList.remove('dragging');
-            });
-        });
-    }).catch(error => {
-        console.error('Error initializing drag and drop:', error);
-    });
-}
-
-function disableDragAndDrop() {
-    const taskCards = document.querySelectorAll('.task-card');
-    taskCards.forEach(card => {
-        card.setAttribute('draggable', 'false');
-        card.classList.add('disabled');
-    });
-}
-
-
-function getDragAfterElement(container, y) {
-    const draggableElements = [...container.querySelectorAll('.task-card:not(.dragging)')];
-
-    return draggableElements.reduce((closest, child) => {
-        const box = child.getBoundingClientRect();
-        const offset = y - box.top - box.height / 2;
-        if (offset < 0 && offset > closest.offset) {
-            return { offset: offset, element: child };
+            await fetchBacklogTasks();
+            initDragAndDrop();
         } else {
-            return closest;
+            console.error('Sprint not found');
         }
-    }, { offset: Number.NEGATIVE_INFINITY }).element;
-}
-
-async function updateTaskStatus(taskId, fromContainer, toContainer) {
-    const isMovingToSprint = toContainer === 'sprintTasks';
-    console.log(`Moving task ${taskId} from ${fromContainer} to ${toContainer}`);
-
-    const db = getDatabase();
-    const sprintIdElement = document.querySelector('.tasks-container h2');
-    const sprintId = sprintIdElement ? sprintIdElement.getAttribute('data-sprint-id') : null;
-
-    if (!sprintId) {
-        console.error('Sprint ID not found');
-        return;
     }
 
-    const sprintRef = ref(db, `sprintboard/${sprintId}`);
-    const sprintSnapshot = await get(sprintRef);
 
-    if (!sprintSnapshot.exists()) {
-        console.error('Sprint not found');
-        return;
-    }
-
-    const sprint = sprintSnapshot.val();
-    let sprintTasks = sprint.sprintTasks || [];
-
-    if (isMovingToSprint) {
-        if (!sprintTasks.includes(taskId)) {
-            sprintTasks.push(taskId);
+    function initDragAndDrop() {
+        const sprintIdElement = document.querySelector('.tasks-container h2[data-sprint-id]');
+        if (!sprintIdElement) {
+            console.error('Sprint ID element not found');
+            return;
         }
-    } else {
-        sprintTasks = sprintTasks.filter(id => id !== taskId);
+        const sprintId = sprintIdElement.getAttribute('data-sprint-id');
+
+        getSprintFromFirebase(sprintId).then(sprint => {
+            if (!sprint) {
+                console.error('Sprint data not found');
+                return;
+            }
+
+            if (sprint.status === 'In progress' || sprint.status === 'Completed') {
+                disableDragAndDrop();
+                return;
+            }
+
+            // Rest of the drag and drop initialization code
+            const containers = document.querySelectorAll('#sprintTasks, #backlogTasks');
+
+            containers.forEach(container => {
+                container.addEventListener('dragover', e => {
+                    e.preventDefault();
+                    const afterElement = getDragAfterElement(container, e.clientY);
+                    const draggable = document.querySelector('.dragging');
+                    if (draggable && draggable !== afterElement) {
+                        if (afterElement == null) {
+                            container.appendChild(draggable);
+                        } else {
+                            container.insertBefore(draggable, afterElement);
+                        }
+                    }
+                });
+
+                container.addEventListener('dragenter', e => {
+                    e.preventDefault();
+                    container.classList.add('drag-over');
+                });
+
+                container.addEventListener('dragleave', () => {
+                    container.classList.remove('drag-over');
+                });
+
+                container.addEventListener('drop', e => {
+                    e.preventDefault();
+                    container.classList.remove('drag-over');
+                    const draggable = document.querySelector('.dragging');
+                    if (draggable) {
+                        draggable.parentNode.removeChild(draggable);
+                        container.appendChild(draggable);
+                        draggable.classList.remove('dragging');
+                        updateTaskStatus(draggable.getAttribute('data-task-id'), container.id);
+                    }
+                });
+            });
+
+            const draggables = document.querySelectorAll('.task-card');
+            draggables.forEach(draggable => {
+                draggable.setAttribute('draggable', 'true');
+                draggable.addEventListener('dragstart', () => {
+                    draggable.classList.add('dragging');
+                });
+                draggable.addEventListener('dragend', () => {
+                    draggable.classList.remove('dragging');
+                });
+            });
+        }).catch(error => {
+            console.error('Error initializing drag and drop:', error);
+        });
     }
 
-    try {
-        await update(sprintRef, { sprintTasks });
-        console.log('Sprint tasks updated successfully');
-    } catch (error) {
-        console.error('Error updating sprint tasks:', error);
+    function disableDragAndDrop() {
+        const taskCards = document.querySelectorAll('.task-card');
+        taskCards.forEach(card => {
+            card.setAttribute('draggable', 'false');
+            card.classList.add('disabled');
+        });
     }
-}
 
 
+    function getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('.task-card:not(.dragging)')];
+
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) {
+                return {offset: offset, element: child};
+            } else {
+                return closest;
+            }
+        }, {offset: Number.NEGATIVE_INFINITY}).element;
+    }
+
+    async function updateTaskStatus(taskId, fromContainer, toContainer) {
+        const isMovingToSprint = toContainer === 'sprintTasks';
+        console.log(`Moving task ${taskId} from ${fromContainer} to ${toContainer}`);
+
+        const db = getDatabase();
+        const sprintIdElement = document.querySelector('.tasks-container h2');
+        const sprintId = sprintIdElement ? sprintIdElement.getAttribute('data-sprint-id') : null;
+
+        if (!sprintId) {
+            console.error('Sprint ID not found');
+            return;
+        }
+
+        const sprintRef = ref(db, `sprintboard/${sprintId}`);
+        const sprintSnapshot = await get(sprintRef);
+
+        if (!sprintSnapshot.exists()) {
+            console.error('Sprint not found');
+            return;
+        }
+
+        const sprint = sprintSnapshot.val();
+        let sprintTasks = sprint.sprintTasks || [];
+
+        if (isMovingToSprint) {
+            if (!sprintTasks.includes(taskId)) {
+                sprintTasks.push(taskId);
+            }
+        } else {
+            sprintTasks = sprintTasks.filter(id => id !== taskId);
+        }
+
+        try {
+            await update(sprintRef, {sprintTasks});
+            console.log('Sprint tasks updated successfully');
+        } catch (error) {
+            console.error('Error updating sprint tasks:', error);
+        }
+    }
 
 
+    function createTaskCard(key, task) {
+        const card = document.createElement('div');
+        card.className = 'task-card';
+        card.setAttribute('draggable', 'true');
+        card.setAttribute('data-task-id', key);
 
-function createTaskCard(key, task) {
-    const card = document.createElement('div');
-    card.className = 'task-card';
-    card.setAttribute('draggable', 'true');
-    card.setAttribute('data-task-id', key);
+        const tags = task.tags ? task.tags.map(tag => `<div class="tag" style="background-color: ${tag.color};">${tag.name}</div>`).join('') : '';
 
-    const tags = task.tags ? task.tags.map(tag => `<div class="tag" style="background-color: ${tag.color};">${tag.name}</div>`).join('') : '';
-
-    card.innerHTML = `
+        card.innerHTML = `
         <div class="d-flex justify-content-between align-items-center">
             <h4 class="mg-clear mb-0">${task.title}</h4>
             <div>
@@ -1932,20 +1925,20 @@ function createTaskCard(key, task) {
         </div>
 
     `
-    return card;
-}
+        return card;
+    }
 
-function getPriorityColor(priority) {
-    const colors = {'Low': '#C6F4D6', 'Medium': '#F7DC6F', 'Important': '#FFC0CB', 'Urgent': '#FFD7BE'};
-    return colors[priority] || '#6E6AF0';
-}
+    function getPriorityColor(priority) {
+        const colors = {'Low': '#C6F4D6', 'Medium': '#F7DC6F', 'Important': '#FFC0CB', 'Urgent': '#FFD7BE'};
+        return colors[priority] || '#6E6AF0';
+    }
 
-document.addEventListener('DOMContentLoaded', function() {
-    initDragAndDrop();
-});
+    document.addEventListener('DOMContentLoaded', function () {
+        initDragAndDrop();
+    });
 
-// Call this function when the DOM is loaded
-document.addEventListener('DOMContentLoaded', initDragAndDrop);
+    // Call this function when the DOM is loaded
+    document.addEventListener('DOMContentLoaded', initDragAndDrop);
 
     document.addEventListener('click', (event) => {
         const card = event.target.closest('.card');
@@ -1980,29 +1973,29 @@ document.addEventListener('DOMContentLoaded', initDragAndDrop);
         });
     }
 
-        async function updateSprintStatusInFirebase(sprintId, newStatus) {
-    try {
-        const sprintRef = ref(database, `sprintboard/${sprintId}`);
-        await update(sprintRef, { status: newStatus });
-        console.log(`Sprint ${sprintId} status updated to ${newStatus}`);
-    } catch (error) {
-        console.error(`Error updating sprint ${sprintId} status:`, error);
+    async function updateSprintStatusInFirebase(sprintId, newStatus) {
+        try {
+            const sprintRef = ref(database, `sprintboard/${sprintId}`);
+            await update(sprintRef, {status: newStatus});
+            console.log(`Sprint ${sprintId} status updated to ${newStatus}`);
+        } catch (error) {
+            console.error(`Error updating sprint ${sprintId} status:`, error);
+        }
     }
-}
 
     // Function to periodically update sprint statuses
-function updateAllSprintStatuses() {
-    getAllSprintsFromFirebase().then(sprints => {
-        if (sprints) {
-            Object.entries(sprints).forEach(([sprintId, sprint]) => {
-                const newStatus = calculateSprintStatus(sprint.startTime, sprint.endTime);
-                if (newStatus !== sprint.status) {
-                    updateSprintStatusInFirebase(sprintId, newStatus);
-                }
-            });
-        }
-    }).catch(console.error);
-}
+    function updateAllSprintStatuses() {
+        getAllSprintsFromFirebase().then(sprints => {
+            if (sprints) {
+                Object.entries(sprints).forEach(([sprintId, sprint]) => {
+                    const newStatus = calculateSprintStatus(sprint.startTime, sprint.endTime);
+                    if (newStatus !== sprint.status) {
+                        updateSprintStatusInFirebase(sprintId, newStatus);
+                    }
+                });
+            }
+        }).catch(console.error);
+    }
 
     // Set interval to update sprint statuses every minute
     setInterval(updateAllSprintStatuses, 60000);
