@@ -104,7 +104,7 @@
 }
 
 .status-completed {
-   background-color: #7EBF60;
+   background-color: #7EBF60 !important;
 }
    .tag-selection-popup {
        position: fixed;
