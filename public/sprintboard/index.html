@@ -1389,6 +1389,8 @@ window.exitSprintKanbanMode = function() {
 
     // Event listeners
     document.addEventListener('DOMContentLoaded', () => {
+        setupSprintRealtimeListener();
+
 
 
         // Event delegation for delete and edit buttons
@@ -1918,6 +1920,15 @@ window.toggleEditPopup = function () {
 
 
     // Function to periodically update sprint statuses
+  // Set up real-time listener for sprint board
+    function setupSprintRealtimeListener() {
+        onValue(sprintBoardRef, (snapshot) => {
+            const data = snapshot.val() || {};
+            if (document.getElementById('sprintCardsContainer')) {
+                window.renderSprintBoard(data);
+            }
+        });
+    }
 
 
     async function fetchTaskDetails(taskId) {
