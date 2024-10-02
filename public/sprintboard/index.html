@@ -821,7 +821,7 @@ function disableStatusPills() {
 
         const statusPill = `<div class="pill-button status-${sprint.status.toLowerCase().replace(/ /g, '-')}">${sprint.status}</div>`;
         const isActive = sprint.status === 'In progress' || sprint.status === 'Completed';
-        const deleteButtonClasses = `dropdown-item text-danger delete-sprint${isActive ? ' disabled' : ''}`;
+        const deleteButtonClasses = `dropdown-item text-danger delete-sprint`;
         const editButtonClasses = `dropdown-item text-primary edit-sprint${isActive ? ' disabled' : ''}`;
         console.log('isActive:', isActive);
 
@@ -831,9 +831,9 @@ function disableStatusPills() {
             <div>
                 <button class="sprint-backlog-button btn-secondary btn " data-sprint-id="${key}">Sprint Backlog</button>
                 <div class="dropdown d-inline-block">
-                <button class="btn btn-link three-dot-menu" type="button" id="dropdownMenu-${key}" data-bs-toggle="dropdown" aria-expanded="false" ${isActive ? 'disabled' : ''}>⋮</button>
+                <button class="btn btn-link three-dot-menu" type="button" id="dropdownMenu-${key}" data-bs-toggle="dropdown" aria-expanded="false">⋮</button>
                 <ul class="dropdown-menu" aria-labelledby="dropdownMenu-${key}">
-                    <li><a class="${deleteButtonClasses}" href="#" data-sprint-id="${key}" ${isActive ? 'onclick="return false;"' : ''}>Delete</a></li>
+                    <li><a class="${deleteButtonClasses}" href="#" data-sprint-id="${key}">Delete</a></li>
                     <li><a class="${editButtonClasses}" href="#" data-sprint-id="${key}" ${isActive ? 'onclick="return false;"' : ''}>Edit</a></li>
 
                     </ul>
@@ -1139,7 +1139,7 @@ function disableStatusPills() {
 
         const statusPill = `<div class="pill-button status-${sprint.status.toLowerCase().replace(/ /g, '-')}">${sprint.status}</div>`;
         const isActive = sprint.status === 'In progress' || sprint.status === 'Completed';
-        const deleteButtonClasses = `dropdown-item text-danger delete-sprint${isActive ? ' disabled' : ''}`;
+        const deleteButtonClasses = `dropdown-item text-danger delete-sprint`;
         const editButtonClasses = `dropdown-item text-primary edit-sprint${isActive ? ' disabled' : ''}`;
         console.log('isActive:', isActive);
 
@@ -1149,9 +1149,9 @@ function disableStatusPills() {
                 <div>
                     <button class="sprint-backlog-button btn-secondary btn " data-sprint-id="${key}">Sprint Backlog</button>
                     <div class="dropdown d-inline-block">
-                    <button class="btn btn-link three-dot-menu" type="button" id="dropdownMenu-${key}" data-bs-toggle="dropdown" aria-expanded="false" ${isActive ? 'disabled' : ''}>⋮</button>
+                    <button class="btn btn-link three-dot-menu" type="button" id="dropdownMenu-${key}" data-bs-toggle="dropdown" aria-expanded="false">⋮</button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownMenu-${key}">
-                        <li><a class="${deleteButtonClasses}" href="#" data-sprint-id="${key}" ${isActive ? 'onclick="return false;"' : ''}>Delete</a></li>
+                        <li><a class="${deleteButtonClasses}" href="#" data-sprint-id="${key}">Delete</a></li>
                         <li><a class="${editButtonClasses}" href="#" data-sprint-id="${key}" ${isActive ? 'onclick="return false;"' : ''}>Edit</a></li>
     
                         </ul>
