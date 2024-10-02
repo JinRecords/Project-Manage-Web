@@ -602,20 +602,21 @@ function setFormMode(mode, item = null) {
                 <button type="button" class="btn btn-secondary" onclick="toggleEditPopup()">Cancel</button>
                 <button type="button" class="btn btn-primary" onclick="updateSprintBacklogItem('${item.key}')">Update</button>
             `;
+            Array.from(form.elements).forEach(el => el.disabled = false);
             enableStatusPills();
             console.log('About to toggle edit popup');
-            window.toggleEditPopup();
+
         } else if (mode === 'view') {
             fillFormWithItemData(item);
             Array.from(form.elements).forEach(el => el.disabled = true);
             buttons.innerHTML = '<button type="button" class="btn btn-secondary" onclick="toggleEditPopup()">Back</button>';
             disableStatusPills();
             console.log('About to toggle view popup');
-            window.toggleEditPopup();
         }
 
         isSettingFormMode = false;
     }, 100);
+    window.toggleEditPopup();
 }
 
 
@@ -636,6 +637,7 @@ function disableStatusPills() {
         pill.removeEventListener('click', setStatus);
     });
 }
+
 
 
 
@@ -778,11 +780,12 @@ function disableStatusPills() {
 
     // Function to update a sprint
     function updateSprint(sprintId) {
+        setSprintFormMode('edit', sprint);
         const sprintData = getSprintFormData();
         if (validateSprintData(sprintData)) {
             updateSprintInFirebase(sprintId, sprintData);
             toggleSprintPopup();
-            setSprintFormMode('edit', sprint);
+
         }
     }
 
@@ -888,6 +891,11 @@ function disableStatusPills() {
         // Open popup
         toggleSprintPopup();
     }
+    function editTaskFromViewMode(item) {
+    console.log('Editing task from view mode:', item);
+    setFormMode('edit', item);
+}
+
 
     function openFormInViewMode(item) {
         console.log('Opening form in view mode with item:', item);
@@ -1407,21 +1415,22 @@ window.exitSprintKanbanMode = function() {
         fetchSprintBoard();
 
         // Event delegation for delete and edit buttons
-document.addEventListener('click', function(event) {
+document.addEventListener('click', (event) => {
     if (event.target.classList.contains('edit-item')) {
         event.preventDefault();
-        event.stopPropagation(); // Stop the event from bubbling up
+        event.stopPropagation();
         const itemId = event.target.getAttribute('data-task-id');
         console.log('Edit button clicked for item:', itemId);
         get(ref(database, `productBacklog/${itemId}`)).then((snapshot) => {
             if (snapshot.exists()) {
                 const item = snapshot.val();
                 item.key = itemId;
-                setFormMode('edit', item);
+                editTaskFromViewMode(item);
             }
         }).catch(console.error);
     }
 });
+
 
 
 
@@ -1450,6 +1459,7 @@ document.addEventListener('click', function(event) {
     // Function to handle update item
 window.updateSprintBacklogItem = async function (itemId) {
     try {
+
         const formData = getFormDataForUpdate(itemId);
         const currentData = await get(ref(database, `productBacklog/${itemId}`));
 
@@ -1468,6 +1478,7 @@ window.updateSprintBacklogItem = async function (itemId) {
                 // We're in Sprint Backlog mode, re-render
                 await fetchSprintTasks(currentSprintId);
             }
+            setFormMode('edit', itemId);
 
             toggleEditPopup();
         }
@@ -1683,7 +1694,8 @@ function addTaskToColumn(status, task, taskId) {
 
 
 function openTaskViewMode(task, taskId) {
-    setFormMode('view', { ...task, key: taskId });
+    console.log('pass');
+    //setFormMode('view', { ...task, key: taskId });
 }
 
 
@@ -1730,28 +1742,37 @@ function openTaskViewMode(task, taskId) {
         }
     }
 
-let isTogglingPopup = false;
+
+let toggleInProgress = false;
+let isOverlayOpen = false;
 
 window.toggleEditPopup = function () {
-    if (isTogglingPopup) {
-        console.log('Already toggling popup, ignoring duplicate call');
+    if (toggleInProgress) {
+        console.log('Toggle already in progress, ignoring');
         return;
     }
 
-    isTogglingPopup = true;
+    toggleInProgress = true;
+
     console.log('Toggle Edit Popup called');
     const popup = document.getElementById('editTaskPopupForm');
     const overlay = document.getElementById('overlay-task');
 
     if (!popup || !overlay) {
         console.error('Popup or overlay element not found');
-        isTogglingPopup = false;
+        toggleInProgress = false;
         return;
     }
 
     console.log('Popup Before Toggle:', popup.classList.contains('open'));
     popup.classList.toggle('open');
-    overlay.classList.toggle('open');
+
+    // Only toggle the overlay if its state doesn't match the popup's state
+    if (popup.classList.contains('open') !== isOverlayOpen) {
+        isOverlayOpen = !isOverlayOpen;
+        overlay.classList.toggle('open');
+    }
+
     console.log('Popup After Toggle:', popup.classList.contains('open'));
 
     if (popup.classList.contains('open')) {
@@ -1760,15 +1781,18 @@ window.toggleEditPopup = function () {
     } else {
         popup.style.display = 'none';
         overlay.style.display = 'none';
+        setFormMode('edit');
     }
 
     console.log('Popup final display:', window.getComputedStyle(popup).display);
     console.log('Overlay final display:', window.getComputedStyle(overlay).display);
 
+    // Reset the toggle flag after a short delay
     setTimeout(() => {
-        isTogglingPopup = false;
-    }, 300); // Add a small delay before allowing the next toggle
+        toggleInProgress = false;
+    }, 100);
 }
+
 
 
     // Function to save a new sprint
@@ -1815,36 +1839,6 @@ window.toggleEditPopup = function () {
         }
     }
 
-    // Set up real-time listener for sprint board
-    function setupSprintRealtimeListener() {
-        onValue(sprintBoardRef, (snapshot) => {
-            const data = snapshot.val() || {};
-            if (document.getElementById('sprintCardsContainer')) {
-                window.renderSprintBoard(data);
-            }
-        });
-
-        // Get a reference to the sprint tasks
-        const sprintRef = ref(database, 'sprintboard');
-
-        // Add an event listener for real-time changes to the sprint tasks
-        sprintRef.on('value', (snapshot) => {
-            const sprints = snapshot.val();
-            // Update the task details in the sprint backlog
-            updateSprintBacklogTasks(sprints);
-        });
-
-        // Get a reference to the product backlog tasks
-        const productBacklogRef = ref(database, 'productBacklog');
-
-        // Listen for changes to the product backlog tasks
-        onValue(productBacklogRef, (snapshot) => {
-            const tasks = snapshot.val();
-            // Update the task details in the product backlog
-            updateProductBacklogTasks(tasks);
-        });
-    }
-
     function setupSprintBacklogRealtimeListener(sprintId) {
         const productBacklogRef = ref(database, 'productBacklog');
         onValue(productBacklogRef, (snapshot) => {
@@ -1870,7 +1864,6 @@ window.toggleEditPopup = function () {
 
     // Event listeners
     document.addEventListener('DOMContentLoaded', () => {
-        setupSprintRealtimeListener();
         document.querySelector('.btn-lg.btn-9-style').addEventListener('click', handleAddSprintClick);
         initDragAndDrop();
     });
