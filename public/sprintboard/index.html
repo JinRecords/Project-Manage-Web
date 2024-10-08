@@ -344,6 +344,7 @@
 <script src="../js/bootstrap.bundle.min.js?3058"></script>
 <script src="../js/blocs.min.js?6353"></script>
 <script src="../js/lazysizes.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     // Global variables
     let currentSprintId = null;
@@ -447,13 +448,15 @@
         console.log("Popup visibility:", popup.classList.contains('open'));
     }
 
-    function toggleBurndownChartPopup() {
+    function toggleBurndownChartPopup(totalStoryPoints, completedStoryPoints) {
         console.log("Toggling burndown chart popup");
         const popup = document.getElementById('burndown-chart-popup');
         const overlay = document.getElementById('overlay-sprint');
         popup.classList.toggle('open');
         overlay.classList.toggle('open');
         console.log("Popup visibility:", popup.classList.contains('open'));
+        renderBurndownChart(totalStoryPoints, completedStoryPoints);  // Call the render function
+        $('#burndownChartModal').modal('show');  // Show the modal
     }
 
     window.toggleEditPopup = function () {
@@ -1266,7 +1269,7 @@ function disableStatusPills() {
             if (!event.target.closest('.dropdown') && !event.target.classList.contains('sprint-backlog-button')) {
                 if (event.target.classList.contains('burndown-chart-button')) {
                     console.log("Toggling burndown chart...")
-                    toggleBurndownChartPopup();
+                    toggleBurndownChartPopup(totalStoryPoints, completedStoryPoints);
                 }
                 else {
                     openSprintViewMode(sprint, key);
@@ -1299,7 +1302,48 @@ function disableStatusPills() {
             }
         }
     }
+    
+    let burndownChartInstance = null;  
+    function renderBurndownChart(totalStoryPoints, completedStoryPoints) {
+        const ctx = document.getElementById('burndownChart').getContext('2d');
+        let remainingStoryPoints = totalStoryPoints - completedStoryPoints;
 
+        const dataPoints = [totalStoryPoints, remainingStoryPoints];  // Data for the chart
+        // If a chart instance already exists, destroy it before creating a new one
+        if (burndownChartInstance) {
+            burndownChartInstance.destroy();
+        }
+        burndownChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Start', 'Now'],  // Labels can be extended to track daily progress
+                datasets: [{
+                    label: 'Story Points Remaining',
+                    data: dataPoints,
+                    fill: false,
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Story Points'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time'
+                        }
+                    }
+                }
+            }
+        });
+    }
 
 
     function getFormData() {
@@ -1872,11 +1916,14 @@ function openTaskViewMode(task, taskId) {
     }
 
     // Function to toggle burndown chart popup
-    window.toggleBurndownChartPopup = function () {
+    window.toggleBurndownChartPopup = function (totalStoryPoints, completedStoryPoints) {
         const popup = document.getElementById('burndown-chart-popup');
         const overlay = document.getElementById('overlay-sprint');
         popup.classList.toggle('open');
         overlay.classList.toggle('open');
+        console.log("total storypoints: ", totalStoryPoints);
+        renderBurndownChart(totalStoryPoints, completedStoryPoints);  // Call the render function
+        //$('#burndownChartModal').modal('show');  // Show the modal
 
         if (!popup.classList.contains('open')) {
             // Reset form state
