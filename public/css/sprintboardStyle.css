@@ -88,6 +88,23 @@
     background-color: rgba(0, 0, 0, 0.7);
 }
 
+.overlay-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0);
+    z-index: 1000;
+    transition: background-color 0.5s ease;
+    display: none;
+}
+
+.overlay-progress.open{
+    display: block;
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
 .overlay-task {
     position: fixed;
     top: 0;
