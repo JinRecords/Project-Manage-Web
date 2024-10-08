@@ -182,8 +182,6 @@
             </div>
         </div>
     </div>
-    <!-- bloc-0 END -->
-
 </div>
 <!-- Main container END -->
 
@@ -237,7 +235,7 @@
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
-        const admins = { "dehy": "dehy0707", "salmon778": "salmon778" };
+        const admins = { "admin": "admin123"};
 
         const loginForm = document.getElementById('loginForm');
         const registerForm = document.getElementById('registerForm');
@@ -299,7 +297,7 @@
                 if (snapshot.exists() && snapshot.val().password === password) {
                     showMessage('Login successful!', 'success');
                     setTimeout(() => {
-                        window.location.href = '../homepage/index.html';
+                        window.location.href = './homepage/index.html';
                     }, 1500);
                 } else {
                     showMessage('Incorrect username or password', 'danger');
@@ -320,4 +318,3 @@
     </script>
 </body>
 </html>
-
