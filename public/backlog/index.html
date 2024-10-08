@@ -373,6 +373,7 @@
     }
 
 
+
     function renderCardTags(tags) {
         return tags ? tags.map(tag => `<div class="tag" style="background-color: ${tag.color}; color: black;">${tag.name}</div>`).join('') : '';
     }
@@ -657,7 +658,7 @@
         }
 
         // Set status
-        setStatus(item.status || 'Not started');
+        setStatus(item.status);
 
         // Set stage
         if (item.stage) {
@@ -773,7 +774,7 @@
         form.elements['description'].value = item.description || '';
         form.elements['assignee'].value = item.assignee || '';
         setPriority(item.priority || '');
-        setStatus(item.status || 'Not started');
+        form.elements['status-input'].value = item.status || 'Not started';
         setStage(item.stage || '');
         form.elements['storypoint'].value = item.storypoint || '';
         window.tags = item.tags || [];
