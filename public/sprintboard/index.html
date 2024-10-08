@@ -81,6 +81,7 @@
     <!-- Overlay -->
     <div id="overlay-sprint" class="overlay-sprint"></div>
     <div id="overlay-task" class="overlay-task"></div>
+    <div id=""overlay-progress class="overlay-progress"></div>
 
     <!-- Delete Confirmation Popup -->
     <div id="delete-confirmation-popup" class="custom-popup">
@@ -189,17 +190,15 @@
                 </button>
                 <input type="hidden" id="priority-input" value="">
             </div>
-<div class="form-group d-flex align-items-center">
-    <label for="status">Status:</label>
-    <div id="status-pills" class="status-pills-container">
-        <button type="button" class="pill-button status-not-started edit-status">Not started</button>
-        <button type="button" class="pill-button status-in-progress edit-status">In progress</button>
-        <button type="button" class="pill-button status-completed edit-status">Completed</button>
-    </div>
-    <input type="hidden" id="status-input" value="Not started">
-</div>
-
-
+            <div class="form-group d-flex align-items-center">
+                <label for="status">Status:</label>
+                <div id="status-pills" class="status-pills-container">
+                    <button type="button" class="pill-button status-not-started edit-status">Not started</button>
+                    <button type="button" class="pill-button status-in-progress edit-status">In progress</button>
+                    <button type="button" class="pill-button status-completed edit-status">Completed</button>
+                </div>
+                <input type="hidden" id="status-input" value="Not started">
+            </div>
             <div class="form-group d-flex align-items-center">
                 <label for="stage">Stage:</label>
                 <button type="button" class="pill-button stage-planning" onclick="setStage('Planning')">Planning
@@ -242,6 +241,15 @@
             </div>
         </form>
     </div>
+
+    <!-- Progress Popup-->
+     <div id="progress-popup" class="popup-form">
+        <div class="form-group">
+            <form id="progressForm">
+                <h4>Progress</h4>
+            </form>
+        </div>
+     </div>
 
     <!-- Tag Selection Popup -->
     <div id="tag-selection-popup" class="tag-selection-popup">
@@ -370,37 +378,36 @@
         overlay.classList.toggle('open');
         console.log("Popup visibility:", popup.classList.contains('open'));
     }
+    window.toggleEditPopup = function () {
+        console.log('toggleEditPopup function called');
+        const popup = document.getElementById('editTaskPopupForm');
+        const overlay = document.getElementById('overlay-task');
 
-window.toggleEditPopup = function () {
-    console.log('toggleEditPopup function called');
-    const popup = document.getElementById('editTaskPopupForm');
-    const overlay = document.getElementById('overlay-task');
+        if (!popup) {
+            console.error('Edit popup element not found!');
+            return;
+        }
 
-    if (!popup) {
-        console.error('Edit popup element not found!');
-        return;
+        console.log('Popup before toggle:', popup.classList.contains('open'));
+        popup.classList.toggle('open');
+        overlay.classList.toggle('open');
+        console.log('Popup after toggle:', popup.classList.contains('open'));
+
+        // Force a reflow
+        void popup.offsetWidth;
+
+        if (popup.classList.contains('open')) {
+            popup.style.display = 'block';
+            overlay.style.display = 'block';
+        } else {
+            popup.style.display = 'none';
+            overlay.style.display = 'none';
+        }
+
+        console.log('Popup display:', window.getComputedStyle(popup).display);
+        console.log('Popup visibility:', window.getComputedStyle(popup).visibility);
+        console.log('Popup opacity:', window.getComputedStyle(popup).opacity);
     }
-
-    console.log('Popup before toggle:', popup.classList.contains('open'));
-    popup.classList.toggle('open');
-    overlay.classList.toggle('open');
-    console.log('Popup after toggle:', popup.classList.contains('open'));
-
-    // Force a reflow
-    void popup.offsetWidth;
-
-    if (popup.classList.contains('open')) {
-        popup.style.display = 'block';
-        overlay.style.display = 'block';
-    } else {
-        popup.style.display = 'none';
-        overlay.style.display = 'none';
-    }
-
-    console.log('Popup display:', window.getComputedStyle(popup).display);
-    console.log('Popup visibility:', window.getComputedStyle(popup).visibility);
-    console.log('Popup opacity:', window.getComputedStyle(popup).opacity);
-}
 
 
 
