@@ -243,13 +243,47 @@
     </div>
 
     <!-- Progress Popup-->
-     <div id="progress-popup" class="popup-form">
-        <div class="form-group">
-            <form id="progressForm">
+    <div id="progress-popup" class="popup-form">
+        <form id="progressForm class="progress-popup-layout</form>
+            <div class="form-group">
+                
                 <h4>Progress</h4>
-            </form>
-        </div>
-     </div>
+                <div class="col-auto ml-auto">
+                    <button id="filterButton" class="btn btn-secondary"><i class="fas fa-filter"></i></button>
+                   
+                </div>
+                <div class="form-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="toggleProgressPopup()">Cancel</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Filter by time spent popup-->
+    <div id="filter-time-spent-popup" class="custom-popup">
+        <form id="filterTimeSpentForm"></form>
+            <div class="custom-popup-content">
+                <h4>Filter By</h4>
+                <div id="filter-option">
+                    <div class="filter-option">
+                        <label for="filter-by-date-range">Date range
+                            <input type="radio" id="filter-by-date-range" name="filtering-option" value="date-range">
+                        </label>
+                    </div>
+                    <div class="filter-option"></div>
+                        <label for="filter-by-team-member">Team member
+                            <input type="radio" id="filter-by-team-member" name="filtering-option" value="team-member">
+                        </label>
+                    </div>
+                        <div class="custom-popup-buttons">
+                            <button class="btn btn-secondary" onclick="toggleFilterTimeSpentPopup()">Cancel</button>
+                            <button class="btn btn-primary" onclick="applyTimeSpentFilter()">Apply</button>
+                        </div>
+                    </div>                 
+                </div>
+            </div>
+        </form>
+    </div>
 
     <!-- Tag Selection Popup -->
     <div id="tag-selection-popup" class="tag-selection-popup">
