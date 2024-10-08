@@ -81,7 +81,8 @@
     <!-- Overlay -->
     <div id="overlay-sprint" class="overlay-sprint"></div>
     <div id="overlay-task" class="overlay-task"></div>
-    <div id=""overlay-progress class="overlay-progress"></div>
+    <div id="overlay-progress" class="overlay-progress"></div>
+    <div id="overlay-filter-time-spent" class="overlay-filter-time-spent"></div>
 
     <!-- Delete Confirmation Popup -->
     <div id="delete-confirmation-popup" class="custom-popup">
@@ -244,7 +245,7 @@
 
     <!-- Progress Popup-->
     <div id="progress-popup" class="popup-form">
-        <form id="progressForm class="progress-popup-layout</form>
+        <form id="progressForm" class="progress-popup-layout"></form>
             <div class="form-group">
                 
                 <h4>Progress</h4>
@@ -261,7 +262,6 @@
 
     <!-- Filter by time spent popup-->
     <div id="filter-time-spent-popup" class="custom-popup">
-        <form id="filterTimeSpentForm"></form>
             <div class="custom-popup-content">
                 <h4>Filter By</h4>
                 <div id="filter-option">
@@ -276,7 +276,7 @@
                         </label>
                     </div>
                         <div class="custom-popup-buttons">
-                            <button class="btn btn-secondary" onclick="toggleFilterTimeSpentPopup()">Cancel</button>
+                            <button class="btn btn-secondary" onclick="hideFilterTimeSpentPopup()">Cancel</button>
                             <button class="btn btn-primary" onclick="applyTimeSpentFilter()">Apply</button>
                         </div>
                     </div>                 
@@ -325,6 +325,14 @@
     window.handleAddSprintClick = function (event) {
         event.preventDefault();
         setSprintFormMode('add');
+    }
+
+    function showFilterTimeSpentPopup() {
+        document.getElementById('filter-time-spent-popup').style.display = 'block';
+    }
+
+    function hideFilterTimeSpentPopup() {
+        document.getElementById('filter-time-spent-popup').style.display = 'none';
     }
 
 
@@ -412,6 +420,7 @@
         overlay.classList.toggle('open');
         console.log("Popup visibility:", popup.classList.contains('open'));
     }
+
     window.toggleEditPopup = function () {
         console.log('toggleEditPopup function called');
         const popup = document.getElementById('editTaskPopupForm');
@@ -1487,10 +1496,18 @@ document.addEventListener('click', (event) => {
         });
 
         document.getElementById('progress-button').addEventListener('click', (event) => {
-            if (event.target === document.getElementById('progress_button')) {
+            if (event.target === document.getElementById('progress-button')) {
                 toggleProgressPopup();
             }
         });
+
+        document.getElementById('filterButton').addEventListener('click', (event) => {
+            console.log("event listener filter ")
+            if (event.target === document.getElementById('filterButton')) {
+                toggleFilterTimeSpentPopup();
+            }
+        });
+
     });
 
 
@@ -1810,6 +1827,15 @@ function openTaskViewMode(task, taskId) {
         }
     }
 
+    document.addEventListener('DOMContentLoaded', () => {
+        //fetchSprintBoard();
+        document.getElementById('filterButton').addEventListener('click', showFilterTimeSpentPopup);
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        //setupSprintBacklogRealtimeListener();
+        document.getElementById('filterButton').addEventListener('click', showFilterTimeSpentPopup);
+    });
 
 let toggleInProgress = false;
 let isOverlayOpen = false;
