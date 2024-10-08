@@ -416,6 +416,13 @@
         console.log("Popup visibility:", popup.classList.contains('open'));
     }
 
+    function toggleBurndownChartPopup() {
+        console.log("Toggling burndown chart popup");
+        const popup = document.getElementById('burndown-chart-popup');
+        popup.classList.toggle('open');
+        console.log("Popup visibility:", popup.classList.contains('open'));
+    }
+
     window.toggleEditPopup = function () {
         console.log('toggleEditPopup function called');
         const popup = document.getElementById('editTaskPopupForm');
@@ -1224,7 +1231,13 @@ function disableStatusPills() {
 
         card.addEventListener('click', (event) => {
             if (!event.target.closest('.dropdown') && !event.target.classList.contains('sprint-backlog-button')) {
-                openSprintViewMode(sprint, key);
+                if (event.target.classList.contains('burndown-chart-button')) {
+                    console.log("Toggering burndown chart...")
+                    toggleBurndownChartPopup();
+                }
+                else {
+                    openSprintViewMode(sprint, key);
+                }
             }
         });
 
@@ -1710,7 +1723,11 @@ function createKanbanTaskCard(task, taskId) {
     return card;
 }
 
-
+document.addEventListener('click', async function(event) {
+    if (event.target.classList.contains('burndown-chart-button')) {
+        console.log('Burndown Chart button clicked');
+    }
+});
 
 document.addEventListener('click', async function(event) {
     if (event.target.classList.contains('sprint-backlog-button')) {
@@ -1816,6 +1833,20 @@ function openTaskViewMode(task, taskId) {
             // Reset form state
 
             const form = document.getElementById('progressForm');
+            form.reset();
+            Array.from(form.elements).forEach(el => el.disabled = false);
+        }
+    }
+
+    // Function to toggle burndown chart popup
+    window.toggleBurndownChartPopup = function () {
+        const popup = document.getElementById('burndown-chart-popup');
+        popup.classList.toggle('open');
+
+        if (!popup.classList.contains('open')) {
+            // Reset form state
+
+            const form = document.getElementById('burndownChartForm');
             form.reset();
             Array.from(form.elements).forEach(el => el.disabled = false);
         }
