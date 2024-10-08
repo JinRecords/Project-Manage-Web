@@ -412,16 +412,6 @@
         overlay.classList.toggle('open');
         console.log("Popup visibility:", popup.classList.contains('open'));
     }
-
-    function toggleFilterTimeSpentPopup() {
-        console.log("Toggling filter time spent popup");
-        const popup = document.getElementById('filter-time-spent-popup');
-        const overlay = document.getElementById('overlay-time-spent');
-        popup.classList.toggle('open');
-        overlay.classList.toggle('open');
-        console.log("Popup visibility:", popup.classList.contains('open'));
-    }
-
     window.toggleEditPopup = function () {
         console.log('toggleEditPopup function called');
         const popup = document.getElementById('editTaskPopupForm');
@@ -1469,19 +1459,6 @@ window.exitSprintKanbanMode = function() {
             }
         });
 
-        document.getElementById('progress-button').addEventListener('click', (event) => {
-            if (event.target === document.getElementById('progress-button')) {
-                toggleProgressPopup();
-            }
-        });
-
-        document.getElementById('filter-time-spent-button').addEventListener('click', (event) => {
-            if (event.target === document.getElementById('filter-time-spent-button')) {
-                toggleProgressPopup();
-            }
-        });
-    });
-
         // Initial fetch of sprint board data
         fetchSprintBoard();
 
@@ -1832,23 +1809,6 @@ function openTaskViewMode(task, taskId) {
             Array.from(form.elements).forEach(el => el.disabled = false);
         }
     }
-
-    // Function to toggle filter time spent popup
-    window.toggleFilterTimeSpentPopup = function () {
-        const popup = document.getElementById('filter-time-spent-popup');
-        const overlay = document.getElementById('overlay-filter-time-spent');
-        popup.classList.toggle('open');
-        overlay.classList.toggle('open');
-
-        if (!popup.classList.contains('open')) {
-            // Reset form state
-
-            const form = document.getElementById('filterTimeSpentForm');
-            form.reset();
-            Array.from(form.elements).forEach(el => el.disabled = false);
-        }
-    }
-
 
 
 let toggleInProgress = false;
@@ -2381,4 +2341,5 @@ window.toggleEditPopup = function () {
 </script>
 </body>
 </html>
+
 
