@@ -66,6 +66,11 @@
     margin-left: 10px;
 }
 
+#progress-button {
+    background-color: #6E6AF0;
+    color: #ffffff;
+}
+
 .overlay-sprint {
     position: fixed;
     top: 0;

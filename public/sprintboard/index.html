@@ -607,9 +607,11 @@ function setFormMode(mode, item = null) {
             console.log('About to toggle edit popup');
 
         } else if (mode === 'view') {
+            console.log("???????????????????????????????????????????")
             fillFormWithItemData(item);
             Array.from(form.elements).forEach(el => el.disabled = true);
-            buttons.innerHTML = '<button type="button" class="btn btn-secondary" onclick="toggleEditPopup()">Back</button>';
+            buttons.innerHTML = `<button type="button" class="btn btn-secondary" onclick="toggleEditPopup()">Back</button>
+                `;
             disableStatusPills();
             console.log('About to toggle view popup');
         }
@@ -637,15 +639,6 @@ function disableStatusPills() {
         pill.removeEventListener('click', setStatus);
     });
 }
-
-
-
-
-
-
-
-
-
 
     function fillFormWithItemData(item) {
         const form = document.getElementById('backlogForm');
@@ -936,7 +929,9 @@ function disableStatusPills() {
 
         // Change buttons: Only "Back"
         const buttons = document.getElementById('edit-form-buttons');
-        buttons.innerHTML = '<button type="button" class="btn btn-secondary" onclick="toggleEditPopup()">Back</button>';
+        buttons.innerHTML = `
+            <button type="button" class=btn btn-primary" onclick="toggleProgressPopup()">Progress</button>
+            <button type="button" class="btn btn-secondary" onclick="toggleEditPopup()">Back</button>`;
 
         // Open popup
         toggleEditPopup();
