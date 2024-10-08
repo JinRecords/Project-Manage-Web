@@ -929,8 +929,9 @@ function disableStatusPills() {
 
         // Change buttons: Only "Back"
         const buttons = document.getElementById('edit-form-buttons');
+        console.log(buttons)
         buttons.innerHTML = `
-            <button type="button" class=btn btn-primary" onclick="toggleProgressPopup()">Progress</button>
+            <button type="button" id="progress-button" class=btn btn-primary" onclick="toggleProgressPopup()">Progress</button>
             <button type="button" class="btn btn-secondary" onclick="toggleEditPopup()">Back</button>`;
 
         // Open popup
