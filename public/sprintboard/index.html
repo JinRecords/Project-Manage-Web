@@ -362,6 +362,15 @@
         }
     }
 
+    function toggleProgressPopup() {
+        console.log("Toggling sprint popup");
+        const popup = document.getElementById('progress-popup');
+        const overlay = document.getElementById('overlay-progress');
+        popup.classList.toggle('open');
+        overlay.classList.toggle('open');
+        console.log("Popup visibility:", popup.classList.contains('open'));
+    }
+
 window.toggleEditPopup = function () {
     console.log('toggleEditPopup function called');
     const popup = document.getElementById('editTaskPopupForm');
@@ -1430,11 +1439,15 @@ document.addEventListener('click', (event) => {
 });
 
 
-
-
         document.getElementById('overlay-task').addEventListener('click', (event) => {
             if (event.target === document.getElementById('overlay-task')) {
                 toggleEditPopup();
+            }
+        });
+
+        document.getElementById('progress-button').addEventListener('click', (event) => {
+            if (event.target === document.getElementById('progress_button')) {
+                toggleProgressPopup();
             }
         });
     });
@@ -1735,6 +1748,22 @@ function openTaskViewMode(task, taskId) {
             // Reset form state
 
             const form = document.getElementById('sprintForm');
+            form.reset();
+            Array.from(form.elements).forEach(el => el.disabled = false);
+        }
+    }
+
+    // Function to toggle progress popup
+    window.toggleProgressPopup = function () {
+        const popup = document.getElementById('progress-popup');
+        const overlay = document.getElementById('overlay-progress');
+        popup.classList.toggle('open');
+        overlay.classList.toggle('open');
+
+        if (!popup.classList.contains('open')) {
+            // Reset form state
+
+            const form = document.getElementById('progressForm');
             form.reset();
             Array.from(form.elements).forEach(el => el.disabled = false);
         }
