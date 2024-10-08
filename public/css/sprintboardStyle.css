@@ -14,6 +14,8 @@
     font-weight: 400;
     position: fixed;
     overflow-y: auto;
+
+
 }
 
 .popup-form.open {
@@ -478,9 +480,14 @@
 }
 
 #filterButton {
-    right: 20px;
-    padding-right: 30px;
-    padding-left: 30px;
+    right: 100px;
+    width: 36px;
+    height: 38px;
+    padding-right: 35px;
+    padding-left: 35px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     background-color: #aaaaaa;
     outline: 2px;
     outline-style: solid;
