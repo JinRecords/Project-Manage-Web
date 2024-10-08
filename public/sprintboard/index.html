@@ -265,14 +265,30 @@
             <div class="form-group">
                 
                 <h4>Burndown Chart</h4>
-                
+                <canvas id="burndownChart" width="400" height="200"></canvas>
                 <div class="form-buttons">
                     <button type="button" class="btn btn-secondary" onclick="toggleBurndownChartPopup()">Back</button>
                 </div>
             </div>
         </form>
-
     </div>
+
+    <!-- Modal for Burndown Chart -->
+<div id="burndownChartModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Burndown Chart</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <canvas id="burndownChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
 
     <!-- Filter by time spent popup-->
     <div id="filter-time-spent-popup" class="filter-time-spent-popup">
