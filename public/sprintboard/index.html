@@ -81,8 +81,7 @@
     <!-- Overlay -->
     <div id="overlay-sprint" class="overlay-sprint"></div>
     <div id="overlay-task" class="overlay-task"></div>
-    <div id="overlay-progress" class="overlay-progress"></div>
-    <div id="overlay-filter-time-spent" class="overlay-filter-time-spent"></div>
+    
 
     <!-- Delete Confirmation Popup -->
     <div id="delete-confirmation-popup" class="custom-popup">
@@ -261,28 +260,26 @@
     </div>
 
     <!-- Filter by time spent popup-->
-    <div id="filter-time-spent-popup" class="custom-popup">
-            <div class="custom-popup-content">
-                <h4>Filter By</h4>
-                <div id="filter-option">
-                    <div class="filter-option">
-                        <label for="filter-by-date-range">Date range
-                            <input type="radio" id="filter-by-date-range" name="filtering-option" value="date-range">
-                        </label>
-                    </div>
-                    <div class="filter-option"></div>
-                        <label for="filter-by-team-member">Team member
-                            <input type="radio" id="filter-by-team-member" name="filtering-option" value="team-member">
-                        </label>
-                    </div>
-                        <div class="custom-popup-buttons">
-                            <button class="btn btn-secondary" onclick="hideFilterTimeSpentPopup()">Cancel</button>
-                            <button class="btn btn-primary" onclick="applyTimeSpentFilter()">Apply</button>
-                        </div>
-                    </div>                 
+    <div id="filter-time-spent-popup" class="filter-time-spent-popup">
+        <div class="custom-popup-content">
+            <h4>Filter By</h4>
+            <div id="filter-option">
+                <div class="filter-option">
+                    <label for="filter-by-date-range">Date range
+                        <input type="radio" id="filter-by-date-range" name="filtering-option" value="date-range">
+                    </label>
                 </div>
+                <div class="filter-option">
+                    <label for="filter-by-team-member">Team member
+                        <input type="radio" id="filter-by-team-member" name="filtering-option" value="team-member">
+                    </label>
+                </div>
+                <div class="custom-popup-buttons">
+                    <button class="btn btn-secondary" onclick="hideFilterTimeSpentPopup()">Cancel</button>
+                    <button class="btn btn-primary" onclick="applyTimeSpentFilter()">Apply</button>
+                </div>               
             </div>
-        </form>
+        </div>
     </div>
 
     <!-- Tag Selection Popup -->
@@ -415,9 +412,7 @@
     function toggleProgressPopup() {
         console.log("Toggling sprint popup");
         const popup = document.getElementById('progress-popup');
-        const overlay = document.getElementById('overlay-progress');
         popup.classList.toggle('open');
-        overlay.classList.toggle('open');
         console.log("Popup visibility:", popup.classList.contains('open'));
     }
 
@@ -1814,9 +1809,7 @@ function openTaskViewMode(task, taskId) {
     // Function to toggle progress popup
     window.toggleProgressPopup = function () {
         const popup = document.getElementById('progress-popup');
-        const overlay = document.getElementById('overlay-progress');
         popup.classList.toggle('open');
-        overlay.classList.toggle('open');
 
         if (!popup.classList.contains('open')) {
             // Reset form state
