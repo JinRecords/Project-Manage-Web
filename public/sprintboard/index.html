@@ -244,7 +244,7 @@
 
     <!-- Progress Popup-->
     <div id="progress-popup" class="popup-form">
-        <form id="progressForm" class="progress-popup-layout"></form>
+        <form id="progressForm" class="progress-popup-layout">
             <div class="form-group">
                 
                 <h4>Progress</h4>
@@ -257,6 +257,21 @@
                 </div>
             </div>
         </form>
+    </div>
+
+    <!-- Burndown chart popup-->
+    <div id="burndown-chart-popup" class="popup-form">
+        <form id="burndownChartForm" ></form>
+            <div class="form-group">
+                
+                <h4>Burndown Chart</h4>
+                
+                <div class="form-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="toggleBurndownChartPopup()">Back</button>
+                </div>
+            </div>
+        </form>
+
     </div>
 
     <!-- Filter by time spent popup-->
@@ -419,7 +434,9 @@
     function toggleBurndownChartPopup() {
         console.log("Toggling burndown chart popup");
         const popup = document.getElementById('burndown-chart-popup');
+        const overlay = document.getElementById('overlay-sprint');
         popup.classList.toggle('open');
+        overlay.classList.toggle('open');
         console.log("Popup visibility:", popup.classList.contains('open'));
     }
 
@@ -1232,7 +1249,7 @@ function disableStatusPills() {
         card.addEventListener('click', (event) => {
             if (!event.target.closest('.dropdown') && !event.target.classList.contains('sprint-backlog-button')) {
                 if (event.target.classList.contains('burndown-chart-button')) {
-                    console.log("Toggering burndown chart...")
+                    console.log("Toggling burndown chart...")
                     toggleBurndownChartPopup();
                 }
                 else {
@@ -1841,7 +1858,9 @@ function openTaskViewMode(task, taskId) {
     // Function to toggle burndown chart popup
     window.toggleBurndownChartPopup = function () {
         const popup = document.getElementById('burndown-chart-popup');
+        const overlay = document.getElementById('overlay-sprint');
         popup.classList.toggle('open');
+        overlay.classList.toggle('open');
 
         if (!popup.classList.contains('open')) {
             // Reset form state
