@@ -384,6 +384,10 @@
     margin-bottom: 20px;
 }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 64f44edd1db71243e6da957cc26f7be641de8b37
 .card-body .btn-secondary:disabled {
     opacity: 1;
     cursor: default;
@@ -561,8 +565,12 @@
 }
 
 .btn-9-style {
+<<<<<<< HEAD
     margin-left: 60px;
     width: 1080px !important;
+=======
+    width: 1430px !important;
+>>>>>>> 64f44edd1db71243e6da957cc26f7be641de8b37
 }
 
 
@@ -633,6 +641,19 @@
     text-align: center;
 }
 
+<<<<<<< HEAD
+=======
+.sprint-burndown-button {
+    text-align: center;
+}
+
+.sprint-burndown-button:hover {
+    background-color: #cccccc !important;/* Hover color */
+    color: #ffffff !important; /* Text color */
+
+}
+
+>>>>>>> 64f44edd1db71243e6da957cc26f7be641de8b37
 .sprint-backlog-button:hover {
     background-color: #cccccc !important;/* Hover color */
     color: #ffffff !important; /* Text color */
