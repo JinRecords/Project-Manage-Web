@@ -111,17 +111,13 @@
             <div class="form-group">
                 <label for="productOwner">Product Owner:</label>
                 <select class="form-control" id="productOwner">
-                    <option>test1</option>
-                    <option>test2</option>
-                    <option>test3</option>
+                
                 </select>
             </div>
             <div class="form-group">
                 <label for="scrumMaster">Scrum Master:</label>
                 <select class="form-control" id="scrumMaster">
-                    <option>test1</option>
-                    <option>test2</option>
-                    <option>test3</option>
+            
                 </select>
             </div>
             <div class="form-group">
@@ -172,9 +168,6 @@
                 <label for="assignee">Assignee:</label>
                 <select class="form-control" id="assignee"
                         style="width: 150px; display: inline-block; margin-left: 10px;">
-                    <option>test1</option>
-                    <option>test2</option>
-                    <option>test3</option>
                 </select>
             </div>
             <div class="form-group d-flex align-items-center">
@@ -495,10 +488,10 @@
     let tags = [], teamMembers = [], priority = '', sprint = '', status = 'Not started', stage = '';
     const availableTags = ['UI', 'UX', 'Frontend', 'Backend', 'Framework', 'Testing', 'Database', 'API'];
     const tagColors = ['#FFC0CB', '#FFD7BE', '#F7DC6F', '#C6F4D6', '#9ED2C0', '#8DB8CB', '#9F9CE9', '#BE8DE4'];
-    const availableTeamMembers = ['test1', 'test2', 'test3', 'test4', 'test5'];
-    const teamMembersColors = ['#C6F4D6', '#C6F4D6', '#C6F4D6', '#C6F4D6', '#C6F4D6'];
+    
     window.tags = [];
     window.teamMembers = [];
+    let teamMembersColors = [];
 
     function showTagSelectionPopup() {
         const tagSelectionPopup = document.getElementById('tag-selection-popup');
@@ -525,14 +518,14 @@
         const teamMembersSelectionPopup = document.getElementById('teamMembers-selection-popup');
         const teamMembersSelection = document.getElementById('teamMembers-selection');
         teamMembersSelection.innerHTML = '';
-        availableTeamMembers.forEach((tag, index) => {
+        window.availableTeamMembers.forEach((tag, index) => {
             const tagElement = document.createElement('div');
             tagElement.classList.add('teamMembers-selection-teamMembers');
-            tagElement.style.backgroundColor = tagColors[index % tagColors.length];
+            tagElement.style.backgroundColor = window.teamMembersColors[index];
             tagElement.textContent = tag;
             tagElement.addEventListener('click', () => {
                 if (!window.teamMembers.some(t => t.name === tag)) {
-                    window.teamMembers.push({name: tag, color: tagColors[index % tagColors.length]});
+                    window.teamMembers.push({name: tag, color: window.teamMembersColors[index]});
                 }
                 renderPopupTeamMembers();
                 hideTeamMemberSelectionPopup();
@@ -2544,6 +2537,55 @@ window.toggleEditPopup = function () {
 
     // Expose the function to the global scope for console access
     window.clearAllSprints = clearAllSprints;
+
+    async function fetchUserTeamMember() {
+        const usersRef = ref(database, 'users'); // Reference to the users node
+        try {
+            const snapshot = await get(usersRef);
+            if (snapshot.exists()) {
+                const users = snapshot.val();
+                window.availableTeamMembers = Object.values(users).map(user => user.username);
+                window.teamMembersColors = Object.values(users).map((user) => '#FFD7BE');
+            } else {
+                console.log("No users available");
+            }
+        } catch (error) {
+            console.error("Error fetching users:", error);
+        }
+    }
+
+    // Fetch users from Firebase and populate the assignee dropdown
+    async function fetchUsers(assigneeId) {
+        const usersRef = ref(database, 'users'); // Reference to the users node
+        try {
+            const snapshot = await get(usersRef);
+            if (snapshot.exists()) {
+                const users = snapshot.val();
+                const assigneeSelect = document.getElementById(assigneeId);
+                assigneeSelect.innerHTML = ''; // Clear existing options
+                Object.entries(users).forEach(([key, user]) => {
+                    const option = document.createElement('option');
+                    option.value = user.username; // Use username as the value
+                    option.textContent = user.username; // Display username
+                    assigneeSelect.appendChild(option);
+                });
+            } else {
+                console.log("No users available");
+            }
+        } catch (error) {
+            console.error("Error fetching users:", error);
+        }
+    }
+
+
+    // Call the function to fetch users when the document is loaded
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchUsers('productOwner');
+        fetchUsers('scrumMaster');
+        fetchUsers('assignee');
+        fetchUserTeamMember();
+        
+    });
 </script>
 </body>
 </html>
