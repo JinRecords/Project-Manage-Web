@@ -123,9 +123,7 @@
                 <label for="assignee">Assignee:</label>
                 <select class="form-control" id="assignee"
                         style="width: 150px; display: inline-block; margin-left: 10px;">
-                    <option>test1</option>
-                    <option>test2</option>
-                    <option>test3</option>
+                    <!-- Options will be populated dynamically -->
                 </select>
             </div>
             <div class="form-group">
@@ -1093,5 +1091,31 @@
             }
         }
     });
+
+    // Fetch users from Firebase and populate the assignee dropdown
+    async function fetchUsers() {
+        const usersRef = ref(database, 'users'); // Reference to the users node
+        try {
+            const snapshot = await get(usersRef);
+            if (snapshot.exists()) {
+                const users = snapshot.val();
+                const assigneeSelect = document.getElementById('assignee');
+                assigneeSelect.innerHTML = ''; // Clear existing options
+                Object.entries(users).forEach(([key, user]) => {
+                    const option = document.createElement('option');
+                    option.value = user.username; // Use username as the value
+                    option.textContent = user.username; // Display username
+                    assigneeSelect.appendChild(option);
+                });
+            } else {
+                console.log("No users available");
+            }
+        } catch (error) {
+            console.error("Error fetching users:", error);
+        }
+    }
+
+    // Call the function to fetch users when the document is loaded
+    document.addEventListener('DOMContentLoaded', fetchUsers);
 </script>
 </body>
