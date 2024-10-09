@@ -50,11 +50,7 @@
                class="btn btn-lg mb-lg-3 btn-c-672 btn-style ps-lg-0 btn-clean-clicked product-backlog-btn">
                 <span class="icon-spacer fa fa-running  icon-7647 icon-md me-lg-3"></span>Sprint Board
             </a>
-<<<<<<< HEAD
             <a href="../" class="btn btn-lg btn-button-style mt-lg-2 btn-c-7647 mb-lg-3">
-=======
-            <a href="../teammember/index.html" class="btn btn-lg btn-button-style mt-lg-2 btn-c-7647 mb-lg-3">
->>>>>>> 64f44edd1db71243e6da957cc26f7be641de8b37
                 <span class="icon-spacer ion ion-android-people icon-md me-lg-3"></span>Team members
             </a>
         </div>
@@ -248,20 +244,12 @@
 
     <!-- Progress Popup-->
     <div id="progress-popup" class="popup-form">
-<<<<<<< HEAD
         <form id="progressForm" class="progress-popup-layout"></form>
-=======
-        <form id="progressForm" class="progress-popup-layout">
->>>>>>> 64f44edd1db71243e6da957cc26f7be641de8b37
             <div class="form-group">
                 
                 <h4>Progress</h4>
                 <div class="col-auto ml-auto">
-<<<<<<< HEAD
                     <button id="filterButton" class="btn btn-secondary"><i class="fas fa-filter"></i></button>
-=======
-                    <button type="button" id="filterButton" class="btn btn-secondary"><i class="fas fa-filter"></i></button>
->>>>>>> 64f44edd1db71243e6da957cc26f7be641de8b37
                    
                 </div>
                 <div class="form-buttons">
@@ -271,40 +259,6 @@
         </form>
     </div>
 
-<<<<<<< HEAD
-=======
-    <!-- Burndown chart popup-->
-    <div id="burndown-chart-popup" class="popup-form">
-        <form id="burndownChartForm" ></form>
-            <div class="form-group">
-                
-                <h4>Burndown Chart</h4>
-                <canvas id="burndownChart" width="400" height="200"></canvas>
-                <div class="form-buttons">
-                    <button type="button" class="btn btn-secondary" onclick="toggleBurndownChartPopup()">Back</button>
-                </div>
-            </div>
-        </form>
-    </div>
-
-    <!-- Modal for Burndown Chart -->
-<div id="burndownChartModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Burndown Chart</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <canvas id="burndownChart" width="400" height="200"></canvas>
-            </div>
-        </div>
-    </div>
-</div>
-
->>>>>>> 64f44edd1db71243e6da957cc26f7be641de8b37
     <!-- Filter by time spent popup-->
     <div id="filter-time-spent-popup" class="filter-time-spent-popup">
         <div class="custom-popup-content">
@@ -359,10 +313,6 @@
 <script src="../js/bootstrap.bundle.min.js?3058"></script>
 <script src="../js/blocs.min.js?6353"></script>
 <script src="../js/lazysizes.min.js" defer></script>
-<<<<<<< HEAD
-=======
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
->>>>>>> 64f44edd1db71243e6da957cc26f7be641de8b37
 <script>
     // Global variables
     let currentSprintId = null;
@@ -466,23 +416,11 @@
         console.log("Popup visibility:", popup.classList.contains('open'));
     }
 
-<<<<<<< HEAD
     function toggleBurndownChartPopup() {
         console.log("Toggling burndown chart popup");
         const popup = document.getElementById('burndown-chart-popup');
         popup.classList.toggle('open');
         console.log("Popup visibility:", popup.classList.contains('open'));
-=======
-    function toggleBurndownChartPopup(totalStoryPoints, completedStoryPoints, dateStoryPoint, dates) {
-        console.log("Toggling burndown chart popup");
-        const popup = document.getElementById('burndown-chart-popup');
-        const overlay = document.getElementById('overlay-sprint');
-        popup.classList.toggle('open');
-        overlay.classList.toggle('open');
-        console.log("Popup visibility:", popup.classList.contains('open'));
-        renderBurndownChart(totalStoryPoints, completedStoryPoints, dateStoryPoint, dates);  // Call the render function
-        $('#burndownChartModal').modal('show');  // Show the modal
->>>>>>> 64f44edd1db71243e6da957cc26f7be641de8b37
     }
 
     window.toggleEditPopup = function () {
@@ -1239,7 +1177,6 @@ function disableStatusPills() {
     async function createSprintCardAsync(sprint, key) {
         let totalStoryPoints = 0;
         let completedStoryPoints = 0;
-<<<<<<< HEAD
 
         if (sprint.sprintTasks) {
             for (const taskId of sprint.sprintTasks) {
@@ -1248,58 +1185,11 @@ function disableStatusPills() {
                     totalStoryPoints += parseInt(task.storypoint);
                     if (task.status === 'Completed') {
                         completedStoryPoints += parseInt(task.storypoint);
-=======
-        let dateStoryPoint = {};  // Dictionary to track story points by completion date
-
-        // This is for the burndown chart
-        let dates = [];
-        let startDate = new Date(sprint.startTime);
-
-        while (startDate <= new Date(sprint.endTime)) {
-            dates.push(startDate.toISOString().split('T')[0]);  // Format as YYYY-MM-DD
-            startDate.setDate(startDate.getDate() + 2);  // Increment by 2 days
-        }
-
-        console.log("*******:", dates);
-        console.log("S", startDate, sprint.endDate);
-
-        if (sprint.sprintTasks) {
-        for (const taskId of sprint.sprintTasks) {
-            const task = await fetchTaskDetails(taskId);
-            if (task) {
-                // Add total story points from the task
-                totalStoryPoints += parseInt(task.storypoint);
-
-                // If the task is completed, update completed story points and store by date
-                if (task.status === 'Completed') {
-                    completedStoryPoints += parseInt(task.storypoint);
-
-                    let completedDate = task.timeModified;  // Assuming this is where the task's completion date is stored
-                    console.log("This is the task: ", task);
-                    console.log("This is the completed date: ", completedDate);
-                    let storyPoints = task.storypoint;       // Story points of the completed task
-
-                    // Check if the completed date is already in the dictionary
-                    if (dateStoryPoint[completedDate]) {
-                        // Accumulate story points for this date
-                        dateStoryPoint[completedDate] += parseInt(storyPoints);
-                    } else {
-                        // Create a new entry in the dictionary with the completed date
-                        dateStoryPoint[completedDate] = parseInt(storyPoints);
->>>>>>> 64f44edd1db71243e6da957cc26f7be641de8b37
                     }
                 }
             }
         }
 
-<<<<<<< HEAD
-=======
-        // At this point, `dateStoryPoint` contains the accumulated story points by completion date
-        console.log("Story points by completion date:", dateStoryPoint);
-    }
-
-
->>>>>>> 64f44edd1db71243e6da957cc26f7be641de8b37
         const card = document.createElement('div');
         card.className = 'card mb-3';
         card.setAttribute('data-sprint-id', key);
@@ -1342,13 +1232,8 @@ function disableStatusPills() {
         card.addEventListener('click', (event) => {
             if (!event.target.closest('.dropdown') && !event.target.classList.contains('sprint-backlog-button')) {
                 if (event.target.classList.contains('burndown-chart-button')) {
-<<<<<<< HEAD
                     console.log("Toggering burndown chart...")
                     toggleBurndownChartPopup();
-=======
-                    console.log("Toggling burndown chart...")
-                    toggleBurndownChartPopup(totalStoryPoints, completedStoryPoints, dateStoryPoint, dates);
->>>>>>> 64f44edd1db71243e6da957cc26f7be641de8b37
                 }
                 else {
                     openSprintViewMode(sprint, key);
@@ -1381,72 +1266,6 @@ function disableStatusPills() {
             }
         }
     }
-<<<<<<< HEAD
-=======
-    
-    let burndownChartInstance = null;
-
-    function renderBurndownChart(totalStoryPoints, completedStoryPoints, dateStoryPoint, dates) {
-        const ctx = document.getElementById('burndownChart').getContext('2d');
-        let remainingStoryPoints = totalStoryPoints - completedStoryPoints;
-
-        // Data for the chart (Remaining story points)
-        const dataPoints = [totalStoryPoints, remainingStoryPoints];
-
-        // Create a diagonal line from totalStoryPoints to 0
-        const diagonalPoints = dates.map((date, index) => {
-            // Evenly spaced points from totalStoryPoints to 0
-            const progress = totalStoryPoints - (totalStoryPoints / (dates.length - 1)) * index;
-            return Math.max(progress, 0); // Ensure it doesn't go below 0
-        });
-
-        // If a chart instance already exists, destroy it before creating a new one
-        if (burndownChartInstance) {
-            burndownChartInstance.destroy();
-        }
-
-        burndownChartInstance = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: dates, // Labels for the X-axis (e.g., dates)
-                datasets: [
-                    {
-                        label: 'Story Points Remaining',
-                        data: dataPoints,
-                        fill: false,
-                        borderColor: 'rgb(75, 192, 192)',
-                        tension: 0.1
-                    },
-                    {
-                        label: 'Guideline (Diagonal Line)', // This is the new diagonal line
-                        data: diagonalPoints,
-                        fill: false,
-                        borderColor: 'rgba(255, 99, 132, 0.7)', // Use a different color for visibility
-                        borderDash: [5, 5], // Optional: Dashed line for visual distinction
-                        tension: 0.1
-                    }
-                ]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Story Points'
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Time'
-                        }
-                    }
-                }
-            }
-        });
-    }
->>>>>>> 64f44edd1db71243e6da957cc26f7be641de8b37
 
 
 
@@ -2020,20 +1839,9 @@ function openTaskViewMode(task, taskId) {
     }
 
     // Function to toggle burndown chart popup
-<<<<<<< HEAD
     window.toggleBurndownChartPopup = function () {
         const popup = document.getElementById('burndown-chart-popup');
         popup.classList.toggle('open');
-=======
-    window.toggleBurndownChartPopup = function (totalStoryPoints, completedStoryPoints, dateStoryPoint, dates) {
-        const popup = document.getElementById('burndown-chart-popup');
-        const overlay = document.getElementById('overlay-sprint');
-        popup.classList.toggle('open');
-        overlay.classList.toggle('open');
-        console.log("total storypoints: ", totalStoryPoints);
-        renderBurndownChart(totalStoryPoints, completedStoryPoints, dateStoryPoint, dates);  // Call the render function
-        //$('#burndownChartModal').modal('show');  // Show the modal
->>>>>>> 64f44edd1db71243e6da957cc26f7be641de8b37
 
         if (!popup.classList.contains('open')) {
             // Reset form state
