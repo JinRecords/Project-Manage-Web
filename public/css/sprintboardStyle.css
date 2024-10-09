@@ -384,6 +384,7 @@
     margin-bottom: 20px;
 }
 
+
 .card-body .btn-secondary:disabled {
     opacity: 1;
     cursor: default;
@@ -561,8 +562,7 @@
 }
 
 .btn-9-style {
-    margin-left: 60px;
-    width: 1080px !important;
+    width: 1430px !important;
 }
 
 
@@ -631,6 +631,16 @@
 }
 .sprint-backlog-button {
     text-align: center;
+}
+
+.sprint-burndown-button {
+    text-align: center;
+}
+
+.sprint-burndown-button:hover {
+    background-color: #cccccc !important;/* Hover color */
+    color: #ffffff !important; /* Text color */
+
 }
 
 .sprint-backlog-button:hover {
