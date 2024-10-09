@@ -81,6 +81,7 @@
     <!-- Overlay -->
     <div id="overlay-sprint" class="overlay-sprint"></div>
     <div id="overlay-task" class="overlay-task"></div>
+    <div id="overlay-progress" class="overlay-progress"></div>
     
 
     <!-- Delete Confirmation Popup -->
@@ -141,10 +142,11 @@
             </div>
             <div class="form-buttons">
                 <button type="button" class="btn btn-secondary" onclick="toggleSprintPopup()">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="handleSaveSprint()">Save Sprint</button>
+                <button type="button" class="btn btn-primary" onclick="saveSprint()">Save Sprint</button>
             </div>
         </form>
     </div>
+
 
     <!-- Edit Task Popup Form -->
     <div id="editTaskPopupForm" class="popup-form">
@@ -235,22 +237,34 @@
         </form>
     </div>
 
+
     <!-- Progress Popup-->
     <div id="progress-popup" class="popup-form">
         <form id="progressForm" class="progress-popup-layout">
-            <div class="form-group">
-                
+            <div class="form-group">   
                 <h4>Progress</h4>
+                <div class="form-group">
+                    <label for="progressDuration">Duration (hours):</label>
+                    <input type="number" class="form-control" id="progressDuration" min="0" step="0.5">
+                </div>
+                <div class="form-group">
+                    <label for="progressDate">Date:</label>
+                    <input type="date" class="form-control" id="progressDate">
+                </div>
+                <p>Total time spent: <span id="totalTimeSpent">0</span> hours</p>
+                <canvas id="progressChart" width="400" height="200"></canvas>
                 <div class="col-auto ml-auto">
                     <button type="button" id="filterButton" class="btn btn-secondary"><i class="fas fa-filter"></i></button>
                    
                 </div>
                 <div class="form-buttons">
                     <button type="button" class="btn btn-secondary" onclick="toggleProgressPopup()">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="handleSaveProgress()">Save</button>
                 </div>
             </div>
         </form>
     </div>
+
 
     <!-- Burndown chart popup-->
     <div id="burndown-chart-popup" class="popup-form">
@@ -266,41 +280,42 @@
         </form>
     </div>
 
+
     <!-- Modal for Burndown Chart -->
-<div id="burndownChartModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Burndown Chart</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <canvas id="burndownChart" width="400" height="200"></canvas>
+    <div id="burndownChartModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Burndown Chart</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <canvas id="burndownChart" width="400" height="200"></canvas>
+                </div>
             </div>
         </div>
     </div>
-</div>
+
 
     <!-- Filter by time spent popup-->
     <div id="filter-time-spent-popup" class="filter-time-spent-popup">
         <div class="custom-popup-content">
-            <h4>Filter By</h4>
+            <h4>Filter By Date Range</h4>
             <div id="filter-option">
-                <div class="filter-option">
-                    <label for="filter-by-date-range">Date range
-                        <input type="radio" id="filter-by-date-range" name="filtering-option" value="date-range">
-                    </label>
+                <div class="form-group">
+                    <label for="start-date">Start Date:</label>
+                    <input type="date" id="start-date" class="form-control">
                 </div>
-                <div class="filter-option">
-                    <label for="filter-by-team-member">Team member
-                        <input type="radio" id="filter-by-team-member" name="filtering-option" value="team-member">
-                    </label>
+                <div class="form-group">
+                    <label for="end-date">End Date:</label>
+                    <input type="date" id="end-date" class="form-control">
                 </div>
                 <div class="custom-popup-buttons">
                     <button class="btn btn-secondary" onclick="hideFilterTimeSpentPopup()">Cancel</button>
-                    <button class="btn btn-primary" onclick="applyTimeSpentFilter()">Apply</button>
+                    <button class="btn btn-primary" onclick="applyDateFilter()">Apply</button>
+                    <button class="btn btn-warning" onclick="resetDateFilter()">Reset</button>
                 </div>               
             </div>
         </div>
@@ -314,6 +329,7 @@
             <button class="btn btn-secondary" onclick="hideTagSelectionPopup()">Close</button>
         </div>
     </div>
+
 
     <!-- Team Members Selection Popup -->
     <div id="teamMembers-selection-popup" class="teamMembers-selection-popup">
@@ -334,6 +350,9 @@
     </button>
 </div>
 
+
+
+
 <script src="../js/bootstrap.bundle.min.js?3058"></script>
 <script src="../js/blocs.min.js?6353"></script>
 <script src="../js/lazysizes.min.js" defer></script>
@@ -342,6 +361,7 @@
     // Global variables
     let currentSprintId = null;
     let isSprintUpdated = false;
+    let currentTaskId = null;
 
     // Function to handle adding a new sprint
     window.handleAddSprintClick = function (event) {
@@ -434,13 +454,21 @@
         }
     }
 
+    // Function to toggle progress popup
     function toggleProgressPopup() {
         console.log("Toggling sprint popup");
         const popup = document.getElementById('progress-popup');
+        const taskCard = document.querySelector('.task-card.open');
+        if (taskCard) {
+            currentTaskId = taskCard.getAttribute('data-task-id'); // Update the currentTaskId variable
+            taskCard.classList.toggle('open');
+        }
         popup.classList.toggle('open');
         console.log("Popup visibility:", popup.classList.contains('open'));
     }
-
+    
+    
+    // Function to toggle sprint popup
     function toggleBurndownChartPopup(totalStoryPoints, completedStoryPoints, dateStoryPoint, dates) {
         console.log("Toggling burndown chart popup");
         const popup = document.getElementById('burndown-chart-popup');
@@ -483,12 +511,9 @@
         console.log('Popup opacity:', window.getComputedStyle(popup).opacity);
     }
 
-
-
     let tags = [], teamMembers = [], priority = '', sprint = '', status = 'Not started', stage = '';
     const availableTags = ['UI', 'UX', 'Frontend', 'Backend', 'Framework', 'Testing', 'Database', 'API'];
     const tagColors = ['#FFC0CB', '#FFD7BE', '#F7DC6F', '#C6F4D6', '#9ED2C0', '#8DB8CB', '#9F9CE9', '#BE8DE4'];
-    
     window.tags = [];
     window.teamMembers = [];
     let teamMembersColors = [];
@@ -628,21 +653,18 @@
         document.getElementById('priority-input').value = p;
     }
 
-
-function setStatus(status) {
-    document.getElementById('status-input').value = status;
-    const statusPills = document.querySelectorAll('.edit-status');
-    statusPills.forEach(pill => {
-        if (pill.textContent === status) {
-            pill.classList.add('selected');
-        } else {
-            pill.classList.remove('selected');
-        }
-    });
-    console.log("Status changed to:", status);
-}
-
-
+    function setStatus(status) {
+        document.getElementById('status-input').value = status;
+        const statusPills = document.querySelectorAll('.edit-status');
+        statusPills.forEach(pill => {
+            if (pill.textContent === status) {
+                pill.classList.add('selected');
+            } else {
+                pill.classList.remove('selected');
+            }
+        });
+        console.log("Status changed to:", status);
+    }
 
     function setStage(stage) {
         if (!stage) {
@@ -666,69 +688,67 @@ function setStatus(status) {
         }
     }
 
-let isSettingFormMode = false;
-let setFormModeTimeout;
-
-function setFormMode(mode, item = null) {
-    if (isSettingFormMode) {
-        console.log('Already setting form mode, ignoring duplicate call');
-        return;
-    }
-
-    isSettingFormMode = true;
-    clearTimeout(setFormModeTimeout);
-
-    setFormModeTimeout = setTimeout(() => {
-        console.log(`Setting form mode to: ${mode}`);
-        const form = document.getElementById('backlogForm');
-        const buttons = document.getElementById('edit-form-buttons');
-
-        buttons.innerHTML = '';
-
-        if (mode === 'edit' && item) {
-            console.log('Filling form with item data:', item);
-            fillFormWithItemData(item);
-            buttons.innerHTML = `
-                <button type="button" class="btn btn-secondary" onclick="toggleEditPopup()">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="updateSprintBacklogItem('${item.key}')">Update</button>
-            `;
-            Array.from(form.elements).forEach(el => el.disabled = false);
-            enableStatusPills();
-            console.log('About to toggle edit popup');
-
-        } else if (mode === 'view') {
-            console.log("???????????????????????????????????????????")
-            fillFormWithItemData(item);
-            Array.from(form.elements).forEach(el => el.disabled = true);
-            buttons.innerHTML = `<button type="button" class="btn btn-secondary" onclick="toggleEditPopup()">Back</button>
-                `;
-            disableStatusPills();
-            console.log('About to toggle view popup');
+    let isSettingFormMode = false;
+    let setFormModeTimeout;
+    function setFormMode(mode, item = null) {
+        if (isSettingFormMode) {
+            console.log('Already setting form mode, ignoring duplicate call');
+            return;
         }
 
-        isSettingFormMode = false;
-    }, 100);
-    window.toggleEditPopup();
-}
+        isSettingFormMode = true;
+        clearTimeout(setFormModeTimeout);
 
+        setFormModeTimeout = setTimeout(() => {
+            console.log(`Setting form mode to: ${mode}`);
+            const form = document.getElementById('backlogForm');
+            const buttons = document.getElementById('edit-form-buttons');
 
-function enableStatusPills() {
-    const statusPills = document.querySelectorAll('.edit-status');
-    statusPills.forEach(pill => {
-        pill.classList.remove('disabled');
-        pill.addEventListener('click', function() {
-            setStatus(this.textContent);
+            buttons.innerHTML = '';
+
+            if (mode === 'edit' && item) {
+                console.log('Filling form with item data:', item);
+                fillFormWithItemData(item);
+                buttons.innerHTML = `
+                    <button type="button" class="btn btn-secondary" onclick="toggleEditPopup()">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="updateSprintBacklogItem('${item.key}')">Update</button>
+                `;
+                Array.from(form.elements).forEach(el => el.disabled = false);
+                enableStatusPills();
+                console.log('About to toggle edit popup');
+
+            } else if (mode === 'view') {
+                console.log("???????????????????????????????????????????")
+                fillFormWithItemData(item);
+                Array.from(form.elements).forEach(el => el.disabled = true);
+                buttons.innerHTML = `<button type="button" class="btn btn-secondary" onclick="toggleEditPopup()">Back</button>
+                    `;
+                disableStatusPills();
+                console.log('About to toggle view popup');
+            }
+
+            isSettingFormMode = false;
+        }, 100);
+        window.toggleEditPopup();
+    }
+
+    function enableStatusPills() {
+        const statusPills = document.querySelectorAll('.edit-status');
+        statusPills.forEach(pill => {
+            pill.classList.remove('disabled');
+            pill.addEventListener('click', function() {
+                setStatus(this.textContent);
+            });
         });
-    });
-}
+    }
 
-function disableStatusPills() {
-    const statusPills = document.querySelectorAll('.edit-status');
-    statusPills.forEach(pill => {
-        pill.classList.add('disabled');
-        pill.removeEventListener('click', setStatus);
-    });
-}
+    function disableStatusPills() {
+        const statusPills = document.querySelectorAll('.edit-status');
+        statusPills.forEach(pill => {
+            pill.classList.add('disabled');
+            pill.removeEventListener('click', setStatus);
+        });
+    }
 
     function fillFormWithItemData(item) {
         const form = document.getElementById('backlogForm');
@@ -808,7 +828,6 @@ function disableStatusPills() {
         });
     }
 
-
     // Function to save a new sprint
     function saveSprint() {
         const sprintData = getSprintFormData();
@@ -833,7 +852,6 @@ function disableStatusPills() {
             status: calculateSprintStatus(form.elements['sprintStartTime'].value, form.elements['sprintEndTime'].value)
         };
     }
-
 
     // Function to validate sprint data
     function validateSprintData(data) {
@@ -943,7 +961,6 @@ function disableStatusPills() {
         return card;
     }
 
-
     function openSprintViewMode(sprint, key) {
         const form = document.getElementById('sprintForm');
 
@@ -974,11 +991,11 @@ function disableStatusPills() {
         // Open popup
         toggleSprintPopup();
     }
-    function editTaskFromViewMode(item) {
-    console.log('Editing task from view mode:', item);
-    setFormMode('edit', item);
-}
 
+    function editTaskFromViewMode(item) {
+        console.log('Editing task from view mode:', item);
+        setFormMode('edit', item);
+    }
 
     function openFormInViewMode(item) {
         console.log('Opening form in view mode with item:', item);
@@ -1118,6 +1135,41 @@ function disableStatusPills() {
         }).catch(console.error);
     }
 
+    function filterDataByDateRange(dates, durations, startDate, endDate) {
+        const filteredDates = [];
+        const filteredDurations = [];
+        
+        for (let i = 0; i < dates.length; i++) {
+            if (dates[i] >= startDate && dates[i] <= endDate) {
+                filteredDates.push(dates[i]);
+                filteredDurations.push(durations[i]);
+            }
+        }
+        
+        return { dates: filteredDates, durations: filteredDurations };
+    }
+
+    function applyDateFilter() {
+        const startDate = document.getElementById('start-date').value;
+        const endDate = document.getElementById('end-date').value;
+        
+        if (startDate && endDate) {
+            fetchAndDisplayProgressData(currentTaskId, startDate, endDate);
+            hideFilterTimeSpentPopup();
+        } else {
+            alert('Please select both start and end dates.');
+        }
+    }
+
+    function resetDateFilter() {
+        document.getElementById('start-date').value = '';
+        document.getElementById('end-date').value = '';
+        fetchAndDisplayProgressData(currentTaskId, null, null, true);
+        hideFilterTimeSpentPopup();
+    }
+
+
+
 
 </script>
 <script type="module">
@@ -1185,7 +1237,6 @@ function disableStatusPills() {
         }
     }
 
-
     window.sendFormDataToFirebase = async function () {
         try {
             const formData = getFormData();
@@ -1202,6 +1253,61 @@ function disableStatusPills() {
         }
     }
 
+    window.handleSaveProgress = async function() {
+        const taskId = currentTaskId;
+        const duration = parseFloat(document.getElementById('progressDuration').value);
+        const date = document.getElementById('progressDate').value;
+      
+        console.log('Task ID:', taskId);
+        console.log('Duration:', duration);
+        console.log('Date:', date);
+      
+        const taskRef = ref(database, `productBacklog/${taskId}`);
+      
+        get(taskRef).then((snapshot) => {
+            if (snapshot.exists()) {
+                const task = snapshot.val();
+                
+                // Update or create progressLog
+                const progressLog = task.progressLog || {};
+                if (progressLog[date]) {
+                    progressLog[date] += duration;
+                } else {
+                    progressLog[date] = duration;
+                }
+                
+                const newTimespent = (task.timespent || 0) + duration;
+                
+                update(taskRef, {
+                    timespent: newTimespent,
+                    progressLog: progressLog,
+                    timeModified: new Date().toLocaleString('en-GB', {
+                        day: '2-digit', month: '2-digit', year: 'numeric',
+                        hour: '2-digit', minute: '2-digit', second: '2-digit'
+                    }).replace(/\//g, '-')
+                }).then(() => {
+                    // Update the total time spent display
+                    document.getElementById('totalTimeSpent').textContent = newTimespent.toFixed(2);
+                });
+      
+                // Update the user's timespent field
+                const userRef = ref(database, `users/${task.assignee}`);
+                get(userRef).then((snapshot) => {
+                    if (snapshot.exists()) {
+                        const user = snapshot.val();
+                        const newTimespent = (user.timespent || 0) + duration;
+                        update(userRef, {timespent: newTimespent});
+                    }
+                });
+    
+                // Refresh the chart
+                fetchAndDisplayProgressData(taskId);
+            }
+        });
+      
+        toggleProgressPopup();
+    }
+    
 
     async function createSprintCardAsync(sprint, key) {
         let totalStoryPoints = 0;
@@ -1221,36 +1327,36 @@ function disableStatusPills() {
         console.log("S", startDate, sprint.endDate);
 
         if (sprint.sprintTasks) {
-        for (const taskId of sprint.sprintTasks) {
-            const task = await fetchTaskDetails(taskId);
-            if (task) {
-                // Add total story points from the task
-                totalStoryPoints += parseInt(task.storypoint);
+            for (const taskId of sprint.sprintTasks) {
+                const task = await fetchTaskDetails(taskId);
+                if (task) {
+                    // Add total story points from the task
+                    totalStoryPoints += parseInt(task.storypoint);
 
-                // If the task is completed, update completed story points and store by date
-                if (task.status === 'Completed') {
-                    completedStoryPoints += parseInt(task.storypoint);
+                    // If the task is completed, update completed story points and store by date
+                    if (task.status === 'Completed') {
+                        completedStoryPoints += parseInt(task.storypoint);
 
-                    let completedDate = task.timeModified;  // Assuming this is where the task's completion date is stored
-                    console.log("This is the task: ", task);
-                    console.log("This is the completed date: ", completedDate);
-                    let storyPoints = task.storypoint;       // Story points of the completed task
+                        let completedDate = task.timeModified;  // Assuming this is where the task's completion date is stored
+                        console.log("This is the task: ", task);
+                        console.log("This is the completed date: ", completedDate);
+                        let storyPoints = task.storypoint;       // Story points of the completed task
 
-                    // Check if the completed date is already in the dictionary
-                    if (dateStoryPoint[completedDate]) {
-                        // Accumulate story points for this date
-                        dateStoryPoint[completedDate] += parseInt(storyPoints);
-                    } else {
-                        // Create a new entry in the dictionary with the completed date
-                        dateStoryPoint[completedDate] = parseInt(storyPoints);
+                        // Check if the completed date is already in the dictionary
+                        if (dateStoryPoint[completedDate]) {
+                            // Accumulate story points for this date
+                            dateStoryPoint[completedDate] += parseInt(storyPoints);
+                        } else {
+                            // Create a new entry in the dictionary with the completed date
+                            dateStoryPoint[completedDate] = parseInt(storyPoints);
+                        }
                     }
                 }
             }
-        }
 
-        // At this point, `dateStoryPoint` contains the accumulated story points by completion date
-        console.log("Story points by completion date:", dateStoryPoint);
-    }
+            // At this point, `dateStoryPoint` contains the accumulated story points by completion date
+            console.log("Story points by completion date:", dateStoryPoint);
+        }
 
 
         const card = document.createElement('div');
@@ -1331,86 +1437,85 @@ function disableStatusPills() {
     }
     
     let burndownChartInstance = null;
-
     function renderBurndownChart(totalStoryPoints, completedStoryPoints, dateStoryPoint, dates) {
-    // Check if dates and dateStoryPoint are valid
-    if (!Array.isArray(dates) || !dates.length) {
-        console.error("Error: 'dates' is not a valid array or is empty.");
-        return;
-    }
-    if (!dateStoryPoint || typeof dateStoryPoint !== 'object') {
-        console.error("Error: 'dateStoryPoint' is not a valid object.");
-        return;
-    }
-
-    const ctx = document.getElementById('burndownChart').getContext('2d');
-    let remainingStoryPoints = totalStoryPoints - completedStoryPoints;
-
-    // Initialize dataPoints array to reflect steady progress
-    const dataPoints = dates.map((date) => {
-        // If the task has not been completed on this day, keep the story points steady
-        if (dateStoryPoint[date] === undefined) {
-            return remainingStoryPoints;
+        // Check if dates and dateStoryPoint are valid
+        if (!Array.isArray(dates) || !dates.length) {
+            console.error("Error: 'dates' is not a valid array or is empty.");
+            return;
+        }
+        if (!dateStoryPoint || typeof dateStoryPoint !== 'object') {
+            console.error("Error: 'dateStoryPoint' is not a valid object.");
+            return;
         }
 
-        // On the completion day, reduce the story points accordingly
-        remainingStoryPoints -= dateStoryPoint[date];
-        return remainingStoryPoints;
-    });
+        const ctx = document.getElementById('burndownChart').getContext('2d');
+        let remainingStoryPoints = totalStoryPoints - completedStoryPoints;
 
-    // Create a diagonal line from totalStoryPoints to 0
-    const diagonalPoints = dates.map((date, index) => {
-        // Evenly spaced points from totalStoryPoints to 0
-        const progress = totalStoryPoints - (totalStoryPoints / (dates.length - 1)) * index;
-        return Math.max(progress, 0); // Ensure it doesn't go below 0
-    });
+        // Initialize dataPoints array to reflect steady progress
+        const dataPoints = dates.map((date) => {
+            // If the task has not been completed on this day, keep the story points steady
+            if (dateStoryPoint[date] === undefined) {
+                return remainingStoryPoints;
+            }
 
-    // If a chart instance already exists, destroy it before creating a new one
-    if (burndownChartInstance) {
-        burndownChartInstance.destroy();
-    }
+            // On the completion day, reduce the story points accordingly
+            remainingStoryPoints -= dateStoryPoint[date];
+            return remainingStoryPoints;
+        });
 
-    burndownChartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: dates, // Labels for the X-axis (e.g., dates)
-            datasets: [
-                {
-                    label: 'Story Points Remaining',
-                    data: dataPoints,
-                    fill: false,
-                    borderColor: 'rgb(75, 192, 192)',
-                    tension: 0.1
-                },
-                {
-                    label: 'Guideline (Diagonal Line)',
-                    data: diagonalPoints,
-                    fill: false,
-                    borderColor: 'rgba(255, 99, 132, 0.7)',
-                    borderDash: [5, 5],
-                    tension: 0.1
-                }
-            ]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Story Points'
+        // Create a diagonal line from totalStoryPoints to 0
+        const diagonalPoints = dates.map((date, index) => {
+            // Evenly spaced points from totalStoryPoints to 0
+            const progress = totalStoryPoints - (totalStoryPoints / (dates.length - 1)) * index;
+            return Math.max(progress, 0); // Ensure it doesn't go below 0
+        });
+
+        // If a chart instance already exists, destroy it before creating a new one
+        if (burndownChartInstance) {
+            burndownChartInstance.destroy();
+        }
+
+        burndownChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dates, // Labels for the X-axis (e.g., dates)
+                datasets: [
+                    {
+                        label: 'Story Points Remaining',
+                        data: dataPoints,
+                        fill: false,
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Guideline (Diagonal Line)',
+                        data: diagonalPoints,
+                        fill: false,
+                        borderColor: 'rgba(255, 99, 132, 0.7)',
+                        borderDash: [5, 5],
+                        tension: 0.1
                     }
-                },
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Time'
+                ]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Story Points'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time'
+                        }
                     }
                 }
             }
-        }
-    });
-}
+        });
+    }
 
     function getFormData() {
         return {
@@ -1473,9 +1578,9 @@ function disableStatusPills() {
         fetchSprintBoard(); // This will now render the sprint board correctly
     }
 
-window.exitSprintKanbanMode = function() {
-  exitSprintBacklogMode(); // Reuse the existing function to return to sprint board view
-};
+    window.exitSprintKanbanMode = function() {
+    exitSprintBacklogMode(); // Reuse the existing function to return to sprint board view
+    };
 
     async function enterSprintBacklogMode(sprintId, sprintTitle) {
         currentSprintTasks = [];
@@ -1624,22 +1729,21 @@ window.exitSprintKanbanMode = function() {
         fetchSprintBoard();
 
         // Event delegation for delete and edit buttons
-document.addEventListener('click', (event) => {
-    if (event.target.classList.contains('edit-item')) {
-        event.preventDefault();
-        event.stopPropagation();
-        const itemId = event.target.getAttribute('data-task-id');
-        console.log('Edit button clicked for item:', itemId);
-        get(ref(database, `productBacklog/${itemId}`)).then((snapshot) => {
-            if (snapshot.exists()) {
-                const item = snapshot.val();
-                item.key = itemId;
-                editTaskFromViewMode(item);
+        document.addEventListener('click', (event) => {
+            if (event.target.classList.contains('edit-item')) {
+                event.preventDefault();
+                event.stopPropagation();
+                const itemId = event.target.getAttribute('data-task-id');
+                console.log('Edit button clicked for item:', itemId);
+                get(ref(database, `productBacklog/${itemId}`)).then((snapshot) => {
+                    if (snapshot.exists()) {
+                        const item = snapshot.val();
+                        item.key = itemId;
+                        editTaskFromViewMode(item);
+                    }
+                }).catch(console.error);
             }
-        }).catch(console.error);
-    }
-});
-
+        });
 
         document.getElementById('overlay-task').addEventListener('click', (event) => {
             if (event.target === document.getElementById('overlay-task')) {
@@ -1678,35 +1782,35 @@ document.addEventListener('click', (event) => {
     });
 
     // Function to handle update item
-window.updateSprintBacklogItem = async function (itemId) {
-    try {
+    window.updateSprintBacklogItem = async function (itemId) {
+        try {
 
-        const formData = getFormDataForUpdate(itemId);
-        const currentData = await get(ref(database, `productBacklog/${itemId}`));
+            const formData = getFormDataForUpdate(itemId);
+            const currentData = await get(ref(database, `productBacklog/${itemId}`));
 
-        if (currentData.exists()) {
-            const changes = getChanges(currentData.val(), formData);
-            const updatedData = updateItemHistory(currentData.val(), formData, changes);
-            await update(ref(database, `productBacklog/${itemId}`), updatedData);
-            console.log('Data updated successfully');
+            if (currentData.exists()) {
+                const changes = getChanges(currentData.val(), formData);
+                const updatedData = updateItemHistory(currentData.val(), formData, changes);
+                await update(ref(database, `productBacklog/${itemId}`), updatedData);
+                console.log('Data updated successfully');
 
-            if (document.querySelector('.kanban-container')) {
-                // We're in Kanban mode, move the task
-                const oldColumn = document.querySelector(`.task-card[data-task-id="${itemId}"]`).parentNode;
-                oldColumn.removeChild(document.querySelector(`.task-card[data-task-id="${itemId}"]`));
-                addTaskToColumn(formData.status, formData, itemId);
-            } else {
-                // We're in Sprint Backlog mode, re-render
-                await fetchSprintTasks(currentSprintId);
+                if (document.querySelector('.kanban-container')) {
+                    // We're in Kanban mode, move the task
+                    const oldColumn = document.querySelector(`.task-card[data-task-id="${itemId}"]`).parentNode;
+                    oldColumn.removeChild(document.querySelector(`.task-card[data-task-id="${itemId}"]`));
+                    addTaskToColumn(formData.status, formData, itemId);
+                } else {
+                    // We're in Sprint Backlog mode, re-render
+                    await fetchSprintTasks(currentSprintId);
+                }
+                setFormMode('edit', itemId);
+
+                toggleEditPopup();
             }
-            setFormMode('edit', itemId);
-
-            toggleEditPopup();
+        } catch (error) {
+            console.error("Error updating data:", error);
         }
-    } catch (error) {
-        console.error("Error updating data:", error);
     }
-}
 
 
     // Function to update a sprint
@@ -1759,171 +1863,168 @@ window.updateSprintBacklogItem = async function (itemId) {
     }
 
 
-async function enterSprintKanbanMode(sprintId, sprintTitle) {
-    currentSprintId = sprintId;
-    const mainContent = document.querySelector('.main-content');
-    mainContent.innerHTML = `
-        <h2>${sprintTitle} - Kanban Board</h2>
-        <div class="kanban-container" style="display: flex; justify-content: space-between; padding: 50px;">
-            <div class="kanban-column" style="width: 30%; min-height: 500px; border: 1px solid #ddd; border-radius: 20px; overflow: hidden;">
-                <h3 style="color: black; text-align: center; height: 100px; line-height: 100px; background-color: #FFB7B7; margin: 0;">Not started</h3>
-                <div id="not-started-tasks" style="padding: 10px; background-color: white;"></div>
+    async function enterSprintKanbanMode(sprintId, sprintTitle) {
+        currentSprintId = sprintId;
+        const mainContent = document.querySelector('.main-content');
+        mainContent.innerHTML = `
+            <h2>${sprintTitle} - Kanban Board</h2>
+            <div class="kanban-container" style="display: flex; justify-content: space-between; padding: 50px;">
+                <div class="kanban-column" style="width: 30%; min-height: 500px; border: 1px solid #ddd; border-radius: 20px; overflow: hidden;">
+                    <h3 style="color: black; text-align: center; height: 100px; line-height: 100px; background-color: #FFB7B7; margin: 0;">Not started</h3>
+                    <div id="not-started-tasks" style="padding: 10px; background-color: white;"></div>
+                </div>
+                <div class="kanban-column" style="width: 30%; min-height: 500px; border: 1px solid #ddd; border-radius: 20px; overflow: hidden;">
+                    <h3 style="color: black; text-align: center; height: 100px; line-height: 100px; background-color: #E3E649; margin: 0;">In progress</h3>
+                    <div id="in-progress-tasks" style="padding: 10px; background-color: white;"></div>
+                </div>
+                <div class="kanban-column" style="width: 30%; min-height: 500px; border: 1px solid #ddd; border-radius: 20px; overflow: hidden;">
+                    <h3 style="color: black; text-align: center; height: 100px; line-height: 100px; background-color: #7EBF60; margin: 0;">Completed</h3>
+                    <div id="completed-tasks" style="padding: 10px; background-color: white;"></div>
+                </div>
             </div>
-            <div class="kanban-column" style="width: 30%; min-height: 500px; border: 1px solid #ddd; border-radius: 20px; overflow: hidden;">
-                <h3 style="color: black; text-align: center; height: 100px; line-height: 100px; background-color: #E3E649; margin: 0;">In progress</h3>
-                <div id="in-progress-tasks" style="padding: 10px; background-color: white;"></div>
-            </div>
-            <div class="kanban-column" style="width: 30%; min-height: 500px; border: 1px solid #ddd; border-radius: 20px; overflow: hidden;">
-                <h3 style="color: black; text-align: center; height: 100px; line-height: 100px; background-color: #7EBF60; margin: 0;">Completed</h3>
-                <div id="completed-tasks" style="padding: 10px; background-color: white;"></div>
-            </div>
-        </div>
-        <button class="btn btn-secondary" style="display: block; margin: 20px auto;" onclick="exitSprintKanbanMode()">Back</button>
-    `;
+            <button class="btn btn-secondary" style="display: block; margin: 20px auto;" onclick="exitSprintKanbanMode()">Back</button>
+        `;
 
-    await fetchTasksForKanban(sprintId);
-}
+        await fetchTasksForKanban(sprintId);
+    }
 
-async function fetchTasksForKanban(sprintId) {
-    const snapshot = await get(ref(database, `sprintboard/${sprintId}/sprintTasks`));
-    if (snapshot.exists()) {
-        const taskIds = snapshot.val();
-        const notStartedTasks = [];
-        const inProgressTasks = [];
-        const completedTasks = [];
+    async function fetchTasksForKanban(sprintId) {
+        const snapshot = await get(ref(database, `sprintboard/${sprintId}/sprintTasks`));
+        if (snapshot.exists()) {
+            const taskIds = snapshot.val();
+            const notStartedTasks = [];
+            const inProgressTasks = [];
+            const completedTasks = [];
 
-        for (const taskId of taskIds) {
-            const task = await fetchTaskDetails(taskId);
-            if (task) {
-                switch(task.status.toLowerCase()) {
-                    case 'not started':
-                        notStartedTasks.push({...task, id: taskId});
-                        break;
-                    case 'in progress':
-                        inProgressTasks.push({...task, id: taskId});
-                        break;
-                    case 'completed':
-                        completedTasks.push({...task, id: taskId});
-                        break;
-                    default:
-                        console.warn(`Task ${taskId} has unknown status: ${task.status}`);
+            for (const taskId of taskIds) {
+                const task = await fetchTaskDetails(taskId);
+                if (task) {
+                    switch(task.status.toLowerCase()) {
+                        case 'not started':
+                            notStartedTasks.push({...task, id: taskId});
+                            break;
+                        case 'in progress':
+                            inProgressTasks.push({...task, id: taskId});
+                            break;
+                        case 'completed':
+                            completedTasks.push({...task, id: taskId});
+                            break;
+                        default:
+                            console.warn(`Task ${taskId} has unknown status: ${task.status}`);
+                    }
                 }
             }
-        }
 
-        renderKanbanColumn('not-started-tasks', notStartedTasks);
-        renderKanbanColumn('in-progress-tasks', inProgressTasks);
-        renderKanbanColumn('completed-tasks', completedTasks);
-    }
-}
-
-
-function renderKanbanColumn(columnId, tasks) {
-    const column = document.getElementById(columnId);
-    column.innerHTML = ''; // Clear existing tasks
-    tasks.forEach(task => {
-        const taskCard = createKanbanTaskCard(task, task.id);
-        column.appendChild(taskCard);
-    });
-}
-
-
-
-
-function createKanbanTaskCard(task, taskId) {
-    const card = document.createElement('div');
-    card.className = 'task-card';
-    card.setAttribute('data-task-id', taskId);
-    card.style.margin = '10px';
-    card.style.padding = '10px';
-    card.style.backgroundColor = 'white';
-    card.style.borderRadius = '5px';
-    card.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
-
-    const tags = task.tags ? task.tags.map(tag => `<span class="tag" style="background-color: ${tag.color};">${tag.name}</span>`).join('') : '';
-
-    card.innerHTML = `
-        <div class="d-flex justify-content-between align-items-center">
-            <h4 class="mg-clear mb-0">${task.title}</h4>
-            <div class="dropdown d-inline-block">
-                <button class="btn btn-link three-dot-menu" type="button" data-bs-toggle="dropdown" aria-expanded="false">⋮</button>
-                <ul class="dropdown-menu">
-                    <li><a class="dropdown-item text-primary edit-item" href="#" data-task-id="${taskId}">Edit</a></li>
-                </ul>
-            </div>
-        </div>
-        <p>Priority: <span style="background-color: ${getPriorityColor(task.priority)};">${task.priority}</span></p>
-        <p>Storypoint: ${task.storypoint}</p>
-        <p>Tags: ${tags}</p>
-    `;
-
-    card.addEventListener('click', (event) => {
-        if (!event.target.closest('.dropdown')) {
-            openTaskViewMode(task, taskId);
-        }
-    });
-
-    return card;
-}
-
-document.addEventListener('click', async function(event) {
-    if (event.target.classList.contains('burndown-chart-button')) {
-        console.log('Burndown Chart button clicked');
-    }
-});
-
-document.addEventListener('click', async function(event) {
-    if (event.target.classList.contains('sprint-backlog-button')) {
-        console.log('Sprint Backlog button clicked');
-        const sprintId = event.target.getAttribute('data-sprint-id');
-        const sprintTitle = event.target.closest('.card').querySelector('h3').textContent;
-        const sprintStatus = await getSprintStatusFromFirebase(sprintId);
-        console.log('Sprint status:', sprintStatus);
-        if (sprintStatus === 'Not started') {
-            await enterSprintBacklogMode(sprintId, sprintTitle);
-        } else if (sprintStatus === 'In progress' || sprintStatus === 'Completed') {
-            await enterSprintKanbanMode(sprintId, sprintTitle);
-        } else {
-            console.error('Unknown sprint status:', sprintStatus);
+            renderKanbanColumn('not-started-tasks', notStartedTasks);
+            renderKanbanColumn('in-progress-tasks', inProgressTasks);
+            renderKanbanColumn('completed-tasks', completedTasks);
         }
     }
-});
 
 
-function getSprintStatusFromFirebase(sprintId) {
-    return get(ref(database, `sprintboard/${sprintId}/status`))
-        .then((snapshot) => {
-            return snapshot.exists() ? snapshot.val() : null;
-        })
-        .catch((error) => {
-            console.error("Error fetching sprint status:", error);
-            return null;
+    function renderKanbanColumn(columnId, tasks) {
+        const column = document.getElementById(columnId);
+        column.innerHTML = ''; // Clear existing tasks
+        tasks.forEach(task => {
+            const taskCard = createKanbanTaskCard(task, task.id);
+            column.appendChild(taskCard);
         });
-}
-function addTaskToColumn(status, task, taskId) {
-    const columnId = status.toLowerCase() === 'not started' ? 'not-started-tasks' :
-                     status.toLowerCase() === 'in progress' ? 'in-progress-tasks' :
-                     'completed-tasks';
-    const column = document.getElementById(columnId);
-    if (column) {
-        const existingTask = column.querySelector(`[data-task-id="${taskId}"]`);
-        if (existingTask) {
-            existingTask.remove();
-        }
-        const taskCard = createKanbanTaskCard(task, taskId);
-        column.appendChild(taskCard);
-    } else {
-        console.error(`Column not found for status: ${status}`);
     }
-}
 
 
-function openTaskViewMode(task, taskId) {
-    console.log('pass');
-    //setFormMode('view', { ...task, key: taskId });
-}
+    function createKanbanTaskCard(task, taskId) {
+        const card = document.createElement('div');
+        card.className = 'task-card';
+        card.setAttribute('data-task-id', taskId);
+        card.style.margin = '10px';
+        card.style.padding = '10px';
+        card.style.backgroundColor = 'white';
+        card.style.borderRadius = '5px';
+        card.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+
+        const tags = task.tags ? task.tags.map(tag => `<span class="tag" style="background-color: ${tag.color};">${tag.name}</span>`).join('') : '';
+
+        card.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="mg-clear mb-0">${task.title}</h4>
+                <div class="dropdown d-inline-block">
+                    <button class="btn btn-link three-dot-menu" type="button" data-bs-toggle="dropdown" aria-expanded="false">⋮</button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item text-primary edit-item" href="#" data-task-id="${taskId}">Edit</a></li>
+                    </ul>
+                </div>
+            </div>
+            <p>Priority: <span style="background-color: ${getPriorityColor(task.priority)};">${task.priority}</span></p>
+            <p>Storypoint: ${task.storypoint}</p>
+            <p>Tags: ${tags}</p>
+        `;
+
+        card.addEventListener('click', (event) => {
+            if (!event.target.closest('.dropdown')) {
+                openTaskViewMode(task, taskId);
+            }
+        });
+
+        return card;
+    }
+
+    document.addEventListener('click', async function(event) {
+        if (event.target.classList.contains('burndown-chart-button')) {
+            console.log('Burndown Chart button clicked');
+        }
+    });
+
+    document.addEventListener('click', async function(event) {
+        if (event.target.classList.contains('sprint-backlog-button')) {
+            console.log('Sprint Backlog button clicked');
+            const sprintId = event.target.getAttribute('data-sprint-id');
+            const sprintTitle = event.target.closest('.card').querySelector('h3').textContent;
+            const sprintStatus = await getSprintStatusFromFirebase(sprintId);
+            console.log('Sprint status:', sprintStatus);
+            if (sprintStatus === 'Not started') {
+                await enterSprintBacklogMode(sprintId, sprintTitle);
+            } else if (sprintStatus === 'In progress' || sprintStatus === 'Completed') {
+                await enterSprintKanbanMode(sprintId, sprintTitle);
+            } else {
+                console.error('Unknown sprint status:', sprintStatus);
+            }
+        }
+    });
 
 
+    function getSprintStatusFromFirebase(sprintId) {
+        return get(ref(database, `sprintboard/${sprintId}/status`))
+            .then((snapshot) => {
+                return snapshot.exists() ? snapshot.val() : null;
+            })
+            .catch((error) => {
+                console.error("Error fetching sprint status:", error);
+                return null;
+            });
+    }
+
+    function addTaskToColumn(status, task, taskId) {
+        const columnId = status.toLowerCase() === 'not started' ? 'not-started-tasks' :
+                        status.toLowerCase() === 'in progress' ? 'in-progress-tasks' :
+                        'completed-tasks';
+        const column = document.getElementById(columnId);
+        if (column) {
+            const existingTask = column.querySelector(`[data-task-id="${taskId}"]`);
+            if (existingTask) {
+                existingTask.remove();
+            }
+            const taskCard = createKanbanTaskCard(task, taskId);
+            column.appendChild(taskCard);
+        } else {
+            console.error(`Column not found for status: ${status}`);
+        }
+    }
+
+
+    function openTaskViewMode(task, taskId) {
+        console.log('pass');
+        //setFormMode('view', { ...task, key: taskId });
+    }
 
     // Function to get changes
     function getChanges(oldData, newData) {
@@ -1970,14 +2071,84 @@ function openTaskViewMode(task, taskId) {
     // Function to toggle progress popup
     window.toggleProgressPopup = function () {
         const popup = document.getElementById('progress-popup');
+        const overlay = document.getElementById('overlay-progress');
         popup.classList.toggle('open');
-
-        if (!popup.classList.contains('open')) {
+        overlay.style.display = popup.classList.contains('open') ? 'block' : 'none';
+    
+        if (popup.classList.contains('open')) {
+            fetchAndDisplayProgressData(currentTaskId);
+        } else {
             // Reset form state
-
             const form = document.getElementById('progressForm');
             form.reset();
-            Array.from(form.elements).forEach(el => el.disabled = false);
+        }
+    }
+
+    window.fetchAndDisplayProgressData = async function (taskId, startDate = null, endDate = null, reset = false) {
+        const taskRef = ref(database, `productBacklog/${taskId}`);
+        const snapshot = await get(taskRef);
+        
+        if (snapshot.exists()) {
+            const task = snapshot.val();
+            const progressLog = task.progressLog || {};
+            
+            let dates = Object.keys(progressLog).sort();
+            let durations = dates.map(date => progressLog[date]);
+            
+            if (!reset && startDate && endDate) {
+                const filteredData = filterDataByDateRange(dates, durations, startDate, endDate);
+                dates = filteredData.dates;
+                durations = filteredData.durations;
+            }
+            
+            const totalTimeSpent = durations.reduce((sum, duration) => sum + duration, 0);
+            
+            renderProgressChart(dates, durations);
+            
+            document.getElementById('totalTimeSpent').textContent = totalTimeSpent.toFixed(2);
+        } else {
+            console.log("No progress data available");
+        }
+    }
+    
+    function renderProgressChart(dates, durations) {
+        const ctx = document.getElementById('progressChart').getContext('2d');
+        
+        if (window.progressChart instanceof Chart) {
+            window.progressChart.data.labels = dates;
+            window.progressChart.data.datasets[0].data = durations;
+            window.progressChart.update();
+        } else {
+            window.progressChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Time Spent (hours)',
+                        data: durations,
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Duration (hours)'
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
         }
     }
 
@@ -2010,57 +2181,54 @@ function openTaskViewMode(task, taskId) {
         document.getElementById('filterButton').addEventListener('click', showFilterTimeSpentPopup);
     });
 
-let toggleInProgress = false;
-let isOverlayOpen = false;
+    let toggleInProgress = false;
+    let isOverlayOpen = false;
+    window.toggleEditPopup = function () {
+        if (toggleInProgress) {
+            console.log('Toggle already in progress, ignoring');
+            return;
+        }
 
-window.toggleEditPopup = function () {
-    if (toggleInProgress) {
-        console.log('Toggle already in progress, ignoring');
-        return;
+        toggleInProgress = true;
+
+        console.log('Toggle Edit Popup called');
+        const popup = document.getElementById('editTaskPopupForm');
+        const overlay = document.getElementById('overlay-task');
+
+        if (!popup || !overlay) {
+            console.error('Popup or overlay element not found');
+            toggleInProgress = false;
+            return;
+        }
+
+        console.log('Popup Before Toggle:', popup.classList.contains('open'));
+        popup.classList.toggle('open');
+
+        // Only toggle the overlay if its state doesn't match the popup's state
+        if (popup.classList.contains('open') !== isOverlayOpen) {
+            isOverlayOpen = !isOverlayOpen;
+            overlay.classList.toggle('open');
+        }
+
+        console.log('Popup After Toggle:', popup.classList.contains('open'));
+
+        if (popup.classList.contains('open')) {
+            popup.style.display = 'block';
+            overlay.style.display = 'block';
+        } else {
+            popup.style.display = 'none';
+            overlay.style.display = 'none';
+            setFormMode('edit');
+        }
+
+        console.log('Popup final display:', window.getComputedStyle(popup).display);
+        console.log('Overlay final display:', window.getComputedStyle(overlay).display);
+
+        // Reset the toggle flag after a short delay
+        setTimeout(() => {
+            toggleInProgress = false;
+        }, 100);
     }
-
-    toggleInProgress = true;
-
-    console.log('Toggle Edit Popup called');
-    const popup = document.getElementById('editTaskPopupForm');
-    const overlay = document.getElementById('overlay-task');
-
-    if (!popup || !overlay) {
-        console.error('Popup or overlay element not found');
-        toggleInProgress = false;
-        return;
-    }
-
-    console.log('Popup Before Toggle:', popup.classList.contains('open'));
-    popup.classList.toggle('open');
-
-    // Only toggle the overlay if its state doesn't match the popup's state
-    if (popup.classList.contains('open') !== isOverlayOpen) {
-        isOverlayOpen = !isOverlayOpen;
-        overlay.classList.toggle('open');
-    }
-
-    console.log('Popup After Toggle:', popup.classList.contains('open'));
-
-    if (popup.classList.contains('open')) {
-        popup.style.display = 'block';
-        overlay.style.display = 'block';
-    } else {
-        popup.style.display = 'none';
-        overlay.style.display = 'none';
-        setFormMode('edit');
-    }
-
-    console.log('Popup final display:', window.getComputedStyle(popup).display);
-    console.log('Overlay final display:', window.getComputedStyle(overlay).display);
-
-    // Reset the toggle flag after a short delay
-    setTimeout(() => {
-        toggleInProgress = false;
-    }, 100);
-}
-
-
 
     // Function to save a new sprint
     window.saveSprint = async function () {
@@ -2184,8 +2352,18 @@ window.toggleEditPopup = function () {
 
 
 
-    // Function to periodically update sprint statuses
-  // Set up real-time listener for sprint board
+    document.addEventListener('click', (event) => {
+        const taskCard = event.target.closest('.task-card');
+        if (taskCard) {
+            const taskId = taskCard.getAttribute('data-task-id');
+            if (taskId) {
+                currentTaskId = taskId;
+                console.log('Selected task ID:', currentTaskId);
+            }
+        }
+    });
+
+    // Set up real-time listener for sprint board
     function setupSprintRealtimeListener() {
         onValue(sprintBoardRef, (snapshot) => {
             const data = snapshot.val() || {};
@@ -2242,7 +2420,6 @@ window.toggleEditPopup = function () {
     });
 
     let currentSprintTasks = [];
-
     async function fetchSprintTasks(sprintId) {
         const sprintContainer = document.getElementById('sprintTasks');
         if (!sprintContainer) {
@@ -2442,7 +2619,7 @@ window.toggleEditPopup = function () {
             <p>Storypoint: ${task.storypoint}</p>
         </div>
 
-    `
+        `
         return card;
     }
 
@@ -2474,7 +2651,6 @@ window.toggleEditPopup = function () {
     });
 
     let currentData;
-
     function fetchSprintBoard() {
         get(ref(database, 'sprintboard')).then((snapshot) => {
             if (snapshot.exists()) {
@@ -2577,14 +2753,19 @@ window.toggleEditPopup = function () {
         }
     }
 
-
     // Call the function to fetch users when the document is loaded
     document.addEventListener('DOMContentLoaded', () => {
         fetchUsers('productOwner');
         fetchUsers('scrumMaster');
         fetchUsers('assignee');
         fetchUserTeamMember();
-        
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const overlayProgress = document.getElementById('overlay-progress');
+        overlayProgress.addEventListener('click', () => {
+            toggleProgressPopup();
+        });
     });
 </script>
 </body>
