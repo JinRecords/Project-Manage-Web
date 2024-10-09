@@ -448,14 +448,14 @@
         console.log("Popup visibility:", popup.classList.contains('open'));
     }
 
-    function toggleBurndownChartPopup(totalStoryPoints, completedStoryPoints) {
+    function toggleBurndownChartPopup(totalStoryPoints, completedStoryPoints, dateStoryPoint) {
         console.log("Toggling burndown chart popup");
         const popup = document.getElementById('burndown-chart-popup');
         const overlay = document.getElementById('overlay-sprint');
         popup.classList.toggle('open');
         overlay.classList.toggle('open');
         console.log("Popup visibility:", popup.classList.contains('open'));
-        renderBurndownChart(totalStoryPoints, completedStoryPoints);  // Call the render function
+        renderBurndownChart(totalStoryPoints, completedStoryPoints, dateStoryPoint);  // Call the render function
         $('#burndownChartModal').modal('show');  // Show the modal
     }
 
@@ -1213,18 +1213,38 @@ function disableStatusPills() {
     async function createSprintCardAsync(sprint, key) {
         let totalStoryPoints = 0;
         let completedStoryPoints = 0;
+        let dateStoryPoint = {};  // Dictionary to track story points by completion date
 
         if (sprint.sprintTasks) {
-            for (const taskId of sprint.sprintTasks) {
-                const task = await fetchTaskDetails(taskId);
-                if (task) {
-                    totalStoryPoints += parseInt(task.storypoint);
-                    if (task.status === 'Completed') {
-                        completedStoryPoints += parseInt(task.storypoint);
+        for (const taskId of sprint.sprintTasks) {
+            const task = await fetchTaskDetails(taskId);
+            if (task) {
+                // Add total story points from the task
+                totalStoryPoints += parseInt(task.storypoint);
+
+                // If the task is completed, update completed story points and store by date
+                if (task.status === 'Completed') {
+                    completedStoryPoints += parseInt(task.storypoint);
+
+                    let completedDate = Date.now();  // Assuming this is where the task's completion date is stored
+                    let storyPoints = task.storypoint;       // Story points of the completed task
+
+                    // Check if the completed date is already in the dictionary
+                    if (dateStoryPoint[completedDate]) {
+                        // Accumulate story points for this date
+                        dateStoryPoint[completedDate] += parseInt(storyPoints);
+                    } else {
+                        // Create a new entry in the dictionary with the completed date
+                        dateStoryPoint[completedDate] = parseInt(storyPoints);
                     }
                 }
             }
         }
+
+        // At this point, `dateStoryPoint` contains the accumulated story points by completion date
+        console.log("Story points by completion date:", dateStoryPoint);
+    }
+
 
         const card = document.createElement('div');
         card.className = 'card mb-3';
@@ -1269,7 +1289,7 @@ function disableStatusPills() {
             if (!event.target.closest('.dropdown') && !event.target.classList.contains('sprint-backlog-button')) {
                 if (event.target.classList.contains('burndown-chart-button')) {
                     console.log("Toggling burndown chart...")
-                    toggleBurndownChartPopup(totalStoryPoints, completedStoryPoints);
+                    toggleBurndownChartPopup(totalStoryPoints, completedStoryPoints, dateStoryPoint);
                 }
                 else {
                     openSprintViewMode(sprint, key);
@@ -1304,11 +1324,13 @@ function disableStatusPills() {
     }
     
     let burndownChartInstance = null;  
-    function renderBurndownChart(totalStoryPoints, completedStoryPoints) {
+    function renderBurndownChart(totalStoryPoints, completedStoryPoints, dateStoryPoint) {
         const ctx = document.getElementById('burndownChart').getContext('2d');
         let remainingStoryPoints = totalStoryPoints - completedStoryPoints;
+        let labels = Object.keys(dateStoryPoint);
+        let data = Object.values(dateStoryPoint);
 
-        const dataPoints = [totalStoryPoints, remainingStoryPoints];  // Data for the chart
+        const dataPoints = [totalStoryPoints, remainingStoryPoints, data];  // Data for the chart
         // If a chart instance already exists, destroy it before creating a new one
         if (burndownChartInstance) {
             burndownChartInstance.destroy();
@@ -1316,7 +1338,7 @@ function disableStatusPills() {
         burndownChartInstance = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: ['Start', 'Now'],  // Labels can be extended to track daily progress
+                labels: labels, // Labels can be extended to track daily progress
                 datasets: [{
                     label: 'Story Points Remaining',
                     data: dataPoints,
@@ -1916,13 +1938,13 @@ function openTaskViewMode(task, taskId) {
     }
 
     // Function to toggle burndown chart popup
-    window.toggleBurndownChartPopup = function (totalStoryPoints, completedStoryPoints) {
+    window.toggleBurndownChartPopup = function (totalStoryPoints, completedStoryPoints, dateStoryPoint) {
         const popup = document.getElementById('burndown-chart-popup');
         const overlay = document.getElementById('overlay-sprint');
         popup.classList.toggle('open');
         overlay.classList.toggle('open');
         console.log("total storypoints: ", totalStoryPoints);
-        renderBurndownChart(totalStoryPoints, completedStoryPoints);  // Call the render function
+        renderBurndownChart(totalStoryPoints, completedStoryPoints, dateStoryPoint);  // Call the render function
         //$('#burndownChartModal').modal('show');  // Show the modal
 
         if (!popup.classList.contains('open')) {
