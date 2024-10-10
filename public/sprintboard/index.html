@@ -292,7 +292,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <canvas id="burndownChart" width="400" height="200"></canvas>
+                    <canvas id="burndownChart" width="800" height="400"></canvas>
                 </div>
             </div>
         </div>
@@ -357,6 +357,8 @@
 <script src="../js/blocs.min.js?6353"></script>
 <script src="../js/lazysizes.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+
 <script>
     // Global variables
     let currentSprintId = null;
@@ -1436,60 +1438,61 @@
     }
     
     let burndownChartInstance = null;
-function renderBurndownChart(totalStoryPoints, completedStoryPoints, dateStoryPoint, dates) {
-    // Check if dates and dateStoryPoint are valid
-    if (!Array.isArray(dates) || !dates.length) {
-        console.error("Error: 'dates' is not a valid array or is empty.");
-        return;
-    }
-    if (!dateStoryPoint || typeof dateStoryPoint !== 'object') {
-        console.error("Error: 'dateStoryPoint' is not a valid object.");
-        return;
-    }
 
-    const ctx = document.getElementById('burndownChart').getContext('2d');
-    let remainingStoryPoints = totalStoryPoints;
-    console.log('remaining story points:', remainingStoryPoints);
-
-    // Initialize dataPoints array to reflect steady progress
-    const dataPoints = [];
-
-    dates.map((date) => {
-        console.log(date, dateStoryPoint[date]);
-        // If the task has not been completed on this day, keep the story points steady
-        if (dateStoryPoint[date] === undefined) {
-            dataPoints.push(remainingStoryPoints);
+    function renderBurndownChart(totalStoryPoints, completedStoryPoints, dateStoryPoint, dates) {
+        // Check if dates and dateStoryPoint are valid
+        if (!Array.isArray(dates) || !dates.length) {
+            console.error("Error: 'dates' is not a valid array or is empty.");
+            return;
+        }
+        if (!dateStoryPoint || typeof dateStoryPoint !== 'object') {
+            console.error("Error: 'dateStoryPoint' is not a valid object.");
             return;
         }
 
-        // On the completion day, reduce the story points accordingly
-        console.log('before', date, remainingStoryPoints);
-        remainingStoryPoints -= dateStoryPoint[date];
-        console.log('after', date, remainingStoryPoints);
-        dataPoints.push(remainingStoryPoints);
-    });
+        const ctx = document.getElementById('burndownChart').getContext('2d');
+        let remainingStoryPoints = totalStoryPoints;
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0]; // Format as YYYY-MM-DD for comparison
+        
 
-    console.log("data points: ", dataPoints);
-    // Create a diagonal line from totalStoryPoints to 0
-    const diagonalPoints = dates.map((date, index) => {
-        // Evenly spaced points from totalStoryPoints to 0
-        const progress = totalStoryPoints - (totalStoryPoints / (dates.length - 1)) * index;
-        return Math.max(progress, 0); // Ensure it doesn't go below 0
-    });
+        // Initialize dataPoints array for completed story points
+        const completedDataPoints = dates.map((date) => {
+            if (date <= todayStr) {  // Only include data until today
+                if (dateStoryPoint[date] === undefined) {
+                    return remainingStoryPoints; // Keep the remaining story points steady
+                }
+                remainingStoryPoints -= dateStoryPoint[date]; // Reduce points on completion
+                return remainingStoryPoints;
+            }
+            return null; // No points after today
+        });
 
-    // If a chart instance already exists, destroy it before creating a new one
-    if (burndownChartInstance) {
-        burndownChartInstance.destroy();
-    }
+        console.log(completedDataPoints);
+        // Filter out the null values for the completed story points
+        const validCompletedDataPoints = completedDataPoints.map((point) => (point !== null ? point : undefined));
 
-    burndownChartInstance = new Chart(ctx, {
+        // Create a diagonal line from totalStoryPoints to 0 for the guideline
+        const diagonalPoints = dates.map((date, index) => {
+            // Ensure progress decreases from totalStoryPoints to 0
+            const progress = totalStoryPoints * (1 - index / (dates.length - 1));
+            return Math.max(progress, 0); // Ensure it doesn't go below 0
+        });
+
+        // If a chart instance already exists, destroy it before creating a new one
+        if (burndownChartInstance) {
+            burndownChartInstance.destroy();
+        }
+
+        // Define the chart instance
+        burndownChartInstance = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: dates, // Labels for the X-axis (e.g., dates)
+            labels: dates, // X-axis labels
             datasets: [
                 {
                     label: 'Story Points Remaining',
-                    data: dataPoints,
+                    data: validCompletedDataPoints,
                     fill: false,
                     borderColor: 'rgb(75, 192, 192)',
                     tension: 0.1,
@@ -1499,30 +1502,36 @@ function renderBurndownChart(totalStoryPoints, completedStoryPoints, dateStoryPo
                     label: 'Guideline',
                     data: diagonalPoints,
                     fill: false,
-                    borderColor: 'rgba(255, 99, 132, 0.7)',
-                    borderDash: [5, 5],
-                    tension: 0.1
+                    borderColor: 'rgba(200, 200, 200, 1)', // Gray color for the guideline
+                    borderDash: [], // Solid line
+                    pointRadius: 0, // Hide the data points
+                    tension: 0.1 // Optional: adjust if needed
                 }
             ]
         },
         options: {
+            
+            plugins: {
+                annotation: {
+                    annotations: {}
+                }
+            },
             scales: {
                 y: {
                     beginAtZero: true,
                     title: {
                         display: true,
-                        text: 'Story Points'
+                        text: 'Storypoints'
                     }
                 },
                 x: {
                     title: {
                         display: true,
-                        text: 'Time'
+                        text: 'Date'
                     },
                     ticks: {
-                        // Show every second date (or customize the interval as needed)
                         callback: function(value, index, values) {
-                            // Only display the label if it's every second value
+                            // Show every second date
                             return index % 2 === 0 ? this.getLabelForValue(value) : '';
                         }
                     }
@@ -1530,8 +1539,26 @@ function renderBurndownChart(totalStoryPoints, completedStoryPoints, dateStoryPo
             }
         }
     });
-}
+    // Check if today is within the sprint's date range and add the today line if it is
+    if (todayStr <= dates[dates.length-1]) {
+        burndownChartInstance.options.plugins.annotation.annotations.todayLine = {
+            type: 'line',
+            xMin: todayStr,
+            xMax: todayStr,
+            borderColor: 'rgba(128, 128, 128, 0.8)', // Gray color for today's vertical line
+            borderWidth: 2,
+            borderDash: [5, 5],
+            label: {
+                content: 'Today', // Label content
+                enabled: true, // Enable the label
+                position: 'top', // Position the label
+            }
+        };
+    }
 
+    // Update the chart after adding annotations if any
+    burndownChartInstance.update();
+    }
 
     function getFormData() {
         return {
