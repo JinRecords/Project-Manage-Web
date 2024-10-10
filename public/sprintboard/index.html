@@ -1320,7 +1320,7 @@
 
         while (startDate <= new Date(sprint.endTime)) {
             dates.push(startDate.toISOString().split('T')[0]);  // Format as YYYY-MM-DD
-            startDate.setDate(startDate.getDate() + 2);  // Increment by 2 days
+            startDate.setDate(startDate.getDate() + 1);  // Increment by 2 days
         }
 
         console.log("*******:", dates);
@@ -1337,9 +1337,8 @@
                     if (task.status === 'Completed') {
                         completedStoryPoints += parseInt(task.storypoint);
 
-                        let completedDate = task.timeModified;  // Assuming this is where the task's completion date is stored
-                        console.log("This is the task: ", task);
-                        console.log("This is the completed date: ", completedDate);
+                        let completedDate = new Date(task.timeModified).toISOString().split('T')[0];  // Assuming this is where the task's completion date is stored
+                        console.log("here", completedDate, task.status);
                         let storyPoints = task.storypoint;       // Story points of the completed task
 
                         // Check if the completed date is already in the dictionary
@@ -1437,85 +1436,102 @@
     }
     
     let burndownChartInstance = null;
-    function renderBurndownChart(totalStoryPoints, completedStoryPoints, dateStoryPoint, dates) {
-        // Check if dates and dateStoryPoint are valid
-        if (!Array.isArray(dates) || !dates.length) {
-            console.error("Error: 'dates' is not a valid array or is empty.");
+function renderBurndownChart(totalStoryPoints, completedStoryPoints, dateStoryPoint, dates) {
+    // Check if dates and dateStoryPoint are valid
+    if (!Array.isArray(dates) || !dates.length) {
+        console.error("Error: 'dates' is not a valid array or is empty.");
+        return;
+    }
+    if (!dateStoryPoint || typeof dateStoryPoint !== 'object') {
+        console.error("Error: 'dateStoryPoint' is not a valid object.");
+        return;
+    }
+
+    const ctx = document.getElementById('burndownChart').getContext('2d');
+    let remainingStoryPoints = totalStoryPoints;
+    console.log('remaining story points:', remainingStoryPoints);
+
+    // Initialize dataPoints array to reflect steady progress
+    const dataPoints = [];
+
+    dates.map((date) => {
+        console.log(date, dateStoryPoint[date]);
+        // If the task has not been completed on this day, keep the story points steady
+        if (dateStoryPoint[date] === undefined) {
+            dataPoints.push(remainingStoryPoints);
             return;
         }
-        if (!dateStoryPoint || typeof dateStoryPoint !== 'object') {
-            console.error("Error: 'dateStoryPoint' is not a valid object.");
-            return;
-        }
 
-        const ctx = document.getElementById('burndownChart').getContext('2d');
-        let remainingStoryPoints = totalStoryPoints - completedStoryPoints;
+        // On the completion day, reduce the story points accordingly
+        console.log('before', date, remainingStoryPoints);
+        remainingStoryPoints -= dateStoryPoint[date];
+        console.log('after', date, remainingStoryPoints);
+        dataPoints.push(remainingStoryPoints);
+    });
 
-        // Initialize dataPoints array to reflect steady progress
-        const dataPoints = dates.map((date) => {
-            // If the task has not been completed on this day, keep the story points steady
-            if (dateStoryPoint[date] === undefined) {
-                return remainingStoryPoints;
-            }
+    console.log("data points: ", dataPoints);
+    // Create a diagonal line from totalStoryPoints to 0
+    const diagonalPoints = dates.map((date, index) => {
+        // Evenly spaced points from totalStoryPoints to 0
+        const progress = totalStoryPoints - (totalStoryPoints / (dates.length - 1)) * index;
+        return Math.max(progress, 0); // Ensure it doesn't go below 0
+    });
 
-            // On the completion day, reduce the story points accordingly
-            remainingStoryPoints -= dateStoryPoint[date];
-            return remainingStoryPoints;
-        });
+    // If a chart instance already exists, destroy it before creating a new one
+    if (burndownChartInstance) {
+        burndownChartInstance.destroy();
+    }
 
-        // Create a diagonal line from totalStoryPoints to 0
-        const diagonalPoints = dates.map((date, index) => {
-            // Evenly spaced points from totalStoryPoints to 0
-            const progress = totalStoryPoints - (totalStoryPoints / (dates.length - 1)) * index;
-            return Math.max(progress, 0); // Ensure it doesn't go below 0
-        });
-
-        // If a chart instance already exists, destroy it before creating a new one
-        if (burndownChartInstance) {
-            burndownChartInstance.destroy();
-        }
-
-        burndownChartInstance = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: dates, // Labels for the X-axis (e.g., dates)
-                datasets: [
-                    {
-                        label: 'Story Points Remaining',
-                        data: dataPoints,
-                        fill: false,
-                        borderColor: 'rgb(75, 192, 192)',
-                        tension: 0.1
-                    },
-                    {
-                        label: 'Guideline (Diagonal Line)',
-                        data: diagonalPoints,
-                        fill: false,
-                        borderColor: 'rgba(255, 99, 132, 0.7)',
-                        borderDash: [5, 5],
-                        tension: 0.1
+    burndownChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: dates, // Labels for the X-axis (e.g., dates)
+            datasets: [
+                {
+                    label: 'Story Points Remaining',
+                    data: dataPoints,
+                    fill: false,
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1,
+                    stepped: true
+                },
+                {
+                    label: 'Guideline',
+                    data: diagonalPoints,
+                    fill: false,
+                    borderColor: 'rgba(255, 99, 132, 0.7)',
+                    borderDash: [5, 5],
+                    tension: 0.1
+                }
+            ]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Story Points'
                     }
-                ]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Story Points'
-                        }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Time'
                     },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Time'
+                    ticks: {
+                        // Show every second date (or customize the interval as needed)
+                        callback: function(value, index, values) {
+                            // Only display the label if it's every second value
+                            return index % 2 === 0 ? this.getLabelForValue(value) : '';
                         }
                     }
                 }
             }
-        });
-    }
+        }
+    });
+}
+
 
     function getFormData() {
         return {
