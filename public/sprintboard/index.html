@@ -1156,6 +1156,9 @@
                 case 'In progress':
                     message = "Sprint has started! Good luck and stay focused!";
                     break;
+                case 'Completed':
+                    message = "Congratulations! You've completed the sprint!";
+                    break;
             }
             if (message) {
                 showEncouragingMessage(message);
@@ -2777,7 +2780,7 @@
     }
 
     // Set interval to update sprint statuses every minute
-    setInterval(updateAllSprintStatuses, 2000);
+    setInterval(updateAllSprintStatuses, 3000);
 
     // Initial fetch of sprint board data
     fetchSprintBoard();
