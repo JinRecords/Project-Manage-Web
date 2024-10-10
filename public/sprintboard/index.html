@@ -363,6 +363,39 @@
     let isSprintUpdated = false;
     let currentTaskId = null;
 
+    const encouragingMessages = [
+        "Great job! Keep up the good work!",
+        "You're making excellent progress!",
+        "Awesome work! You're crushing it!",
+        "Way to go! You're on fire!",
+        "Fantastic effort! You're doing great!"
+    ];
+
+    const SPRINT_COMPLETION_MESSAGE = "Great job on reaching the end of the sprint!";
+
+    function getRandomMessage() {
+        return encouragingMessages[Math.floor(Math.random() * encouragingMessages.length)];
+    }
+
+    // Function to show an encouraging message
+    function showEncouragingMessage(message) {
+        const messageContainer = document.createElement('div');
+        messageContainer.className = 'encouraging-message';
+        messageContainer.textContent = message;
+        document.body.appendChild(messageContainer);
+
+        setTimeout(() => {
+            messageContainer.classList.add('show');
+        }, 100);
+
+        setTimeout(() => {
+            messageContainer.classList.remove('show');
+            setTimeout(() => {
+                document.body.removeChild(messageContainer);
+            }, 500);
+        }, 5000);
+    }
+
     // Function to handle adding a new sprint
     window.handleAddSprintClick = function (event) {
         event.preventDefault();
@@ -868,17 +901,6 @@
         return true;
     }
 
-    // Function to calculate sprint status based on time
-    function calculateSprintStatus(startTime, endTime) {
-        const now = new Date();
-        const start = new Date(startTime);
-        const end = new Date(endTime);
-
-        if (now < start) return 'Not started';
-        if (now >= start && now <= end) return 'In progress';
-        return 'Completed';
-    }
-
     // Function to update a sprint
     function updateSprint(sprintId) {
         setSprintFormMode('edit', sprint);
@@ -1111,14 +1133,34 @@
     }
 
     // Function to calculate sprint status based on time
-    function calculateSprintStatus(startTime, endTime) {
+    function calculateSprintStatus(startTime, endTime, previousStatus) {
         const now = new Date();
         const start = new Date(startTime);
         const end = new Date(endTime);
 
-        if (now < start) return 'Not started';
-        if (now >= start && now <= end) return 'In progress';
-        return 'Completed';
+        let newStatus;
+        if (now < start) {
+            newStatus = 'Not started';
+        } else if (now >= start && now <= end) {
+            newStatus = 'In progress';
+        } else {
+            newStatus = 'Completed';
+        }
+
+        // Only show encouraging message when the status actually changes
+        if (newStatus !== previousStatus) {
+            let message;
+            switch (newStatus) {
+                case 'In progress':
+                    message = "Sprint has started! Good luck and stay focused!";
+                    break;
+            }
+            if (message) {
+                showEncouragingMessage(message);
+            }
+        }
+
+        return newStatus;
     }
 
     // Function to edit a sprint
@@ -2698,7 +2740,7 @@ function renderBurndownChart(totalStoryPoints, completedStoryPoints, dateStoryPo
         getAllSprintsFromFirebase().then(sprints => {
             if (sprints) {
                 Object.entries(sprints).forEach(([sprintId, sprint]) => {
-                    const newStatus = calculateSprintStatus(sprint.startTime, sprint.endTime);
+                    const newStatus = calculateSprintStatus(sprint.startTime, sprint.endTime, sprint.status);
                     if (newStatus !== sprint.status) {
                         updateSprintStatusInFirebase(sprintId, newStatus);
                     }
@@ -2708,7 +2750,7 @@ function renderBurndownChart(totalStoryPoints, completedStoryPoints, dateStoryPo
     }
 
     // Set interval to update sprint statuses every minute
-    setInterval(updateAllSprintStatuses, 60000);
+    setInterval(updateAllSprintStatuses, 2000);
 
     // Initial fetch of sprint board data
     fetchSprintBoard();
