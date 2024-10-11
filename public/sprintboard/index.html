@@ -1303,13 +1303,9 @@
         const taskId = currentTaskId;
         const duration = parseFloat(document.getElementById('progressDuration').value);
         const date = document.getElementById('progressDate').value;
-      
-        console.log('Task ID:', taskId);
-        console.log('Duration:', duration);
-        console.log('Date:', date);
-      
+        
         const taskRef = ref(database, `productBacklog/${taskId}`);
-      
+        
         get(taskRef).then((snapshot) => {
             if (snapshot.exists()) {
                 const task = snapshot.val();
@@ -1335,24 +1331,24 @@
                     // Update the total time spent display
                     document.getElementById('totalTimeSpent').textContent = newTimespent.toFixed(2);
                 });
-      
-                // Update the user's timespent field
-                const userRef = ref(database, `users/${task.assignee}`);
-                get(userRef).then((snapshot) => {
-                    if (snapshot.exists()) {
-                        const user = snapshot.val();
-                        const newTimespent = (user.timespent || 0) + duration;
-                        update(userRef, {timespent: newTimespent});
-                    }
-                });
     
-                // Refresh the chart
-                fetchAndDisplayProgressData(taskId);
+                // Update the user's timespent field
+                const userRef = ref(database, `users/${task.assignee}/timespent`);
+                get(userRef).then((snapshot) => {
+                    const userTimespent = snapshot.val() || {};
+                    if (userTimespent[date]) {
+                        userTimespent[date] += duration;
+                    } else {
+                        userTimespent[date] = duration;
+                    }
+                    update(userRef, userTimespent);
+                });
             }
         });
-      
+    
         toggleProgressPopup();
     }
+
     
 
     async function createSprintCardAsync(sprint, key) {
