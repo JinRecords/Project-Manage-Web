@@ -99,7 +99,6 @@
         </form>
     </div>
 
-
     <!-- Delete Confirmation Popup -->
     <div id="deleteConfirmationPopup" class="custom-popup">
         <div class="custom-popup-content">
@@ -108,6 +107,45 @@
             <div class="custom-popup-buttons">
                 <button class="btn btn-secondary" onclick="hideDeleteConfirmation()">Cancel</button>
                 <button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Details Popup -->
+    <div id="userDetailsPopup" class="popup-form">
+        <form id="userForm">
+            <div class="form-group">
+                <h3 id="userUsername"></h3>
+                <p><strong>Total Time Spent:</strong> <span id="userTotalTimeSpent"></span></p>
+                <canvas id="userTimeSpentChart"></canvas>
+                <div class="col-auto ml-auto">
+                    <button type="button" id="filterButton" class="btn btn-secondary"><i class="fas fa-filter"></i></button>
+                </div>
+            </div>
+            <div class="form-buttons">
+                <button type="button" class="btn btn-secondary" onclick="hideUserDetails()">Close</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Filter by time spent popup-->
+    <div id="filter-time-spent-popup" class="filter-time-spent-popup">
+        <div class="custom-popup-content">
+            <h4>Filter By Date Range</h4>
+            <div id="filter-option">
+                <div class="form-group">
+                    <label for="start-date">Start Date:</label>
+                    <input type="date" id="start-date" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="end-date">End Date:</label>
+                    <input type="date" id="end-date" class="form-control">
+                </div>
+                <div class="custom-popup-buttons">
+                    <button class="btn btn-secondary" onclick="hideFilterTimeSpentPopup()">Cancel</button>
+                    <button class="btn btn-primary" onclick="applyDateFilter()">Apply</button>
+                    <button class="btn btn-warning" onclick="resetDateFilter()">Reset</button>
+                </div>
             </div>
         </div>
     </div>
@@ -129,9 +167,12 @@
 <script src="../js/bootstrap.bundle.min.js?3058"></script>
 <script src="../js/blocs.min.js?6353"></script>
 <script src="../js/lazysizes.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     // Global variables
     let currentSprintId = null;
+    let timeSpentData = {};
+    let userTimeSpentChartInstance = null;
 
     // Function to handle adding a new sprint
     window.handleAddMemberClick = function (event) {
@@ -159,6 +200,145 @@
         document.getElementById('delete-confirmation-popup').style.display = 'none';
         document.getElementById('overlay').classList.remove('open');
     }
+
+    // Function to show user detail
+    function showUserDetails(user) {
+        const popup = document.getElementById('userDetailsPopup');
+        const overlay = document.getElementById('overlay');
+
+        document.getElementById('userUsername').textContent = user.username;
+
+        // Reset the chart canvas
+        const chartCanvas = document.getElementById('userTimeSpentChart');
+        chartCanvas.width = chartCanvas.width;
+
+        // Fetch time spent data for the user
+        fetchUserTimeSpentData(user.username).then(data => {
+            timeSpentData = data;
+            const totalTimeSpent = calculateTotalTimeSpent(timeSpentData);
+            document.getElementById('userTotalTimeSpent').textContent = totalTimeSpent;
+
+            renderUserTimeSpentChart(timeSpentData);
+        });
+
+        // Add event listener for the filter button
+        const filterButton = document.getElementById('filterButton');
+        filterButton.addEventListener('click', showFilterTimeSpentPopup);
+
+        popup.classList.add('open');
+        overlay.style.display = 'block';
+    }
+
+
+    // Function to create bar chart
+    function renderUserTimeSpentChart(timeSpentData) {
+        const ctx = document.getElementById('userTimeSpentChart').getContext('2d');
+
+        // Destroy the existing chart if it exists
+        if (userTimeSpentChartInstance) {
+            userTimeSpentChartInstance.destroy();
+        }
+
+        const dates = Object.keys(timeSpentData).sort();
+        const timeSpent = dates.map(date => timeSpentData[date]);
+
+        userTimeSpentChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: dates,
+                datasets: [{
+                    label: 'Time Spent (hours)',
+                    data: timeSpent,
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Time Spent (hours)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Function to calculate time spend for user
+    function calculateTotalTimeSpent(timespent) {
+        if (!timespent || typeof timespent !== 'object') return '0 hours';
+
+        const totalHours = Object.values(timespent).reduce((sum, value) => sum + value, 0);
+        return `${totalHours.toFixed(2)} hours`;
+    }
+
+    // Function to show filter popup
+    function showFilterTimeSpentPopup() {
+        const popup = document.getElementById('filter-time-spent-popup');
+        popup.style.display = 'block';
+        document.getElementById('overlay').style.display = 'block';
+    }
+
+    // Function to hide filter popup
+    function hideFilterTimeSpentPopup() {
+        const popup = document.getElementById('filter-time-spent-popup');
+        popup.style.display = 'none';
+        document.getElementById('overlay').style.display = 'none';
+    }
+
+    // Function to filter by date
+    function filterDataByDateRange(dates, durations, startDate, endDate) {
+        const filteredDates = [];
+        const filteredDurations = [];
+
+        for (let i = 0; i < dates.length; i++) {
+            if (dates[i] >= startDate && dates[i] <= endDate) {
+                filteredDates.push(dates[i]);
+                filteredDurations.push(durations[i]);
+            }
+        }
+
+        return { dates: filteredDates, durations: filteredDurations };
+    }
+
+    function applyDateFilter() {
+        const startDate = document.getElementById('start-date').value;
+        const endDate = document.getElementById('end-date').value;
+
+        if (startDate && endDate) {
+            const filteredData = filterDataByDateRange(Object.keys(timeSpentData), Object.values(timeSpentData), startDate, endDate);
+            const filteredTimeSpentData = Object.fromEntries(filteredData.dates.map((date, index) => [date, filteredData.durations[index]]));
+
+            const totalTimeSpent = calculateTotalTimeSpent(filteredTimeSpentData);
+            document.getElementById('userTotalTimeSpent').textContent = totalTimeSpent;
+
+            renderUserTimeSpentChart(filteredTimeSpentData);
+            hideFilterTimeSpentPopup();
+        } else {
+            alert('Please select both start and end dates.');
+        }
+    }
+
+    function resetDateFilter() {
+        document.getElementById('start-date').value = '';
+        document.getElementById('end-date').value = '';
+        const totalTimeSpent = calculateTotalTimeSpent(timeSpentData);
+        document.getElementById('userTotalTimeSpent').textContent = totalTimeSpent;
+        renderUserTimeSpentChart(timeSpentData);
+        hideFilterTimeSpentPopup();
+    }
+
 
 </script>
 <script type="module">
@@ -201,6 +381,20 @@
         overlay.style.display = popup.classList.contains('open') ? 'block' : 'none';
     }
 
+    // Function to toggle progress popup
+    function toggleProgressPopup() {
+        console.log("Hahahah");
+        const popup = document.getElementById('user-popup');
+        popup.classList.toggle('open');
+        console.log("Popup visibility:", popup.classList.contains('open'));
+    }
+
+    // Function to toggle filter popup
+    function toggleFilterTimeSpentPopup() {
+        const popup = document.getElementById('filter-time-spent-popup');
+        popup.style.display = popup.style.display === 'none' ? 'block' : 'none';
+    }
+
     function closePopup() {
         const popup = document.getElementById('addMemberPopup');
         const overlay = document.getElementById('overlay');
@@ -230,10 +424,22 @@
         }
     };
 
+    function hideUserDetails() {
+        const popup = document.getElementById('userDetailsPopup');
+        const overlay = document.getElementById('overlay');
+
+        // Remove the event listener for the filter button
+        const filterButton = document.getElementById('filterButton');
+        filterButton.removeEventListener('click', showFilterTimeSpentPopup);
+
+        popup.classList.remove('open');
+        overlay.style.display = 'none';
+    }
+
     // Make sure these functions are global
     window.toggleAddMemberPopup = toggleAddMemberPopup;
     window.closePopup = closePopup;
-
+    window.hideUserDetails = hideUserDetails;
 
     // Add event listener to the add member button
     document.getElementById('addMemberButton').addEventListener('click', toggleAddMemberPopup);
@@ -250,31 +456,43 @@
 
             for (const userId in userData) {
                 const user = userData[userId];
+                // The timespent data is already in the user object
+                console.log(`Timespent data for ${user.username}:`, user.timespent);
                 const card = createUserCard(user);
                 userCardsContainer.appendChild(card);
             }
         });
     }
 
+    document.getElementById('overlay').addEventListener('click', function() {
+        hideUserDetails();
+    });
+
     // Function to create a user card
     function createUserCard(user) {
         const card = document.createElement('div');
         card.className = 'card mb-3';
         card.innerHTML = `
-        <div class="card-header">
-            <h3>${user.username}</h3>
-            <div class="dropdown">
-                <button class="btn btn-link dropdown-toggle three-dot-menu" type="button" id="dropdownMenu-${user.username}" data-bs-toggle="dropdown" aria-expanded="false">⋮</button>
-                <ul class="dropdown-menu" aria-labelledby="dropdownMenu-${user.username}">
-                    <li><a class="dropdown-item text-danger delete-item" href="#" data-username="${user.username}">Delete</a></li>
-                </ul>
+            <div class="card-header">
+                <h3>${user.username}</h3>
+                <div class="dropdown">
+                    <button class="btn btn-link dropdown-toggle three-dot-menu" type="button" id="dropdownMenu-${user.username}" data-bs-toggle="dropdown" aria-expanded="false">⋮</button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenu-${user.username}">
+                        <li><a class="dropdown-item text-danger delete-item" href="#" data-username="${user.username}">Delete</a></li>
+                    </ul>
+                </div>
             </div>
-        </div>
-        <div class="card-body">
-            <p>Team member</p>
-            <button class="btn btn-secondary" disabled>User</button>
-        </div>
-    `;
+            <div class="card-body">
+                <p>Team member</p>
+                <button class="btn btn-secondary" disabled>User</button>
+            </div>
+        `;
+
+        card.addEventListener('click', (e) => {
+            if (!e.target.closest('.dropdown, .btn-link')) {
+                showUserDetails(user);
+            }
+        });
 
         // Add event listener for delete button
         const deleteButton = card.querySelector('.delete-item');
@@ -315,6 +533,39 @@
             }).catch((error) => {
                 console.error('Error deleting user:', error);
             });
+        }
+    }
+
+    window.fetchUserTimeSpentData = async function (username) {
+        const userRef = ref(database, `users/${username}/timespent`);
+        const snapshot = await get(userRef);
+        return snapshot.val() || {};
+    }
+
+    window.fetchAndDisplayProgressData = async function (taskId, startDate = null, endDate = null, reset = false) {
+        const userRef = ref(database, `users/${username}`);
+        const snapshot = await get(userRef);
+
+        if (snapshot.exists()) {
+            const task = snapshot.val();
+            const progressLog = task.progressLog || {};
+
+            let dates = Object.keys(progressLog).sort();
+            let durations = dates.map(date => progressLog[date]);
+
+            if (!reset && startDate && endDate) {
+                const filteredData = filterDataByDateRange(dates, durations, startDate, endDate);
+                dates = filteredData.dates;
+                durations = filteredData.durations;
+            }
+
+            const totalTimeSpent = durations.reduce((sum, duration) => sum + duration, 0);
+
+            renderProgressChart(dates, durations);
+
+            document.getElementById('totalTimeSpent').textContent = totalTimeSpent.toFixed(2);
+        } else {
+            console.log("No progress data available");
         }
     }
 
