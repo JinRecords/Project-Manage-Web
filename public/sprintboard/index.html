@@ -265,6 +265,7 @@
         </form>
     </div>
 
+    <div id="overlay-burndown-chart" class="overlay-burndown-chart"></div>
 
     <!-- Burndown chart popup-->
     <div id="burndown-chart-popup" class="popup-form">
@@ -2235,19 +2236,16 @@
         }
     }
 
-    // Function to toggle burndown chart popup
     window.toggleBurndownChartPopup = function (totalStoryPoints, completedStoryPoints, dateStoryPoint, dates) {
         const popup = document.getElementById('burndown-chart-popup');
-        const overlay = document.getElementById('overlay-sprint');
+        const overlay = document.getElementById('overlay-burndown-chart');
         popup.classList.toggle('open');
         overlay.classList.toggle('open');
-        console.log("total storypoints: ", totalStoryPoints);
-        renderBurndownChart(totalStoryPoints, completedStoryPoints, dateStoryPoint, dates);  // Call the render function
-        //$('#burndownChartModal').modal('show');  // Show the modal
+        console.log("Popup visibility:", popup.classList.contains('open'));
+        renderBurndownChart(totalStoryPoints, completedStoryPoints, dateStoryPoint, dates);
 
         if (!popup.classList.contains('open')) {
             // Reset form state
-
             const form = document.getElementById('burndownChartForm');
             form.reset();
             Array.from(form.elements).forEach(el => el.disabled = false);
@@ -2386,6 +2384,15 @@
         initDragAndDrop();
     });
 
+    document.addEventListener('DOMContentLoaded', () => {
+        const overlayBurndownChart = document.getElementById('overlay-burndown-chart');
+        overlayBurndownChart.addEventListener('click', (event) => {
+            if (event.target === overlayBurndownChart) {
+                toggleBurndownChartPopup();
+            }
+        });
+    });
+    
     // Event delegation for delete and edit buttons
     document.addEventListener('click', (event) => {
         if (event.target.classList.contains('edit-sprint')) {
