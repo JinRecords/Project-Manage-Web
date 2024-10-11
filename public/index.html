@@ -304,6 +304,11 @@
             const userRef = ref(database, 'users/' + username);
             get(userRef).then((snapshot) => {
                 if (snapshot.exists() && snapshot.val().password === password) {
+                    // Add this code here
+                    localStorage.setItem('currentUser', JSON.stringify({
+                        username: username,
+                        isAdmin: username === 'admin'
+                    }));
                     showMessage('Login successful!', 'success');
                     setTimeout(() => {
                         window.location.href = './homepage/index.html';
@@ -326,6 +331,31 @@
                 message.style.display = 'none';
             }, 3000);
         }
+
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+    
+            const userRef = ref(database, `users/${username}`);
+            const snapshot = await get(userRef);
+    
+            if (snapshot.exists()) {
+                const userData = snapshot.val();
+                if (userData.password === password) {
+                    // Store user info in localStorage
+                    localStorage.setItem('currentUser', JSON.stringify({
+                        username: username,
+                        isAdmin: username === 'admin'
+                    }));
+                    window.location.href = 'teammember/index.html'; // Redirect to team member page
+                } else {
+                    alert('Invalid password');
+                }
+            } else {
+                alert('User not found');
+            }
+        });
     </script>
 </body>
 </html>

@@ -372,9 +372,20 @@
     const database = getDatabase(app);
     const sprintBoardRef = ref(database, 'sprintboard');
 
+    // Add the authentication check here
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (!currentUser) {
+        window.location.href = '../index.html'; // Redirect to login if not authenticated
+    }
+
+    const isAdmin = currentUser.isAdmin;
+
     // Function to toggle the add member popup
     function toggleAddMemberPopup() {
-        console.log("clicked")
+        if (!isAdmin) {
+            alert('Only admin can add new members');
+            return;
+        }
         const popup = document.getElementById('addMemberPopup');
         const overlay = document.getElementById('overlay');
         popup.classList.toggle('open');
@@ -444,6 +455,12 @@
     // Add event listener to the add member button
     document.getElementById('addMemberButton').addEventListener('click', toggleAddMemberPopup);
 
+    // Modify the Add Member button visibility
+    const addMemberButton = document.getElementById('addMemberButton');
+    if (!isAdmin) {
+        addMemberButton.style.display = 'none';
+    }
+
 
     // Function to fetch user data and create cards
     function fetchUserDataAndCreateCards() {
@@ -475,12 +492,14 @@
         card.innerHTML = `
             <div class="card-header">
                 <h3>${user.username}</h3>
+                ${isAdmin ? `
                 <div class="dropdown">
                     <button class="btn btn-link dropdown-toggle three-dot-menu" type="button" id="dropdownMenu-${user.username}" data-bs-toggle="dropdown" aria-expanded="false">⋮</button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownMenu-${user.username}">
                         <li><a class="dropdown-item text-danger delete-item" href="#" data-username="${user.username}">Delete</a></li>
                     </ul>
                 </div>
+                ` : ''}
             </div>
             <div class="card-body">
                 <p>Team member</p>
@@ -488,26 +507,33 @@
             </div>
         `;
 
-        card.addEventListener('click', (e) => {
-            if (!e.target.closest('.dropdown, .btn-link')) {
-                showUserDetails(user);
-            }
-        });
+        if (isAdmin) {
+            card.addEventListener('click', (e) => {
+                if (!e.target.closest('.dropdown, .btn-link')) {
+                    showUserDetails(user);
+                }
+            });
 
-        // Add event listener for delete button
-        const deleteButton = card.querySelector('.delete-item');
-        deleteButton.addEventListener('click', (e) => {
-            e.preventDefault();
-            showDeleteConfirmation(user.username);
-        });
+            // Add event listener for delete button
+            const deleteButton = card.querySelector('.delete-item');
+            if (deleteButton) {
+                deleteButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showDeleteConfirmation(user.username);
+                });
+            }
+        }
 
         return card;
     }
 
-
     let userToDelete = null;
 
     function showDeleteConfirmation(username) {
+        if (!isAdmin) {
+            alert('Only admin can delete members');
+            return;
+        }
         userToDelete = username;
         const popup = document.getElementById('deleteConfirmationPopup');
         const overlay = document.getElementById('overlay');
@@ -577,6 +603,13 @@
 
     // Call this function when the page loads
     document.addEventListener('DOMContentLoaded', fetchUserDataAndCreateCards);
+
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchUserDataAndCreateCards();
+        if (!isAdmin) {
+            document.getElementById('userCardsContainer').classList.add('read-only');
+        }
+    });
 
 
 </script>
