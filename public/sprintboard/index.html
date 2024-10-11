@@ -1581,7 +1581,7 @@
         }
     });
     // Check if today is within the sprint's date range and add the today line if it is
-    if (todayStr <= dates[dates.length-1]) {
+    if (todayStr <= dates[dates.length-1] && todayStr >= dates[0]) {
         burndownChartInstance.options.plugins.annotation.annotations.todayLine = {
             type: 'line',
             xMin: todayStr,
