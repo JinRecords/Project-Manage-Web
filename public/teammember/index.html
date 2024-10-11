@@ -130,6 +130,7 @@
 
     <!-- Filter by time spent popup-->
     <div id="filter-time-spent-popup" class="filter-time-spent-popup">
+        <div class="filter-overlay"></div>
         <div class="custom-popup-content">
             <h4>Filter By Date Range</h4>
             <div id="filter-option">
@@ -287,14 +288,20 @@
     function showFilterTimeSpentPopup() {
         const popup = document.getElementById('filter-time-spent-popup');
         popup.style.display = 'block';
-        document.getElementById('overlay').style.display = 'block';
     }
 
     // Function to hide filter popup
     function hideFilterTimeSpentPopup() {
         const popup = document.getElementById('filter-time-spent-popup');
         popup.style.display = 'none';
-        document.getElementById('overlay').style.display = 'none';
+    }
+
+    // Function to handle overlay clicks
+    function setupFilterPopupOverlay() {
+        const popup = document.getElementById('filter-time-spent-popup');
+        const overlay = popup.querySelector('.filter-overlay');
+        
+        overlay.addEventListener('click', hideFilterTimeSpentPopup);
     }
 
     // Function to filter by date
@@ -603,6 +610,7 @@
 
     // Call this function when the page loads
     document.addEventListener('DOMContentLoaded', fetchUserDataAndCreateCards);
+    document.addEventListener('DOMContentLoaded', setupFilterPopupOverlay);
 
     document.addEventListener('DOMContentLoaded', () => {
         fetchUserDataAndCreateCards();
