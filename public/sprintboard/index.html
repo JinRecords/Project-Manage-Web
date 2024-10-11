@@ -903,14 +903,37 @@
     }
 
     // Function to calculate sprint status based on time
-    function calculateSprintStatus(startTime, endTime) {
+    function calculateSprintStatus(startTime, endTime, previousStatus) {
         const now = new Date();
         const start = new Date(startTime);
         const end = new Date(endTime);
 
-        if (now < start) return 'Not started';
-        if (now >= start && now <= end) return 'In progress';
-        return 'Completed';
+        let newStatus;
+        if (now < start) {
+            newStatus = 'Not started';
+        } else if (now >= start && now <= end) {
+            newStatus = 'In progress';
+        } else {
+            newStatus = 'Completed';
+        }
+
+        // Only show encouraging message when the status actually changes
+        if (newStatus !== previousStatus) {
+            let message;
+            switch (newStatus) {
+                case 'In progress':
+                    message = "Sprint has started! Good luck and stay focused!";
+                    break;
+                case 'Completed':
+                    message = "Congratulations! You've completed the sprint!";
+                    break;
+            }
+            if (message) {
+                showEncouragingMessage(message);
+            }
+        }
+
+        return newStatus;
     }
 
     // Function to update a sprint
@@ -1142,17 +1165,6 @@
     function hideDeleteConfirmation() {
         document.getElementById('delete-confirmation-popup').style.display = 'none';
         document.getElementById('overlay-sprint').classList.remove('open');
-    }
-
-    // Function to calculate sprint status based on time
-    function calculateSprintStatus(startTime, endTime) {
-        const now = new Date();
-        const start = new Date(startTime);
-        const end = new Date(endTime);
-
-        if (now < start) return 'Not started';
-        if (now >= start && now <= end) return 'In progress';
-        return 'Completed';
     }
 
     // Function to edit a sprint
@@ -2757,7 +2769,7 @@
         getAllSprintsFromFirebase().then(sprints => {
             if (sprints) {
                 Object.entries(sprints).forEach(([sprintId, sprint]) => {
-                    const newStatus = calculateSprintStatus(sprint.startTime, sprint.endTime);
+                    const newStatus = calculateSprintStatus(sprint.startTime, sprint.endTime, sprint.status);
                     if (newStatus !== sprint.status) {
                         updateSprintStatusInFirebase(sprintId, newStatus);
                     }
@@ -2767,7 +2779,7 @@
     }
 
     // Set interval to update sprint statuses every minute
-    setInterval(updateAllSprintStatuses, 60000);
+    setInterval(updateAllSprintStatuses, 3000);
 
     // Initial fetch of sprint board data
     fetchSprintBoard();
@@ -2845,5 +2857,3 @@
 </script>
 </body>
 </html>
-
-
