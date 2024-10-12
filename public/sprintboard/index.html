@@ -917,7 +917,8 @@
             newStatus = 'Completed';
         }
 
-        // Only show encouraging message when the status actually changes
+        console.log(`Status change: ${previousStatus} -> ${newStatus}`);
+
         if (newStatus !== previousStatus) {
             let message;
             switch (newStatus) {
@@ -929,6 +930,7 @@
                     break;
             }
             if (message) {
+                console.log(`Showing message: ${message}`);
                 showEncouragingMessage(message);
             }
         }
@@ -2898,7 +2900,7 @@
     }
 
     // Set interval to update sprint statuses every minute
-    setInterval(updateAllSprintStatuses, 3000);
+    setInterval(updateAllSprintStatuses, 5000);
 
     // Initial fetch of sprint board data
     fetchSprintBoard();
