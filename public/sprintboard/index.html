@@ -1635,6 +1635,7 @@
     }
 
     function exitSprintBacklogMode() {
+        fetchSprintBoard()
         const mainContent = document.querySelector('.main-content');
         mainContent.innerHTML = `
         <div class="bloc l-bloc" id="bloc-1">
