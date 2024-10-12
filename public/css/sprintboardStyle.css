@@ -44,12 +44,13 @@
     opacity: 1;
 }
 
-.status-pills-container{
+.status-pills-container {
     display: flex;
     justify-content: center;
     gap: 10px;
     margin-bottom: 20px;
 }
+
 .edit-form-buttons {
     display: flex;
     justify-content: flex-end;
@@ -411,7 +412,7 @@
     color: #fff !important;
 }
 
-.sprint-backlog-buttons{
+.sprint-backlog-buttons {
     display: flex;
     justify-content: center;
     gap: 20px;
@@ -587,6 +588,56 @@
     text-overflow: ellipsis;
 }
 
+
+#listViewContainer .task-card {
+    width: calc(800% - 20px); /* Adjust width to accommodate padding */
+    margin-bottom: 15px; /* Increase vertical spacing between cards */
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    padding: 0; /* Remove padding from the card itself */
+    box-sizing: border-box; /* Ensures padding is included in the width */
+    background-color: #fff;
+    overflow: hidden; /* Ensures the black top doesn't overflow the rounded corners */
+    position: relative; /* For positioning the black top */
+}
+
+#listViewContainer .task-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background-color: #F8F9FA;
+}
+
+#listViewContainer .task-card h4 {
+    margin: 0;
+    padding: 20px 15px 5px; /* Add padding to the title */
+    position: relative; /* Ensure it's above the black background */
+    color: black; /* Make the title text white for visibility */
+}
+
+#listViewContainer .task-card .card-body {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 15px; /* Add padding to the card body */
+}
+
+#listViewContainer .task-card .card-body > * {
+    margin-bottom: 5px;
+}
+
+.listViewContainer {
+    padding: 20px; /* Adds overall padding to the container */
+    margin: 0 auto; /* Center the container horizontally */
+    max-width: 1200px; /* Optional: Limit the maximum width of the container */
+}
+
+
 .links-sidebar .button-container a:hover {
     background-color: #e0e0e0; /* Hover color for other buttons */
 }
@@ -614,13 +665,37 @@
 }
 
 .task-card {
-    background-color: #f8f9fa;
+    background-color: #fff; /* Changed to white for contrast with the header */
     border: 1px solid #dee2e6;
-    border-radius: 4px;
-    padding: 10px;
+    border-radius: 20px !important;
+    padding: 60px 10px 10px; /* Increased top padding to accommodate the header */
     margin-bottom: 10px;
     cursor: move;
+    position: relative; /* Needed for absolute positioning of pseudo-element */
+    overflow: hidden; /* Ensures the header doesn't overflow rounded corners */
 }
+
+.task-card::before {
+    content: '';
+    white-space: pre;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background-color: #F8F9FA;
+}
+
+.task-card .align-items-center {
+    margin-top: -5px;
+    padding-bottom: 10px;
+}
+
+.task-card h4 {
+    z-index: 1; /* Ensures the title is above the header background */
+}
+
+
 .main-container {
     display: flex;
     justify-content: space-between;
@@ -652,6 +727,7 @@
 .task-card.dragging {
     opacity: 0.5;
 }
+
 .dropdown-item.disabled {
     color: #6c757d !important;
     pointer-events: none !important;
@@ -660,9 +736,10 @@
 }
 
 
-.btn:hover{
+.btn:hover {
     color: #ffffff !important; /* Text color */
 }
+
 .sprint-backlog-button {
     text-align: center;
 }
@@ -672,13 +749,13 @@
 }
 
 .sprint-burndown-button:hover {
-    background-color: #cccccc !important;/* Hover color */
+    background-color: #cccccc !important; /* Hover color */
     color: #ffffff !important; /* Text color */
 
 }
 
 .sprint-backlog-button:hover {
-    background-color: #cccccc !important;/* Hover color */
+    background-color: #cccccc !important; /* Hover color */
     color: #ffffff !important; /* Text color */
 
 }
@@ -719,9 +796,11 @@
     flex-direction: column;
     align-items: center;
 }
-.container{
+
+.container {
     margin-left: -50px !important;
 }
+
 .icon-md {
     font-size: 24px; /* Adjust size as needed */
     color: #333; /* Adjust color as needed */
@@ -801,7 +880,7 @@
     color: white;
     padding: 25px 35px;
     border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     opacity: 0;
     transform: translateY(-30px);
     transition: opacity 0.4s ease-out, transform 0.4s ease-out;
@@ -813,7 +892,7 @@
     text-align: center;
     font-family: 'Arial', sans-serif;
     line-height: 1.4;
-    border: 2px solid rgba(255,255,255,0.3);
+    border: 2px solid rgba(255, 255, 255, 0.3);
     backdrop-filter: blur(5px);
 }
 
