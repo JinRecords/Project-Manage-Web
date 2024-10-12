@@ -1372,7 +1372,7 @@
 
         while (startDate <= new Date(sprint.endTime)) {
             dates.push(startDate.toISOString().split('T')[0]);  // Format as YYYY-MM-DD
-            startDate.setDate(startDate.getDate() + 1);  // Increment by 2 days
+            startDate.setDate(startDate.getDate() + 1); 
         }
 
         console.log("*******:", dates);
@@ -1389,8 +1389,8 @@
                     if (task.status === 'Completed') {
                         completedStoryPoints += parseInt(task.storypoint);
 
-                        let completedDate = new Date(task.timeModified).toISOString().split('T')[0];  // Assuming this is where the task's completion date is stored
-                        console.log("here", completedDate, task.status);
+                        let completedDate = convertToISO(task.timeModified);  // Assuming this is where the task's completion date is stored
+                        console.log("here", completedDate, task.status, task.timeModified);
                         let storyPoints = task.storypoint;       // Story points of the completed task
 
                         // Check if the completed date is already in the dictionary
@@ -1462,6 +1462,14 @@
 
         return card;
     }
+    function convertToISO(dateString) {
+        const parts = dateString.split(/[-/]/);
+        const day = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1; // Months are 0-indexed in JavaScript
+        const year = parseInt(parts[2], 10);
+
+        return new Date(year, month, day).toISOString().split('T')[0];
+        }
 
     async function renderSprintBoard(newData) {
         const container = document.getElementById('sprintCardsContainer');
@@ -1520,6 +1528,7 @@
 
         // Initialize dataPoints array for completed story points
         const completedDataPoints = dates.map((date) => {
+            console.log("date", date, "today", todayStr, dateStoryPoint[date]);
             if (date <= todayStr) {  // Only include data until today
                 if (dateStoryPoint[date] === undefined) {
                     return remainingStoryPoints; // Keep the remaining story points steady
