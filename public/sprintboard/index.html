@@ -82,7 +82,7 @@
     <div id="overlay-sprint" class="overlay-sprint"></div>
     <div id="overlay-task" class="overlay-task"></div>
     <div id="overlay-progress" class="overlay-progress"></div>
-    
+
 
     <!-- Delete Confirmation Popup -->
     <div id="delete-confirmation-popup" class="custom-popup">
@@ -112,13 +112,13 @@
             <div class="form-group">
                 <label for="productOwner">Product Owner:</label>
                 <select class="form-control" id="productOwner">
-                
+
                 </select>
             </div>
             <div class="form-group">
                 <label for="scrumMaster">Scrum Master:</label>
                 <select class="form-control" id="scrumMaster">
-            
+
                 </select>
             </div>
             <div class="form-group">
@@ -241,7 +241,7 @@
     <!-- Progress Popup-->
     <div id="progress-popup" class="popup-form">
         <form id="progressForm" class="progress-popup-layout">
-            <div class="form-group">   
+            <div class="form-group">
                 <h4>Progress</h4>
                 <div class="form-group">
                     <label for="progressDuration">Duration (hours):</label>
@@ -254,8 +254,9 @@
                 <p>Total time spent: <span id="totalTimeSpent">0</span> hours</p>
                 <canvas id="progressChart" width="400" height="200"></canvas>
                 <div class="col-auto ml-auto">
-                    <button type="button" id="filterButton" class="btn btn-secondary"><i class="fas fa-filter"></i></button>
-                   
+                    <button type="button" id="filterButton" class="btn btn-secondary"><i class="fas fa-filter"></i>
+                    </button>
+
                 </div>
                 <div class="form-buttons">
                     <button type="button" class="btn btn-secondary" onclick="toggleProgressPopup()">Cancel</button>
@@ -269,15 +270,15 @@
 
     <!-- Burndown chart popup-->
     <div id="burndown-chart-popup" class="popup-form">
-        <form id="burndownChartForm" ></form>
-            <div class="form-group">
-                
-                <h4>Burndown Chart</h4>
-                <canvas id="burndownChart" width="400" height="200"></canvas>
-                <div class="form-buttons">
-                    <button type="button" class="btn btn-secondary" onclick="toggleBurndownChartPopup()">Back</button>
-                </div>
+        <form id="burndownChartForm"></form>
+        <div class="form-group">
+
+            <h4>Burndown Chart</h4>
+            <canvas id="burndownChart" width="400" height="200"></canvas>
+            <div class="form-buttons">
+                <button type="button" class="btn btn-secondary" onclick="toggleBurndownChartPopup()">Back</button>
             </div>
+        </div>
         </form>
     </div>
 
@@ -317,7 +318,7 @@
                     <button class="btn btn-secondary" onclick="hideFilterTimeSpentPopup()">Cancel</button>
                     <button class="btn btn-primary" onclick="applyDateFilter()">Apply</button>
                     <button class="btn btn-warning" onclick="resetDateFilter()">Reset</button>
-                </div>               
+                </div>
             </div>
         </div>
     </div>
@@ -350,8 +351,6 @@
         </svg>
     </button>
 </div>
-
-
 
 
 <script src="../js/bootstrap.bundle.min.js?3058"></script>
@@ -501,8 +500,8 @@
         popup.classList.toggle('open');
         console.log("Popup visibility:", popup.classList.contains('open'));
     }
-    
-    
+
+
     // Function to toggle sprint popup
     function toggleBurndownChartPopup(totalStoryPoints, completedStoryPoints, dateStoryPoint, dates) {
         console.log("Toggling burndown chart popup");
@@ -594,7 +593,6 @@
         });
         teamMembersSelectionPopup.classList.add('open');
     }
-
 
 
     function hideTagSelectionPopup() {
@@ -725,6 +723,7 @@
 
     let isSettingFormMode = false;
     let setFormModeTimeout;
+
     function setFormMode(mode, item = null) {
         if (isSettingFormMode) {
             console.log('Already setting form mode, ignoring duplicate call');
@@ -771,7 +770,7 @@
         const statusPills = document.querySelectorAll('.edit-status');
         statusPills.forEach(pill => {
             pill.classList.remove('disabled');
-            pill.addEventListener('click', function() {
+            pill.addEventListener('click', function () {
                 setStatus(this.textContent);
             });
         });
@@ -948,9 +947,20 @@
         }
     }
 
+    let renderedSprintIds = new Set();
     // Function to render sprint board
     function renderSprintBoard(data) {
         const container = document.getElementById('sprintCardsContainer');
+        container.innerHTML = ''; // Clear existing sprint cards
+        renderedSprintIds.clear();
+        Object.entries(data).forEach(([key, sprint]) => {
+        if (!renderedSprintIds.has(key)) {
+            const card = createSprintCard(sprint, key);
+            container.appendChild(card);
+            renderedSprintIds.add(key);
+        }
+    });
+
         if (!container) {
             console.error('Sprint cards container not found');
             return; // Exit the function if the container is not found
@@ -971,6 +981,8 @@
             });
         }
     }
+
+
 
     // Function to create a sprint card
     function createSprintCard(sprint, key) {
@@ -1185,21 +1197,21 @@
     function filterDataByDateRange(dates, durations, startDate, endDate) {
         const filteredDates = [];
         const filteredDurations = [];
-        
+
         for (let i = 0; i < dates.length; i++) {
             if (dates[i] >= startDate && dates[i] <= endDate) {
                 filteredDates.push(dates[i]);
                 filteredDurations.push(durations[i]);
             }
         }
-        
-        return { dates: filteredDates, durations: filteredDurations };
+
+        return {dates: filteredDates, durations: filteredDurations};
     }
 
     function applyDateFilter() {
         const startDate = document.getElementById('start-date').value;
         const endDate = document.getElementById('end-date').value;
-        
+
         if (startDate && endDate) {
             fetchAndDisplayProgressData(currentTaskId, startDate, endDate);
             hideFilterTimeSpentPopup();
@@ -1214,8 +1226,6 @@
         fetchAndDisplayProgressData(currentTaskId, null, null, true);
         hideFilterTimeSpentPopup();
     }
-
-
 
 
 </script>
@@ -1300,17 +1310,17 @@
         }
     }
 
-    window.handleSaveProgress = async function() {
+    window.handleSaveProgress = async function () {
         const taskId = currentTaskId;
         const duration = parseFloat(document.getElementById('progressDuration').value);
         const date = document.getElementById('progressDate').value;
-        
+
         const taskRef = ref(database, `productBacklog/${taskId}`);
-        
+
         get(taskRef).then((snapshot) => {
             if (snapshot.exists()) {
                 const task = snapshot.val();
-                
+
                 // Update or create progressLog
                 const progressLog = task.progressLog || {};
                 if (progressLog[date]) {
@@ -1318,9 +1328,9 @@
                 } else {
                     progressLog[date] = duration;
                 }
-                
+
                 const newTimespent = (task.timespent || 0) + duration;
-                
+
                 update(taskRef, {
                     timespent: newTimespent,
                     progressLog: progressLog,
@@ -1332,7 +1342,7 @@
                     // Update the total time spent display
                     document.getElementById('totalTimeSpent').textContent = newTimespent.toFixed(2);
                 });
-    
+
                 // Update the user's timespent field
                 const userRef = ref(database, `users/${task.assignee}/timespent`);
                 get(userRef).then((snapshot) => {
@@ -1346,11 +1356,10 @@
                 });
             }
         });
-    
+
         toggleProgressPopup();
     }
 
-    
 
     async function createSprintCardAsync(sprint, key) {
         let totalStoryPoints = 0;
@@ -1445,8 +1454,7 @@
                 if (event.target.classList.contains('burndown-chart-button')) {
                     console.log("Toggling burndown chart...")
                     toggleBurndownChartPopup(totalStoryPoints, completedStoryPoints, dateStoryPoint, dates);
-                }
-                else {
+                } else {
                     openSprintViewMode(sprint, key);
                 }
             }
@@ -1455,29 +1463,45 @@
         return card;
     }
 
-    async function renderSprintBoard(data) {
-        const container = document.getElementById('sprintCardsContainer');
-        if (!container) {
-            console.error('Sprint cards container not found');
-            return; // Exit the function if the container is not found
-        }
+async function renderSprintBoard(newData) {
+    const container = document.getElementById('sprintCardsContainer');
+    if (!container) {
+        console.error('Sprint cards container not found');
+        return;
+    }
 
-        container.innerHTML = '';
+    // Clear the container first
+    container.innerHTML = '';
 
-        if (!data || Object.keys(data).length === 0) {
-            const noDataMessage = document.createElement('p');
-            noDataMessage.textContent = 'No sprints added yet.';
-            noDataMessage.style.textAlign = 'center';
-            noDataMessage.style.padding = '20px';
-            container.appendChild(noDataMessage);
-        } else {
-            for (const [key, sprint] of Object.entries(data)) {
+    if (!newData || Object.keys(newData).length === 0) {
+        const noDataMessage = document.createElement('p');
+        noDataMessage.textContent = 'No sprints added yet.';
+        noDataMessage.style.textAlign = 'center';
+        noDataMessage.style.padding = '20px';
+        container.appendChild(noDataMessage);
+        return;
+    }
+
+    // Use a Set to keep track of rendered sprint IDs
+    const renderedSprintIds = new Set();
+
+    for (const [key, sprint] of Object.entries(newData)) {
+        if (!renderedSprintIds.has(key)) {
+            try {
                 const card = await createSprintCardAsync(sprint, key);
                 container.appendChild(card);
+                renderedSprintIds.add(key);
+            } catch (error) {
+                console.error(`Error creating card for sprint ${key}:`, error);
             }
         }
     }
-    
+}
+
+
+
+
+
     let burndownChartInstance = null;
 
     function renderBurndownChart(totalStoryPoints, completedStoryPoints, dateStoryPoint, dates) {
@@ -1495,7 +1519,7 @@
         let remainingStoryPoints = totalStoryPoints;
         const today = new Date();
         const todayStr = today.toISOString().split('T')[0]; // Format as YYYY-MM-DD for comparison
-        
+
 
         // Initialize dataPoints array for completed story points
         const completedDataPoints = dates.map((date) => {
@@ -1527,78 +1551,78 @@
 
         // Define the chart instance
         burndownChartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: dates, // X-axis labels
-            datasets: [
-                {
-                    label: 'Story Points Remaining',
-                    data: validCompletedDataPoints,
-                    fill: false,
-                    borderColor: 'rgb(75, 192, 192)',
-                    tension: 0.1,
-                    stepped: true
-                },
-                {
-                    label: 'Guideline',
-                    data: diagonalPoints,
-                    fill: false,
-                    borderColor: 'rgba(200, 200, 200, 1)', // Gray color for the guideline
-                    borderDash: [], // Solid line
-                    pointRadius: 0, // Hide the data points
-                    tension: 0.1 // Optional: adjust if needed
-                }
-            ]
-        },
-        options: {
-            
-            plugins: {
-                annotation: {
-                    annotations: {}
-                }
+            type: 'line',
+            data: {
+                labels: dates, // X-axis labels
+                datasets: [
+                    {
+                        label: 'Story Points Remaining',
+                        data: validCompletedDataPoints,
+                        fill: false,
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1,
+                        stepped: true
+                    },
+                    {
+                        label: 'Guideline',
+                        data: diagonalPoints,
+                        fill: false,
+                        borderColor: 'rgba(200, 200, 200, 1)', // Gray color for the guideline
+                        borderDash: [], // Solid line
+                        pointRadius: 0, // Hide the data points
+                        tension: 0.1 // Optional: adjust if needed
+                    }
+                ]
             },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Storypoints'
+            options: {
+
+                plugins: {
+                    annotation: {
+                        annotations: {}
                     }
                 },
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Date'
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Storypoints'
+                        }
                     },
-                    ticks: {
-                        callback: function(value, index, values) {
-                            // Show every second date
-                            return index % 2 === 0 ? this.getLabelForValue(value) : '';
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        },
+                        ticks: {
+                            callback: function (value, index, values) {
+                                // Show every second date
+                                return index % 2 === 0 ? this.getLabelForValue(value) : '';
+                            }
                         }
                     }
                 }
             }
+        });
+        // Check if today is within the sprint's date range and add the today line if it is
+        if (todayStr <= dates[dates.length - 1] && todayStr >= dates[0]) {
+            burndownChartInstance.options.plugins.annotation.annotations.todayLine = {
+                type: 'line',
+                xMin: todayStr,
+                xMax: todayStr,
+                borderColor: 'rgba(128, 128, 128, 0.8)', // Gray color for today's vertical line
+                borderWidth: 2,
+                borderDash: [5, 5],
+                label: {
+                    content: 'Today', // Label content
+                    enabled: true, // Enable the label
+                    position: 'top', // Position the label
+                }
+            };
         }
-    });
-    // Check if today is within the sprint's date range and add the today line if it is
-    if (todayStr <= dates[dates.length-1] && todayStr >= dates[0]) {
-        burndownChartInstance.options.plugins.annotation.annotations.todayLine = {
-            type: 'line',
-            xMin: todayStr,
-            xMax: todayStr,
-            borderColor: 'rgba(128, 128, 128, 0.8)', // Gray color for today's vertical line
-            borderWidth: 2,
-            borderDash: [5, 5],
-            label: {
-                content: 'Today', // Label content
-                enabled: true, // Enable the label
-                position: 'top', // Position the label
-            }
-        };
-    }
 
-    // Update the chart after adding annotations if any
-    burndownChartInstance.update();
+        // Update the chart after adding annotations if any
+        burndownChartInstance.update();
     }
 
     function getFormData() {
@@ -1635,7 +1659,6 @@
     }
 
     function exitSprintBacklogMode() {
-        fetchSprintBoard()
         const mainContent = document.querySelector('.main-content');
         mainContent.innerHTML = `
         <div class="bloc l-bloc" id="bloc-1">
@@ -1663,8 +1686,8 @@
         fetchSprintBoard(); // This will now render the sprint board correctly
     }
 
-    window.exitSprintKanbanMode = function() {
-    exitSprintBacklogMode(); // Reuse the existing function to return to sprint board view
+    window.exitSprintKanbanMode = function () {
+        exitSprintBacklogMode(); // Reuse the existing function to return to sprint board view
     };
 
     async function enterSprintBacklogMode(sprintId, sprintTitle) {
@@ -1746,7 +1769,7 @@
             form.addEventListener('submit', function (event) {
                 event.preventDefault();
             });
-                        document.addEventListener("keyup", function (event) {
+            document.addEventListener("keyup", function (event) {
 
                 if (event.key === 'Enter' && mode === 'add') {
                     saveSprint();
@@ -1789,7 +1812,6 @@
         setupSprintRealtimeListener();
 
 
-
         // Event delegation for delete and edit buttons
         document.addEventListener('click', (event) => {
             if (event.target.classList.contains('delete-sprint')) {
@@ -1809,9 +1831,6 @@
                 toggleSprintPopup();
             }
         });
-
-        // Initial fetch of sprint board data
-        fetchSprintBoard();
 
         // Event delegation for delete and edit buttons
         document.addEventListener('click', (event) => {
@@ -1948,30 +1967,114 @@
     }
 
 
-    async function enterSprintKanbanMode(sprintId, sprintTitle) {
-        currentSprintId = sprintId;
-        const mainContent = document.querySelector('.main-content');
-        mainContent.innerHTML = `
+async function enterSprintKanbanMode(sprintId, sprintTitle) {
+    currentSprintId = sprintId;
+    const mainContent = document.querySelector('.main-content');
+    mainContent.innerHTML = `
+        <div class="kanban-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h2>${sprintTitle} - Kanban Board</h2>
-            <div class="kanban-container" style="display: flex; justify-content: space-between; padding: 50px;">
-                <div class="kanban-column" style="width: 30%; min-height: 500px; border: 1px solid #ddd; border-radius: 20px; overflow: hidden;">
-                    <h3 style="color: black; text-align: center; height: 100px; line-height: 100px; background-color: #FFB7B7; margin: 0;">Not started</h3>
-                    <div id="not-started-tasks" style="padding: 10px; background-color: white;"></div>
-                </div>
-                <div class="kanban-column" style="width: 30%; min-height: 500px; border: 1px solid #ddd; border-radius: 20px; overflow: hidden;">
-                    <h3 style="color: black; text-align: center; height: 100px; line-height: 100px; background-color: #E3E649; margin: 0;">In progress</h3>
-                    <div id="in-progress-tasks" style="padding: 10px; background-color: white;"></div>
-                </div>
-                <div class="kanban-column" style="width: 30%; min-height: 500px; border: 1px solid #ddd; border-radius: 20px; overflow: hidden;">
-                    <h3 style="color: black; text-align: center; height: 100px; line-height: 100px; background-color: #7EBF60; margin: 0;">Completed</h3>
-                    <div id="completed-tasks" style="padding: 10px; background-color: white;"></div>
-                </div>
-            </div>
-            <button class="btn btn-secondary" style="display: block; margin: 20px auto;" onclick="exitSprintKanbanMode()">Back</button>
-        `;
 
-        await fetchTasksForKanban(sprintId);
+        </div>
+        <button id="toggleViewButton" class="btn btn-secondary" style="display: block; margin: 20px auto;">List View</button>
+        <div id="kanbanContainer" class="kanban-container" style="display: flex; justify-content: space-between; padding: 20px;">
+            <div class="kanban-column" style="width: 30%; min-height: 500px; border: 1px solid #ddd; border-radius: 20px; overflow: hidden;">
+                <h3 style="color: black; text-align: center; height: 100px; line-height: 100px; background-color: #FFB7B7; margin: 0;">Not started</h3>
+                <div id="not-started-tasks" style="padding: 10px; background-color: white;"></div>
+            </div>
+            <div class="kanban-column" style="width: 30%; min-height: 500px; border: 1px solid #ddd; border-radius: 20px; overflow: hidden;">
+                <h3 style="color: black; text-align: center; height: 100px; line-height: 100px; background-color: #E3E649; margin: 0;">In progress</h3>
+                <div id="in-progress-tasks" style="padding: 10px; background-color: white;"></div>
+            </div>
+            <div class="kanban-column" style="width: 30%; min-height: 500px; border: 1px solid #ddd; border-radius: 20px; overflow: hidden;">
+                <h3 style="color: black; text-align: center; height: 100px; line-height: 100px; background-color: #7EBF60; margin: 0;">Completed</h3>
+                <div id="completed-tasks" style="padding: 10px; background-color: white;"></div>
+            </div>
+        </div>
+        <button class="btn btn-secondary" style="display: block; margin: 20px auto;" onclick="exitSprintKanbanMode()">Back</button>
+    `;
+
+    await fetchTasksForKanban(sprintId);
+
+    // Initialize the toggle button functionality
+    const toggleButton = document.getElementById('toggleViewButton');
+    if (toggleButton) {
+        window.isKanbanView = true; // Default to Kanban view
+        toggleButton.addEventListener('click', toggleView);
+    } else {
+        console.error('Toggle view button not found');
     }
+}
+
+// Add this function to handle the view toggle
+function toggleView() {
+    const kanbanContainer = document.getElementById('kanbanContainer');
+    const toggleButton = document.getElementById('toggleViewButton');
+
+    if (window.isKanbanView) {
+        // Switch to List View
+        kanbanContainer.innerHTML = '<div id="listViewContainer"></div>';
+        toggleButton.textContent = 'Kanban View';
+        renderListView();
+    } else {
+        // Switch back to Kanban View
+        kanbanContainer.innerHTML = `
+            <div class="kanban-column" style="width: 30%; min-height: 500px; border: 1px solid #ddd; border-radius: 20px; overflow: hidden;">
+                <h3 style="color: black; text-align: center; height: 100px; line-height: 100px; background-color: #FFB7B7; margin: 0;">Not started</h3>
+                <div id="not-started-tasks" style="padding: 10px; background-color: white;"></div>
+            </div>
+            <div class="kanban-column" style="width: 30%; min-height: 500px; border: 1px solid #ddd; border-radius: 20px; overflow: hidden;">
+                <h3 style="color: black; text-align: center; height: 100px; line-height: 100px; background-color: #E3E649; margin: 0;">In progress</h3>
+                <div id="in-progress-tasks" style="padding: 10px; background-color: white;"></div>
+            </div>
+            <div class="kanban-column" style="width: 30%; min-height: 500px; border: 1px solid #ddd; border-radius: 20px; overflow: hidden;">
+                <h3 style="color: black; text-align: center; height: 100px; line-height: 100px; background-color: #7EBF60; margin: 0;">Completed</h3>
+                <div id="completed-tasks" style="padding: 10px; background-color: white;"></div>
+            </div>
+        `;
+        toggleButton.textContent = 'List View';
+        fetchTasksForKanban(currentSprintId);
+    }
+
+    window.isKanbanView = !window.isKanbanView;
+}
+
+// Add this function to render the List View
+async function renderListView() {
+    const listViewContainer = document.getElementById('listViewContainer');
+    const tasks = await getAllTasksForSprint(currentSprintId);
+
+    // Sort tasks by story points (highest to lowest) and then alphabetically
+    tasks.sort((a, b) => {
+        if (b.storypoint !== a.storypoint) {
+            return b.storypoint - a.storypoint;
+        }
+        return a.title.localeCompare(b.title);
+    });
+
+    listViewContainer.innerHTML = '';
+    tasks.forEach(task => {
+        const taskElement = createTaskCard(task.id, task);
+        listViewContainer.appendChild(taskElement);
+    });
+}
+
+// Add this function to get all tasks for a sprint
+async function getAllTasksForSprint(sprintId) {
+    const snapshot = await get(ref(database, `sprintboard/${sprintId}/sprintTasks`));
+    if (snapshot.exists()) {
+        const taskIds = snapshot.val();
+        const tasks = [];
+        for (const taskId of taskIds) {
+            const task = await fetchTaskDetails(taskId);
+            if (task) {
+                tasks.push({...task, id: taskId});
+            }
+        }
+        return tasks;
+    }
+    return [];
+}
+
 
     async function fetchTasksForKanban(sprintId) {
         const snapshot = await get(ref(database, `sprintboard/${sprintId}/sprintTasks`));
@@ -1984,7 +2087,7 @@
             for (const taskId of taskIds) {
                 const task = await fetchTaskDetails(taskId);
                 if (task) {
-                    switch(task.status.toLowerCase()) {
+                    switch (task.status.toLowerCase()) {
                         case 'not started':
                             notStartedTasks.push({...task, id: taskId});
                             break;
@@ -2039,9 +2142,13 @@
                     </ul>
                 </div>
             </div>
-            <p>Priority: <span style="background-color: ${getPriorityColor(task.priority)};">${task.priority}</span></p>
+            <div class="card-body">
+            <p>Priority:</p>
+            <button class="btn btn-secondary me-2 card-tag" disabled style="background-color: ${getPriorityColor(task.priority)}">${task.priority}</button>
+            <p>Tags: </p>
+            <p>${tags}</p>
             <p>Storypoint: ${task.storypoint}</p>
-            <p>Tags: ${tags}</p>
+        </div>
         `;
 
         card.addEventListener('click', (event) => {
@@ -2053,13 +2160,13 @@
         return card;
     }
 
-    document.addEventListener('click', async function(event) {
+    document.addEventListener('click', async function (event) {
         if (event.target.classList.contains('burndown-chart-button')) {
             console.log('Burndown Chart button clicked');
         }
     });
 
-    document.addEventListener('click', async function(event) {
+    document.addEventListener('click', async function (event) {
         if (event.target.classList.contains('sprint-backlog-button')) {
             console.log('Sprint Backlog button clicked');
             const sprintId = event.target.getAttribute('data-sprint-id');
@@ -2090,8 +2197,8 @@
 
     function addTaskToColumn(status, task, taskId) {
         const columnId = status.toLowerCase() === 'not started' ? 'not-started-tasks' :
-                        status.toLowerCase() === 'in progress' ? 'in-progress-tasks' :
-                        'completed-tasks';
+            status.toLowerCase() === 'in progress' ? 'in-progress-tasks' :
+                'completed-tasks';
         const column = document.getElementById(columnId);
         if (column) {
             const existingTask = column.querySelector(`[data-task-id="${taskId}"]`);
@@ -2159,7 +2266,7 @@
         const overlay = document.getElementById('overlay-progress');
         popup.classList.toggle('open');
         overlay.style.display = popup.classList.contains('open') ? 'block' : 'none';
-    
+
         if (popup.classList.contains('open')) {
             fetchAndDisplayProgressData(currentTaskId);
         } else {
@@ -2172,33 +2279,33 @@
     window.fetchAndDisplayProgressData = async function (taskId, startDate = null, endDate = null, reset = false) {
         const taskRef = ref(database, `productBacklog/${taskId}`);
         const snapshot = await get(taskRef);
-        
+
         if (snapshot.exists()) {
             const task = snapshot.val();
             const progressLog = task.progressLog || {};
-            
+
             let dates = Object.keys(progressLog).sort();
             let durations = dates.map(date => progressLog[date]);
-            
+
             if (!reset && startDate && endDate) {
                 const filteredData = filterDataByDateRange(dates, durations, startDate, endDate);
                 dates = filteredData.dates;
                 durations = filteredData.durations;
             }
-            
+
             const totalTimeSpent = durations.reduce((sum, duration) => sum + duration, 0);
-            
+
             renderProgressChart(dates, durations);
-            
+
             document.getElementById('totalTimeSpent').textContent = totalTimeSpent.toFixed(2);
         } else {
             console.log("No progress data available");
         }
     }
-    
+
     function renderProgressChart(dates, durations) {
         const ctx = document.getElementById('progressChart').getContext('2d');
-        
+
         if (window.progressChart instanceof Chart) {
             window.progressChart.data.labels = dates;
             window.progressChart.data.datasets[0].data = durations;
@@ -2393,7 +2500,7 @@
             }
         });
     });
-    
+
     // Event delegation for delete and edit buttons
     document.addEventListener('click', (event) => {
         if (event.target.classList.contains('edit-sprint')) {
@@ -2439,8 +2546,6 @@
             }
         }
     });
-
-
 
 
     document.addEventListener('click', (event) => {
@@ -2511,6 +2616,7 @@
     });
 
     let currentSprintTasks = [];
+
     async function fetchSprintTasks(sprintId) {
         const sprintContainer = document.getElementById('sprintTasks');
         if (!sprintContainer) {
@@ -2702,10 +2808,8 @@
             </div>
         </div>
         <div class="card-body">
-            <div class="d-flex mb-2">
-                <button class="btn btn-secondary me-2 card-tag" disabled style="background-color: ${getPriorityColor(task.priority)}">${task.priority}</button>
-            </div>
-
+            <p>Priority:</p>
+            <button class="btn btn-secondary me-2 card-tag" disabled style="background-color: ${getPriorityColor(task.priority)}">${task.priority}</button>
             <p>Tags: ${tags}</p>
             <p>Storypoint: ${task.storypoint}</p>
         </div>
@@ -2742,6 +2846,7 @@
     });
 
     let currentData;
+
     function fetchSprintBoard() {
         get(ref(database, 'sprintboard')).then((snapshot) => {
             if (snapshot.exists()) {
