@@ -948,18 +948,19 @@
     }
 
     let renderedSprintIds = new Set();
+
     // Function to render sprint board
     function renderSprintBoard(data) {
         const container = document.getElementById('sprintCardsContainer');
         container.innerHTML = ''; // Clear existing sprint cards
         renderedSprintIds.clear();
         Object.entries(data).forEach(([key, sprint]) => {
-        if (!renderedSprintIds.has(key)) {
-            const card = createSprintCard(sprint, key);
-            container.appendChild(card);
-            renderedSprintIds.add(key);
-        }
-    });
+            if (!renderedSprintIds.has(key)) {
+                const card = createSprintCard(sprint, key);
+                container.appendChild(card);
+                renderedSprintIds.add(key);
+            }
+        });
 
         if (!container) {
             console.error('Sprint cards container not found');
@@ -981,7 +982,6 @@
             });
         }
     }
-
 
 
     // Function to create a sprint card
@@ -1463,43 +1463,40 @@
         return card;
     }
 
-async function renderSprintBoard(newData) {
-    const container = document.getElementById('sprintCardsContainer');
-    if (!container) {
-        console.error('Sprint cards container not found');
-        return;
-    }
+    async function renderSprintBoard(newData) {
+        const container = document.getElementById('sprintCardsContainer');
+        if (!container) {
+            console.error('Sprint cards container not found');
+            return;
+        }
 
-    // Clear the container first
-    container.innerHTML = '';
+        // Clear the container first
+        container.innerHTML = '';
 
-    if (!newData || Object.keys(newData).length === 0) {
-        const noDataMessage = document.createElement('p');
-        noDataMessage.textContent = 'No sprints added yet.';
-        noDataMessage.style.textAlign = 'center';
-        noDataMessage.style.padding = '20px';
-        container.appendChild(noDataMessage);
-        return;
-    }
+        if (!newData || Object.keys(newData).length === 0) {
+            const noDataMessage = document.createElement('p');
+            noDataMessage.textContent = 'No sprints added yet.';
+            noDataMessage.style.textAlign = 'center';
+            noDataMessage.style.padding = '20px';
+            container.appendChild(noDataMessage);
+            return;
+        }
 
-    // Use a Set to keep track of rendered sprint IDs
-    const renderedSprintIds = new Set();
+        // Use a Set to keep track of rendered sprint IDs
+        const renderedSprintIds = new Set();
 
-    for (const [key, sprint] of Object.entries(newData)) {
-        if (!renderedSprintIds.has(key)) {
-            try {
-                const card = await createSprintCardAsync(sprint, key);
-                container.appendChild(card);
-                renderedSprintIds.add(key);
-            } catch (error) {
-                console.error(`Error creating card for sprint ${key}:`, error);
+        for (const [key, sprint] of Object.entries(newData)) {
+            if (!renderedSprintIds.has(key)) {
+                try {
+                    const card = await createSprintCardAsync(sprint, key);
+                    container.appendChild(card);
+                    renderedSprintIds.add(key);
+                } catch (error) {
+                    console.error(`Error creating card for sprint ${key}:`, error);
+                }
             }
         }
     }
-}
-
-
-
 
 
     let burndownChartInstance = null;
@@ -1967,10 +1964,10 @@ async function renderSprintBoard(newData) {
     }
 
 
-async function enterSprintKanbanMode(sprintId, sprintTitle) {
-    currentSprintId = sprintId;
-    const mainContent = document.querySelector('.main-content');
-    mainContent.innerHTML = `
+    async function enterSprintKanbanMode(sprintId, sprintTitle) {
+        currentSprintId = sprintId;
+        const mainContent = document.querySelector('.main-content');
+        mainContent.innerHTML = `
         <div class="kanban-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h2>${sprintTitle} - Kanban Board</h2>
 
@@ -1993,31 +1990,31 @@ async function enterSprintKanbanMode(sprintId, sprintTitle) {
         <button class="btn btn-secondary" style="display: block; margin: 20px auto;" onclick="exitSprintKanbanMode()">Back</button>
     `;
 
-    await fetchTasksForKanban(sprintId);
+        await fetchTasksForKanban(sprintId);
 
-    // Initialize the toggle button functionality
-    const toggleButton = document.getElementById('toggleViewButton');
-    if (toggleButton) {
-        window.isKanbanView = true; // Default to Kanban view
-        toggleButton.addEventListener('click', toggleView);
-    } else {
-        console.error('Toggle view button not found');
+        // Initialize the toggle button functionality
+        const toggleButton = document.getElementById('toggleViewButton');
+        if (toggleButton) {
+            window.isKanbanView = true; // Default to Kanban view
+            toggleButton.addEventListener('click', toggleView);
+        } else {
+            console.error('Toggle view button not found');
+        }
     }
-}
 
-// Add this function to handle the view toggle
-function toggleView() {
-    const kanbanContainer = document.getElementById('kanbanContainer');
-    const toggleButton = document.getElementById('toggleViewButton');
+    // Add this function to handle the view toggle
+    function toggleView() {
+        const kanbanContainer = document.getElementById('kanbanContainer');
+        const toggleButton = document.getElementById('toggleViewButton');
 
-    if (window.isKanbanView) {
-        // Switch to List View
-        kanbanContainer.innerHTML = '<div id="listViewContainer"></div>';
-        toggleButton.textContent = 'Kanban View';
-        renderListView();
-    } else {
-        // Switch back to Kanban View
-        kanbanContainer.innerHTML = `
+        if (window.isKanbanView) {
+            // Switch to List View
+            kanbanContainer.innerHTML = '<div id="listViewContainer"></div>';
+            toggleButton.textContent = 'Kanban View';
+            renderListView();
+        } else {
+            // Switch back to Kanban View
+            kanbanContainer.innerHTML = `
             <div class="kanban-column" style="width: 30%; min-height: 500px; border: 1px solid #ddd; border-radius: 20px; overflow: hidden;">
                 <h3 style="color: black; text-align: center; height: 100px; line-height: 100px; background-color: #FFB7B7; margin: 0;">Not started</h3>
                 <div id="not-started-tasks" style="padding: 10px; background-color: white;"></div>
@@ -2031,49 +2028,49 @@ function toggleView() {
                 <div id="completed-tasks" style="padding: 10px; background-color: white;"></div>
             </div>
         `;
-        toggleButton.textContent = 'List View';
-        fetchTasksForKanban(currentSprintId);
+            toggleButton.textContent = 'List View';
+            fetchTasksForKanban(currentSprintId);
+        }
+
+        window.isKanbanView = !window.isKanbanView;
     }
 
-    window.isKanbanView = !window.isKanbanView;
-}
+    // Add this function to render the List View
+    async function renderListView() {
+        const listViewContainer = document.getElementById('listViewContainer');
+        const tasks = await getAllTasksForSprint(currentSprintId);
 
-// Add this function to render the List View
-async function renderListView() {
-    const listViewContainer = document.getElementById('listViewContainer');
-    const tasks = await getAllTasksForSprint(currentSprintId);
-
-    // Sort tasks by story points (highest to lowest) and then alphabetically
-    tasks.sort((a, b) => {
-        if (b.storypoint !== a.storypoint) {
-            return b.storypoint - a.storypoint;
-        }
-        return a.title.localeCompare(b.title);
-    });
-
-    listViewContainer.innerHTML = '';
-    tasks.forEach(task => {
-        const taskElement = createTaskCard(task.id, task);
-        listViewContainer.appendChild(taskElement);
-    });
-}
-
-// Add this function to get all tasks for a sprint
-async function getAllTasksForSprint(sprintId) {
-    const snapshot = await get(ref(database, `sprintboard/${sprintId}/sprintTasks`));
-    if (snapshot.exists()) {
-        const taskIds = snapshot.val();
-        const tasks = [];
-        for (const taskId of taskIds) {
-            const task = await fetchTaskDetails(taskId);
-            if (task) {
-                tasks.push({...task, id: taskId});
+        // Sort tasks by story points (highest to lowest) and then alphabetically
+        tasks.sort((a, b) => {
+            if (b.storypoint !== a.storypoint) {
+                return b.storypoint - a.storypoint;
             }
-        }
-        return tasks;
+            return a.title.localeCompare(b.title);
+        });
+
+        listViewContainer.innerHTML = '';
+        tasks.forEach(task => {
+            const taskElement = createTaskCard(task.id, task);
+            listViewContainer.appendChild(taskElement);
+        });
     }
-    return [];
-}
+
+    // Add this function to get all tasks for a sprint
+    async function getAllTasksForSprint(sprintId) {
+        const snapshot = await get(ref(database, `sprintboard/${sprintId}/sprintTasks`));
+        if (snapshot.exists()) {
+            const taskIds = snapshot.val();
+            const tasks = [];
+            for (const taskId of taskIds) {
+                const task = await fetchTaskDetails(taskId);
+                if (task) {
+                    tasks.push({...task, id: taskId});
+                }
+            }
+            return tasks;
+        }
+        return [];
+    }
 
 
     async function fetchTasksForKanban(sprintId) {
