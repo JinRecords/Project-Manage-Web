@@ -1369,9 +1369,10 @@
         // This is for the burndown chart
         let dates = [];
         let startDate = new Date(sprint.startTime);
+        let endDate = new Date(sprint.endTime);
 
-        while (startDate <= new Date(sprint.endTime)) {
-            dates.push(startDate.toISOString().split('T')[0]);  // Format as YYYY-MM-DD
+        while (startDate <= endDate) {
+            dates.push(startDate.toLocaleDateString('en-GB').replace(/\//g, '-'));  
             startDate.setDate(startDate.getDate() + 1); 
         }
 
@@ -1389,7 +1390,7 @@
                     if (task.status === 'Completed') {
                         completedStoryPoints += parseInt(task.storypoint);
 
-                        let completedDate = convertToISO(task.timeModified);  // Assuming this is where the task's completion date is stored
+                        let completedDate = new Date(task.timeModified).toLocaleDateString().replace(/\//g, '-');  // Assuming this is where the task's completion date is stored
                         console.log("here", completedDate, task.status, task.timeModified);
                         let storyPoints = task.storypoint;       // Story points of the completed task
 
@@ -1523,26 +1524,28 @@
         const ctx = document.getElementById('burndownChart').getContext('2d');
         let remainingStoryPoints = totalStoryPoints;
         const today = new Date();
-        const todayStr = today.toISOString().split('T')[0]; // Format as YYYY-MM-DD for comparison
-
-
-        // Initialize dataPoints array for completed story points
-        const completedDataPoints = dates.map((date) => {
-            console.log("date", date, "today", todayStr, dateStoryPoint[date]);
+        const todayStr = today.toLocaleDateString('en-GB').replace(/\//g, '-'); // Format as YYYY-MM-DD for comparison
+        const completedDataPoints = []
+        
+        dates.map((date) => {
+           
             if (date <= todayStr) {  // Only include data until today
-                if (dateStoryPoint[date] === undefined) {
-                    return remainingStoryPoints; // Keep the remaining story points steady
+                console.log('date', date, 'today', todayStr, 'remaining', remainingStoryPoints);
+                completedDataPoints.push({x: date, y: remainingStoryPoints});
+                // Check if dateStoryPoint[date] is defined
+                const completedPoints = dateStoryPoint[date] || 0; // Use 0 if undefined
+                if (completedPoints > 0) {
+                    remainingStoryPoints -= completedPoints; // Reduce points on completion
+                    completedDataPoints.push({x: date, y: remainingStoryPoints});
                 }
-                remainingStoryPoints -= dateStoryPoint[date]; // Reduce points on completion
-                return remainingStoryPoints;
+            } else {
+                console.log('date', date, 'today', todayStr, 'remaining', remainingStoryPoints);
+                completedDataPoints.push({x: date, y: null});
             }
-            return null; // No points after today
         });
 
         console.log(completedDataPoints);
-        // Filter out the null values for the completed story points
-        const validCompletedDataPoints = completedDataPoints.map((point) => (point !== null ? point : undefined));
-
+        
         // Create a diagonal line from totalStoryPoints to 0 for the guideline
         const diagonalPoints = dates.map((date, index) => {
             // Ensure progress decreases from totalStoryPoints to 0
@@ -1559,15 +1562,16 @@
         burndownChartInstance = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: dates, // X-axis labels
+                //labels: dates, // X-axis labels
                 datasets: [
                     {
                         label: 'Story Points Remaining',
-                        data: validCompletedDataPoints,
+                        data: completedDataPoints,
                         fill: false,
                         borderColor: 'rgb(75, 192, 192)',
                         tension: 0.1,
                         stepped: true
+                        
                     },
                     {
                         label: 'Guideline',
@@ -1576,7 +1580,7 @@
                         borderColor: 'rgba(200, 200, 200, 1)', // Gray color for the guideline
                         borderDash: [], // Solid line
                         pointRadius: 0, // Hide the data points
-                        tension: 0.1 // Optional: adjust if needed
+                        tension: 0.1 
                     }
                 ]
             },
