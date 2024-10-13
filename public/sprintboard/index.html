@@ -820,44 +820,41 @@
     function renderTimeline(history) {
         const timelineContainer = document.getElementById('timeline-events');
         timelineContainer.innerHTML = '';
-
-        // Reverse the history array to display the most recent item at the top
+    
         history.slice().reverse().forEach((event, index) => {
             const timelineEvent = document.createElement('div');
             timelineEvent.className = 'timeline-event';
-
+    
             const dot = document.createElement('div');
             dot.className = 'timeline-dot';
-
+    
             const content = document.createElement('div');
             content.className = 'timeline-content';
-
+    
             const actionTime = document.createElement('p');
-            actionTime.textContent = `${event.action} on ${event.timestamp} \n | by: test1`;
+            actionTime.textContent = `${event.action} on ${event.timestamp} \n | by: ${event.user || 'Unknown User'}`;
             actionTime.style.fontFamily = 'Poppins, sans-serif';
             actionTime.style.width = '45%';
             actionTime.style.marginRight = '10px';
             actionTime.style.float = 'left';
-
-
+    
             const changes = document.createElement('p');
             changes.textContent = event.changes;
             changes.style.fontFamily = 'Poppins, sans-serif';
             changes.style.width = '45%';
             changes.style.float = 'right';
             changes.style.marginTop = '10px';
-
-            // Truncate text if it's too long
+    
             if (changes.textContent.length > 50) {
                 changes.textContent = changes.textContent.substring(0, 47) + '...';
             }
-
+    
             content.appendChild(actionTime);
             content.appendChild(changes);
-
+    
             timelineEvent.appendChild(dot);
             timelineEvent.appendChild(content);
-
+    
             timelineContainer.appendChild(timelineEvent);
         });
     }
@@ -1900,34 +1897,34 @@
     // Function to handle update item
     window.updateSprintBacklogItem = async function (itemId) {
         try {
-
             const formData = getFormDataForUpdate(itemId);
             const currentData = await get(ref(database, `productBacklog/${itemId}`));
-
+    
             if (currentData.exists()) {
+                // Get the current user's username from localStorage
+                const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+                const username = currentUser ? currentUser.username : 'Unknown User';
+    
                 const changes = getChanges(currentData.val(), formData);
-                const updatedData = updateItemHistory(currentData.val(), formData, changes);
+                const updatedData = updateItemHistory(currentData.val(), formData, changes, username);
                 await update(ref(database, `productBacklog/${itemId}`), updatedData);
                 console.log('Data updated successfully');
-
+    
                 if (document.querySelector('.kanban-container')) {
-                    // We're in Kanban mode, move the task
                     const oldColumn = document.querySelector(`.task-card[data-task-id="${itemId}"]`).parentNode;
                     oldColumn.removeChild(document.querySelector(`.task-card[data-task-id="${itemId}"]`));
                     addTaskToColumn(formData.status, formData, itemId);
                 } else {
-                    // We're in Sprint Backlog mode, re-render
                     await fetchSprintTasks(currentSprintId);
                 }
                 setFormMode('edit', itemId);
-
+    
                 toggleEditPopup();
             }
         } catch (error) {
             console.error("Error updating data:", error);
         }
     }
-
 
     // Function to update a sprint
     window.updateSprint = async function (sprintId) {
@@ -1963,7 +1960,7 @@
         };
     }
 
-    function updateItemHistory(currentData, formData, changes) {
+    function updateItemHistory(currentData, formData, changes, username) {
         if (!currentData.history) currentData.history = [];
         currentData.history.push({
             action: 'Modified',
@@ -1971,9 +1968,10 @@
                 day: '2-digit', month: '2-digit', year: 'numeric',
                 hour: '2-digit', minute: '2-digit', second: '2-digit'
             }).replace(/\//g, '-'),
-            changes: changes
+            changes: changes,
+            user: username
         });
-
+    
         formData.history = currentData.history;
         return formData;
     }

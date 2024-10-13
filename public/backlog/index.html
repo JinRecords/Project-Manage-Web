@@ -790,43 +790,41 @@
     function renderTimeline(history) {
         const timelineContainer = document.getElementById('timeline-events');
         timelineContainer.innerHTML = '';
-
-        // Reverse the history array to display the most recent item at the top
+    
         history.slice().reverse().forEach((event, index) => {
             const timelineEvent = document.createElement('div');
             timelineEvent.className = 'timeline-event';
-
+    
             const dot = document.createElement('div');
             dot.className = 'timeline-dot';
-
+    
             const content = document.createElement('div');
             content.className = 'timeline-content';
-
+    
             const actionTime = document.createElement('p');
-            actionTime.textContent = `${event.action} on ${event.timestamp} \n | by: test1`;
+            actionTime.textContent = `${event.action} on ${event.timestamp} | by: ${event.updatedBy || 'Unknown'}`;
             actionTime.style.fontFamily = 'Poppins, sans-serif';
             actionTime.style.width = '45%';
             actionTime.style.marginRight = '10px';
             actionTime.style.float = 'left';
-
+    
             const changes = document.createElement('p');
             changes.textContent = event.changes;
             changes.style.fontFamily = 'Poppins, sans-serif';
             changes.style.width = '45%';
             changes.style.float = 'right';
             changes.style.marginTop = '10px';
-
-            // Truncate text if it's too long
+    
             if (changes.textContent.length > 50) {
                 changes.textContent = changes.textContent.substring(0, 47) + '...';
             }
-
+    
             content.appendChild(actionTime);
             content.appendChild(changes);
-
+    
             timelineEvent.appendChild(dot);
             timelineEvent.appendChild(content);
-
+    
             timelineContainer.appendChild(timelineEvent);
         });
     }
@@ -954,7 +952,12 @@
             const currentData = await get(ref(database, `productBacklog/${itemId}`));
             if (currentData.exists()) {
                 const changes = getChanges(currentData.val(), formData);
-                const updatedData = updateItemHistory(currentData.val(), formData, changes);
+                
+                // Retrieve the current user from localStorage
+                const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+                const updatedBy = currentUser ? currentUser.username : 'Unknown user';
+                
+                const updatedData = updateItemHistory(currentData.val(), formData, changes, updatedBy);
                 await update(ref(database, `productBacklog/${itemId}`), updatedData);
                 console.log('Data updated successfully');
                 togglePopup();
@@ -985,7 +988,7 @@
     }
 
     // Function to update item history
-    function updateItemHistory(currentData, formData, changes) {
+    function updateItemHistory(currentData, formData, changes, updatedBy) {
         if (!currentData.history) currentData.history = [];
         currentData.history.push({
             action: 'Modified',
@@ -993,9 +996,10 @@
                 day: '2-digit', month: '2-digit', year: 'numeric',
                 hour: '2-digit', minute: '2-digit', second: '2-digit'
             }).replace(/\//g, '-'),
-            changes: changes
+            changes: changes,
+            updatedBy: updatedBy // Add this line
         });
-
+    
         formData.history = currentData.history;
         return formData;
     }
