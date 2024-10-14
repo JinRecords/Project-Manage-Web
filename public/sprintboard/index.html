@@ -363,19 +363,29 @@
     let currentSprintId = null;
     let isSprintUpdated = false;
     let currentTaskId = null;
-
-    const encouragingMessages = [
-        "Great job! Keep up the good work!",
-        "You're making excellent progress!",
-        "Awesome work! You're crushing it!",
-        "Way to go! You're on fire!",
-        "Fantastic effort! You're doing great!"
-    ];
-
-    const SPRINT_COMPLETION_MESSAGE = "Great job on reaching the end of the sprint!";
+    let lastMessageIndex = -1;
 
     function getRandomMessage() {
-        return encouragingMessages[Math.floor(Math.random() * encouragingMessages.length)];
+        const encouragingMessages = [
+            "Great job! Keep up the good work!",
+            "You're making excellent progress!",
+            "Awesome work! You're crushing it!",
+            "Way to go! You're on fire!",
+            "Fantastic effort! You're doing great!",
+            "Keep pushing forward, you're doing amazing!",
+            "Your hard work is paying off, well done!",
+            "You're unstoppable, keep it going!",
+            "Impressive progress, keep shining!",
+            "You're a rockstar, keep up the momentum!"
+        ];
+
+        let newIndex;
+        do {
+            newIndex = Math.floor(Math.random() * encouragingMessages.length);
+        } while (newIndex === lastMessageIndex);
+
+        lastMessageIndex = newIndex;
+        return encouragingMessages[newIndex];
     }
 
     // Function to show an encouraging message
@@ -1899,26 +1909,33 @@
         try {
             const formData = getFormDataForUpdate(itemId);
             const currentData = await get(ref(database, `productBacklog/${itemId}`));
-    
+
             if (currentData.exists()) {
+                const oldStatus = currentData.val().status;
+                const newStatus = formData.status;
+
                 // Get the current user's username from localStorage
                 const currentUser = JSON.parse(localStorage.getItem('currentUser'));
                 const username = currentUser ? currentUser.username : 'Unknown User';
-    
+
                 const changes = getChanges(currentData.val(), formData);
                 const updatedData = updateItemHistory(currentData.val(), formData, changes, username);
                 await update(ref(database, `productBacklog/${itemId}`), updatedData);
                 console.log('Data updated successfully');
-    
+
+                if (oldStatus !== "Completed" && newStatus === "Completed") {
+                    showEncouragingMessage(getRandomMessage());
+                }
+
                 if (document.querySelector('.kanban-container')) {
                     const oldColumn = document.querySelector(`.task-card[data-task-id="${itemId}"]`).parentNode;
                     oldColumn.removeChild(document.querySelector(`.task-card[data-task-id="${itemId}"]`));
-                    addTaskToColumn(formData.status, formData, itemId);
+                    addTaskToColumn(newStatus, formData, itemId);
                 } else {
                     await fetchSprintTasks(currentSprintId);
                 }
                 setFormMode('edit', itemId);
-    
+
                 toggleEditPopup();
             }
         } catch (error) {
