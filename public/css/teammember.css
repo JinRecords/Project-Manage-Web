@@ -29,22 +29,6 @@
 
    .form-buttons button { margin-left: 10px; }
 
-   .overlay {
-       position: fixed;
-       top: 0;
-       left: 0;
-       width: 100%;
-       height: 100%;
-       background-color: rgba(0, 0, 0, 0);
-       z-index: 1000;
-       transition: background-color 0.5s ease;
-       display: none;
-   }
-
-   .overlay.open {
-       display: block;
-       background-color: rgba(0, 0, 0, 0.7);
-   }
 
    .tags-container {
        display: flex;
@@ -164,6 +148,9 @@
    }
 
    .card-header {
+       display: flex;
+       flex-direction: row;
+         justify-content: space-between;
        background-color: #f8f9fa;
        border-bottom: 1px solid #e9ecef;
        border-radius: 20px 20px 0 0 !important;
@@ -206,9 +193,10 @@
        left: 0;
        width: 100%;
        height: 100%;
-       background-color: rgba(0, 0, 0, 0.5);
-       z-index: 1000;
+       z-index: 1001;
    }
+
+
 
    .custom-popup-content {
        position: absolute;
@@ -219,6 +207,7 @@
        padding: 20px;
        border-radius: 5px;
        text-align: center;
+       z-index: 1001;
    }
 
    .custom-popup-buttons {
@@ -227,6 +216,23 @@
 
    .custom-popup-buttons button {
        margin: 0 10px;
+   }
+
+      .overlay {
+       position: fixed;
+       top: 0;
+       left: 0;
+       width: 100%;
+       height: 100%;
+       background-color: rgba(0, 0, 0, 0.5);
+       z-index: 1000;
+       transition: background-color 0.5s ease;
+       display: none;
+   }
+
+   .overlay.open {
+       display: block;
+       background-color: rgba(0, 0, 0, 0.7);
    }
 
    .three-dot-menu {
@@ -354,7 +360,7 @@
    }
 
    .main-content {
-       margin-left: 300px; /* Combined width of both sidebars */
+       margin-left: 330px; /* Combined width of both sidebars */
        padding: 20px;
    }
 
@@ -455,4 +461,57 @@
    padding: 10px 0;
    z-index: 1;
    font-family: 'Poppins', sans-serif;
+}
+
+.userCardsContainer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px; /* Add some gap between cards */
+}
+
+.filter-time-spent-popup {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1002;
+}
+
+.read-only .card {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.filter-time-spent-popup {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1002;
+}
+
+.filter-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.filter-time-spent-popup .custom-popup-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    z-index: 1003;
 }
