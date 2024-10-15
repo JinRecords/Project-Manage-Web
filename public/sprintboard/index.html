@@ -1745,27 +1745,29 @@
     }
 
 
-    async function fetchBacklogTasks() {
-        const backlogContainer = document.getElementById('backlogTasks');
-        if (!backlogContainer) {
-            console.error('Backlog container not found');
-            return;
-        }
-        const db = getDatabase();
-        const backlogRef = ref(db, 'productBacklog');
-        const snapshot = await get(backlogRef);
-        if (snapshot.exists()) {
-            const backlogTasks = snapshot.val();
-            backlogContainer.innerHTML = '';
-            Object.entries(backlogTasks).forEach(([key, task]) => {
-                if (!currentSprintTasks.includes(key)) {
-                    const taskCard = createTaskCard(key, task);
-                    backlogContainer.appendChild(taskCard);
-                }
-            });
-        }
-        initDragAndDrop();
+async function fetchBacklogTasks() {
+    const backlogContainer = document.getElementById('backlogTasks');
+    if (!backlogContainer) {
+        console.error('Backlog container not found');
+        return;
     }
+    const db = getDatabase();
+    const backlogRef = ref(db, 'productBacklog');
+    const snapshot = await get(backlogRef);
+    if (snapshot.exists()) {
+        const backlogTasks = snapshot.val();
+        backlogContainer.innerHTML = '';
+        Object.entries(backlogTasks).forEach(([key, task]) => {
+            // Check if the task is not hidden and not part of current sprint tasks
+            if (!task.hidden && !currentSprintTasks.includes(key)) {
+                const taskCard = createTaskCard(key, task);
+                backlogContainer.appendChild(taskCard);
+            }
+        });
+    }
+    initDragAndDrop();
+}
+
 
     // Function to set sprint form mode
     function setSprintFormMode(mode, sprint = null) {
@@ -2603,26 +2605,41 @@
         return snapshot.exists() ? snapshot.val() : null;
     }
 
-    async function saveSprintBacklog() {
-        const sprintTasks = Array.from(document.querySelectorAll('#sprintTasks .task-card'))
-            .map(card => card.getAttribute('data-task-id'));
-        const sprintIdElement = document.querySelector('h2[data-sprint-id]');
-        const sprintId = sprintIdElement.getAttribute('data-sprint-id');
-        console.log('Sprint ID:', sprintId);
-        if (!sprintId) {
-            console.error('Sprint ID not found');
-            return;
-        }
-        const sprintRef = ref(database, `sprintboard/${sprintId}/sprintTasks`);
-        try {
-            await set(sprintRef, sprintTasks);
-            console.log('Sprint tasks saved successfully');
-            // Do not remove tasks from backlog
-            exitSprintBacklogMode();
-        } catch (error) {
-            console.error('Error saving sprint tasks:', error);
-        }
+async function saveSprintBacklog() {
+    const sprintTasks = Array.from(document.querySelectorAll('#sprintTasks .task-card'))
+        .map(card => card.getAttribute('data-task-id'));
+    const sprintIdElement = document.querySelector('h2[data-sprint-id]');
+    const sprintId = sprintIdElement.getAttribute('data-sprint-id');
+    console.log('Sprint ID:', sprintId);
+    if (!sprintId) {
+        console.error('Sprint ID not found');
+        return;
     }
+
+    const db = getDatabase();
+    const sprintRef = ref(db, `sprintboard/${sprintId}/sprintTasks`);
+
+    try {
+        // Save the sprint tasks
+        await set(sprintRef, sprintTasks);
+        console.log('Sprint tasks saved successfully');
+
+        // Set hidden key to true for each backlog item
+        const updates = {};
+        sprintTasks.forEach(taskId => {
+            updates[`productBacklog/${taskId}/hidden`] = true;
+        });
+
+        await update(ref(db), updates);
+        console.log('Backlog items updated to hidden');
+
+        // Do not remove tasks from backlog
+        exitSprintBacklogMode();
+    } catch (error) {
+        console.error('Error saving sprint tasks:', error);
+    }
+}
+
 
     window.getAllSprintsFromFirebase = async function () {
         try {

@@ -790,41 +790,41 @@
     function renderTimeline(history) {
         const timelineContainer = document.getElementById('timeline-events');
         timelineContainer.innerHTML = '';
-    
+
         history.slice().reverse().forEach((event, index) => {
             const timelineEvent = document.createElement('div');
             timelineEvent.className = 'timeline-event';
-    
+
             const dot = document.createElement('div');
             dot.className = 'timeline-dot';
-    
+
             const content = document.createElement('div');
             content.className = 'timeline-content';
-    
+
             const actionTime = document.createElement('p');
             actionTime.textContent = `${event.action} on ${event.timestamp} | by: ${event.updatedBy || 'Unknown'}`;
             actionTime.style.fontFamily = 'Poppins, sans-serif';
             actionTime.style.width = '45%';
             actionTime.style.marginRight = '10px';
             actionTime.style.float = 'left';
-    
+
             const changes = document.createElement('p');
             changes.textContent = event.changes;
             changes.style.fontFamily = 'Poppins, sans-serif';
             changes.style.width = '45%';
             changes.style.float = 'right';
             changes.style.marginTop = '10px';
-    
+
             if (changes.textContent.length > 50) {
                 changes.textContent = changes.textContent.substring(0, 47) + '...';
             }
-    
+
             content.appendChild(actionTime);
             content.appendChild(changes);
-    
+
             timelineEvent.appendChild(dot);
             timelineEvent.appendChild(content);
-    
+
             timelineContainer.appendChild(timelineEvent);
         });
     }
@@ -861,32 +861,45 @@
     const productBacklogRef = ref(database, 'productBacklog');
 
     // Function to fetch product backlog
-    window.fetchProductBacklog = async function () {
-        try {
-            const snapshot = await get(productBacklogRef);
-            if (snapshot.exists()) {
-                const data = snapshot.val();
-                const result = currentFilterOption.length > 0 ? filterBacklogItems(data) : sortBacklogItems(data);
-                window.renderProductBacklog(result);
-            } else {
-                console.log("No data available");
-            }
-        } catch (error) {
-            console.error("Error fetching product backlog:", error);
-        }
-    }
-
-    function setupRealtimeListener() {
-        const productBacklogRef = ref(database, 'productBacklog');
-        onValue(productBacklogRef, (snapshot) => {
+// Function to fetch and filter product backlog
+window.fetchProductBacklog = async function () {
+    try {
+        const snapshot = await get(productBacklogRef);
+        if (snapshot.exists()) {
             let data = snapshot.val();
-            if (data === null) {
-                data = {}; // Ensure we're always working with an object
-            }
+            // Filter out items where hidden is true
+            data = Object.fromEntries(Object.entries(data).filter(([key, value]) => !value.hidden));
             const result = currentFilterOption.length > 0 ? filterBacklogItems(data) : sortBacklogItems(data);
             window.renderProductBacklog(result);
-        });
+        } else {
+            console.log("No data available");
+        }
+    } catch (error) {
+        console.error("Error fetching product backlog:", error);
     }
+};
+
+
+function setupRealtimeListener() {
+    const productBacklogRef = ref(database, 'productBacklog');
+    onValue(productBacklogRef, (snapshot) => {
+        let data = snapshot.val();
+        if (data === null) {
+            data = {}; // Ensure we're always working with an object
+        }
+        // Filter out items where hidden is true
+        data = Object.fromEntries(Object.entries(data).filter(([key, value]) => !value.hidden));
+
+        const result = currentFilterOption.length > 0 ? filterBacklogItems(data) : sortBacklogItems(data);
+        window.renderProductBacklog(result);
+    });
+}
+
+// Ensure this function is called when the document is ready
+document.addEventListener('DOMContentLoaded', () => {
+    setupRealtimeListener();
+});
+
 
     // Function to send form data to Firebase
     window.sendFormDataToFirebase = async function () {
@@ -929,7 +942,8 @@
             }).replace(/\//g, '-'),
             timestamp: Date.now(),
             tags: window.tags || [],
-            timespent: 0
+            timespent: 0,
+            hidden: false
         };
     }
 
@@ -952,11 +966,11 @@
             const currentData = await get(ref(database, `productBacklog/${itemId}`));
             if (currentData.exists()) {
                 const changes = getChanges(currentData.val(), formData);
-                
+
                 // Retrieve the current user from localStorage
                 const currentUser = JSON.parse(localStorage.getItem('currentUser'));
                 const updatedBy = currentUser ? currentUser.username : 'Unknown user';
-                
+
                 const updatedData = updateItemHistory(currentData.val(), formData, changes, updatedBy);
                 await update(ref(database, `productBacklog/${itemId}`), updatedData);
                 console.log('Data updated successfully');
@@ -999,7 +1013,7 @@
             changes: changes,
             updatedBy: updatedBy // Add this line
         });
-    
+
         formData.history = currentData.history;
         return formData;
     }
