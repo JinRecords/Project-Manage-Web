@@ -1373,6 +1373,7 @@ async function fetchBacklogTasks() {
 async function saveSprintBacklog() {
     const sprintTasks = Array.from(document.querySelectorAll('#sprintTasks .task-card'))
         .map(card => card.getAttribute('data-task-id'));
+
     const sprintIdElement = document.querySelector('h2[data-sprint-id]');
     const sprintId = sprintIdElement.getAttribute('data-sprint-id');
     console.log('Sprint ID:', sprintId);
@@ -1383,6 +1384,9 @@ async function saveSprintBacklog() {
 
     const db = getDatabase();
     const sprintRef = ref(db, `sprintboard/${sprintId}/sprintTasks`);
+    const backlogTasks = Array.from(document.querySelectorAll('#backlogTasks .task-card'))
+        .map(card => card.getAttribute('data-task-id'));
+
 
     try {
         // Save the sprint tasks
@@ -1391,9 +1395,15 @@ async function saveSprintBacklog() {
 
         // Set hidden key to true for each backlog item
         const updates = {};
-        sprintTasks.forEach(taskId => {
+      sprintTasks.forEach(taskId => {
             updates[`productBacklog/${taskId}/hidden`] = true;
         });
+
+        // Set hidden to false for all tasks in the backlog
+        backlogTasks.forEach(taskId => {
+            updates[`productBacklog/${taskId}/hidden`] = false;
+        });
+
 
         await update(ref(db), updates);
         console.log('Backlog items updated to hidden');
@@ -1555,45 +1565,45 @@ async function saveSprintBacklog() {
         }, {offset: Number.NEGATIVE_INFINITY}).element;
     }
 
-    async function updateTaskStatus(taskId, fromContainer, toContainer) {
-        const isMovingToSprint = toContainer === 'sprintTasks';
-        console.log(`Moving task ${taskId} from ${fromContainer} to ${toContainer}`);
+ async function updateTaskStatus(taskId, fromContainer, toContainer) {
+    console.log(`Moving task ${taskId} from ${fromContainer} to ${toContainer}`);
 
-        const db = getDatabase();
-        const sprintIdElement = document.querySelector('.tasks-container h2');
-        const sprintId = sprintIdElement ? sprintIdElement.getAttribute('data-sprint-id') : null;
+    const db = getDatabase();
+    const sprintIdElement = document.querySelector('.tasks-container h2');
+    const sprintId = sprintIdElement ? sprintIdElement.getAttribute('data-sprint-id') : null;
 
-        if (!sprintId) {
-            console.error('Sprint ID not found');
-            return;
-        }
-
-        const sprintRef = ref(db, `sprintboard/${sprintId}`);
-        const sprintSnapshot = await get(sprintRef);
-
-        if (!sprintSnapshot.exists()) {
-            console.error('Sprint not found');
-            return;
-        }
-
-        const sprint = sprintSnapshot.val();
-        let sprintTasks = sprint.sprintTasks || [];
-
-        if (isMovingToSprint) {
-            if (!sprintTasks.includes(taskId)) {
-                sprintTasks.push(taskId);
-            }
-        } else {
-            sprintTasks = sprintTasks.filter(id => id !== taskId);
-        }
-
-        try {
-            await update(sprintRef, {sprintTasks});
-            console.log('Sprint tasks updated successfully');
-        } catch (error) {
-            console.error('Error updating sprint tasks:', error);
-        }
+    if (!sprintId) {
+        console.error('Sprint ID not found');
+        return;
     }
+
+    const sprintRef = ref(db, `sprintboard/${sprintId}`);
+    const sprintSnapshot = await get(sprintRef);
+
+    if (!sprintSnapshot.exists()) {
+        console.error('Sprint not found');
+        return;
+    }
+
+    const sprint = sprintSnapshot.val();
+    let sprintTasks = sprint.sprintTasks || [];
+
+    if (fromContainer === 'sprintTasks') {
+        if (!sprintTasks.includes(taskId)) {
+            sprintTasks.push(taskId);
+        }
+    } else if (fromContainer === 'backlogTasks') {
+        sprintTasks = sprintTasks.filter(id => id !== taskId);
+    }
+
+    try {
+        await update(sprintRef, { sprintTasks });
+        console.log('Sprint tasks updated successfully');
+    } catch (error) {
+        console.error('Error updating sprint tasks:', error);
+    }
+}
+
 
 
     function createTaskCard(key, task) {

@@ -23,8 +23,10 @@
         import {getDatabase, ref, push} from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
     </script>
     <title>Backlog</title>
-<link rel="preload" href="../css/backlogStyle.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-<noscript><link rel="stylesheet" href="../css/backlogStyle.css"></noscript>
+    <link rel="preload" href="../css/backlogStyle.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet" href="../css/backlogStyle.css">
+    </noscript>
 </head>
 <body data-clean-url="true">
 
@@ -147,7 +149,8 @@
                 <button type="button" class="pill-button status-in-progress" onclick="setStatus('In progress')">In
                     progress
                 </button>
-                <button type="button" class="pill-button status-completed" onclick="setStatus('Completed')">Completed</button>
+                <button type="button" class="pill-button status-completed" onclick="setStatus('Completed')">Completed
+                </button>
                 <input type="hidden" id="status-input" value="Not started">
             </div>
             <div class="form-group">
