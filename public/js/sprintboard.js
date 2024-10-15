@@ -1240,7 +1240,7 @@ async function fetchBacklogTasks() {
             teamMembers: window.teamMembers || [],
             startTime: form.elements['sprintStartTime'].value,
             endTime: form.elements['sprintEndTime'].value,
-            status: statusElement ? statusElement.textContent : 'Not started'
+            status: calculateSprintStatus(form.elements['sprintStartTime'].value, form.elements['sprintEndTime'].value)
         };
     }
 
