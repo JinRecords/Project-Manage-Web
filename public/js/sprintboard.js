@@ -613,6 +613,7 @@ async function fetchBacklogTasks() {
         document.getElementById('overlay-sprint').addEventListener('click', (event) => {
             if (event.target === document.getElementById('overlay-sprint')) {
                 toggleSprintPopup();
+                hideTeamMemberSelectionPopup();
             }
         });
 
@@ -636,6 +637,7 @@ async function fetchBacklogTasks() {
         document.getElementById('overlay-task').addEventListener('click', (event) => {
             if (event.target === document.getElementById('overlay-task')) {
                 toggleEditPopup();
+                hideTagSelectionPopup();
             }
         });
 

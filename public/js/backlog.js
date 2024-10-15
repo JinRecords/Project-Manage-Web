@@ -87,6 +87,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to get form data
     function getFormData() {
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        const createdBy = currentUser ? currentUser.username : 'Unknown';
+    
         return {
             title: document.getElementById('title').value,
             description: document.getElementById('description').value,
@@ -101,7 +104,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     day: '2-digit', month: '2-digit', year: 'numeric',
                     hour: '2-digit', minute: '2-digit', second: '2-digit'
                 }).replace(/\//g, '-'),
-                changes: 'Item created'
+                changes: 'Item created',
+                updatedBy: createdBy // Include the creator's username
             }],
             timeModified: new Date().toLocaleString('en-GB', {
                 day: '2-digit', month: '2-digit', year: 'numeric',
@@ -260,6 +264,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('overlay').addEventListener('click', function () {
         togglePopup();
+        hideTagSelectionPopup();
     });
 
     document.addEventListener('click', (event) => {
