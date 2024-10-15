@@ -128,55 +128,59 @@
         toggleProgressPopup();
     }
 
+    function parseDate(dateString) {
+        const parts = dateString.split(/[-, :]/);
+        return new Date(parts[2], parts[1] - 1, parts[0], parts[3], parts[4], parts[5]);
+    }
+async function createSprintCardAsync(sprint, key) {
+    let totalStoryPoints = 0;
+    let completedStoryPoints = 0;
+    let dateStoryPoint = {};  // Dictionary to track story points by completion date
 
-    async function createSprintCardAsync(sprint, key) {
-        let totalStoryPoints = 0;
-        let completedStoryPoints = 0;
-        let dateStoryPoint = {};  // Dictionary to track story points by completion date
+    // This is for the burndown chart
+    let dates = [];
+    let startDate = new Date(sprint.startTime);
+    let endDate = new Date(sprint.endTime);
 
-        // This is for the burndown chart
-        let dates = [];
-        let startDate = new Date(sprint.startTime);
-        let endDate = new Date(sprint.endTime);
+    while (startDate <= endDate) {
+        dates.push(startDate.toLocaleDateString('en-GB').replace(/\//g, '-'));
+        startDate.setDate(startDate.getDate() + 1);
+    }
 
-        while (startDate <= endDate) {
-            dates.push(startDate.toLocaleDateString('en-GB').replace(/\//g, '-'));
-            startDate.setDate(startDate.getDate() + 1);
-        }
+    console.log("*******:", dates);
+    console.log("S", startDate, sprint.endDate);
 
-        console.log("*******:", dates);
-        console.log("S", startDate, sprint.endDate);
+    if (sprint.sprintTasks) {
+        for (const taskId of sprint.sprintTasks) {
+            const task = await fetchTaskDetails(taskId);
+            if (task) {
+                // Add total story points from the task
+                totalStoryPoints += parseInt(task.storypoint);
 
-        if (sprint.sprintTasks) {
-            for (const taskId of sprint.sprintTasks) {
-                const task = await fetchTaskDetails(taskId);
-                if (task) {
-                    // Add total story points from the task
-                    totalStoryPoints += parseInt(task.storypoint);
+                // If the task is completed, update completed story points and store by date
+                if (task.status === 'Completed') {
+                    completedStoryPoints += parseInt(task.storypoint);
 
-                    // If the task is completed, update completed story points and store by date
-                    if (task.status === 'Completed') {
-                        completedStoryPoints += parseInt(task.storypoint);
+                    let completedDate = parseDate(task.timeModified).toLocaleDateString('en-GB').replace(/\//g, '-');  // Assuming this is where the task's completion date is stored
+                    console.log("here", completedDate, task.status, task.timeModified);
+                    let storyPoints = task.storypoint;       // Story points of the completed task
 
-                        let completedDate = new Date(task.timeModified).toLocaleDateString().replace(/\//g, '-');  // Assuming this is where the task's completion date is stored
-                        console.log("here", completedDate, task.status, task.timeModified);
-                        let storyPoints = task.storypoint;       // Story points of the completed task
-
-                        // Check if the completed date is already in the dictionary
-                        if (dateStoryPoint[completedDate]) {
-                            // Accumulate story points for this date
-                            dateStoryPoint[completedDate] += parseInt(storyPoints);
-                        } else {
-                            // Create a new entry in the dictionary with the completed date
-                            dateStoryPoint[completedDate] = parseInt(storyPoints);
-                        }
+                    // Check if the completed date is already in the dictionary
+                    if (dateStoryPoint[completedDate]) {
+                        // Accumulate story points for this date
+                        dateStoryPoint[completedDate] += parseInt(storyPoints);
+                    } else {
+                        // Create a new entry in the dictionary with the completed date
+                        dateStoryPoint[completedDate] = parseInt(storyPoints);
                     }
                 }
             }
-
-            // At this point, `dateStoryPoint` contains the accumulated story points by completion date
-            console.log("Story points by completion date:", dateStoryPoint);
         }
+
+        // At this point, `dateStoryPoint` contains the accumulated story points by completion date
+        console.log("Story points by completion date:", dateStoryPoint);
+    }
+
 
 
         const card = document.createElement('div');
