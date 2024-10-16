@@ -87,6 +87,16 @@
    background-color: #E3E649;
 }
 
+.logout-btn{
+    width: 75% !important;
+    text-anchor: start;
+    position: absolute;
+    bottom: 0;
+}
+.hint{
+    padding-top: 8%;
+}
+
 .status-completed {
    background-color: #7EBF60 !important;
 }
@@ -103,6 +113,7 @@
        display: none;
        width: 300px;
    }
+
 
    .tag-selection-popup.open { display: block; }
 

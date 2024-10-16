@@ -151,6 +151,13 @@
 
    .btn-primary { background-color: #6E6AF0; }
 
+   .logout-btn{
+    width: 75% !important;
+    text-anchor: start;
+    position: absolute;
+    bottom: 0;
+}
+
    .grey-line-break {
        border: none;
        border-top: 1px solid #959BA3;

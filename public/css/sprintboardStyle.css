@@ -618,6 +618,13 @@
     color: black; /* Make the title text white for visibility */
 }
 
+.logout-btn{
+    width: 75% !important;
+    text-anchor: start;
+    position: absolute;
+    bottom: 0;
+}
+
 #listViewContainer .task-card .card-body {
     display: flex;
     flex-wrap: wrap;
