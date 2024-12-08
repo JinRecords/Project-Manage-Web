@@ -13,14 +13,14 @@
 
     // Firebase configuration (same as Product Backlog)
     const firebaseConfig = {
-        apiKey: "AIzaSyDicFj4DUKZo2iYXZN8tUE2FcMLqmQ_cgU",
-        authDomain: "izuck-digital.firebaseapp.com",
-        databaseURL: "https://izuck-digital-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "izuck-digital",
-        storageBucket: "izuck-digital.appspot.com",
-        messagingSenderId: "875586622876",
-        appId: "1:875586622876:web:dab65a8d81690d7a18e459",
-        measurementId: "G-1YRPZNH521"
+        apiKey: "lmao",
+        authDomain: "lmao",
+        databaseURL: "lmao",
+        projectId: "lmao",
+        storageBucket: "lmao",
+        messagingSenderId: "lmao",
+        appId: "lmao",
+        measurementId: "lmao"
     };
 
     // Initialize Firebase app
