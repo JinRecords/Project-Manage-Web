@@ -1,5 +1,6 @@
 # iZuck Digital
 # All the api keys (if any) have been removed and permanently deativated from firebase.
+# DO NOT PLAGIARIZE.
 ## Overview
 
 This repository contains the codebase for our Project Management Tool, a web application designed to help teams manage projects, track progress, and collaborate effectively. Our tool is inspired by popular platforms like monday.com and Trello, and aims to streamline project management with customizable features tailored to our users' needs.
